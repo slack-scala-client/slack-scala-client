@@ -2,6 +2,7 @@ package slack.api
 
 import slack.models._
 
+import java.io.File
 import scala.concurrent.ExecutionContext
 
 import dispatch._
@@ -10,6 +11,9 @@ import play.api.libs.json._
 object SlackApiClient {
 
   implicit val historyChunkFmt = Json.format[HistoryChunk]
+  implicit val pagingObjectFmt = Json.format[PagingObject]
+  implicit val filesResponseFmt = Json.format[FilesResponse]
+  implicit val fileInfoFmt = Json.format[FileInfo]
 
   def apply(token: String): SlackApiClient = {
     new SlackApiClient(token)
@@ -160,6 +164,54 @@ class SlackApiClient(token: String) {
   }
 
 
+  /***************************/
+  /****  Emoji Endpoints  ****/
+  /***************************/
+
+  def listEmojis()(implicit ec: ExecutionContext): Future[Map[String,String]] = {
+    val res = makeApiRequest("emoji.list")
+    extract[Map[String,String]](res, "emoji")
+  }
+
+
+  /**************************/
+  /****  File Endpoints  ****/
+  /**************************/
+
+  def deleteFile(fileId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("files.delete", ("file" -> fileId))
+    extract[Boolean](res, "ok")
+  }
+
+  def getFileInfo(fileId: String, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FileInfo] = {
+    var params = createParams (
+      ("file" -> fileId),
+      ("count" -> count),
+      ("page" -> page)
+    )
+    val res = makeApiRequest("files.info", params: _*)
+    res.map(_.as[FileInfo])
+  }
+
+  def listFiles(userId: Option[String] = None, tsFrom: Option[String] = None, tsTo: Option[String] = None, types: Option[Seq[String]] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FilesResponse] = {
+    var params = createParams (
+      ("user" -> userId),
+      ("ts_from" -> tsFrom),
+      ("ts_to" -> tsTo),
+      ("types" -> types.map(_.mkString(","))),
+      ("count" -> count),
+      ("page" -> page)
+    )
+    val res = makeApiRequest("files.list", params: _*)
+    res.map(_.as[FilesResponse])
+  }
+
+  def uploadFile(file: File)(implicit ec: ExecutionContext): Future[File] = {
+    ??? // TODO
+  }
+
+
   /*****************************/
   /****  Private Funstions  ****/
   /*****************************/
@@ -218,4 +270,22 @@ case class ChatMessage (
   unfurl_media: Option[Boolean],
   icon_url: Option[String],
   icon_emoji: Option[String]
+)
+
+case class FileInfo (
+  file: SlackFile,
+  comments: Seq[SlackComment],
+  paging: PagingObject
+)
+
+case class FilesResponse (
+  files: Seq[SlackFile],
+  paging: PagingObject
+)
+
+case class PagingObject (
+  count: Int,
+  total: Int,
+  page: Int,
+  pages: Int
 )
