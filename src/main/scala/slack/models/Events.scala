@@ -11,7 +11,7 @@ case class Hello (
 
 // TODO: Message Sub-types
 case class Message (
-  ts: Long,
+  ts: String,
   user: String,
   text: String,
   is_starred: Option[Boolean]
@@ -24,7 +24,7 @@ case class UserTyping (
 
 case class ChannelMarked (
   channel: String,
-  ts: Long
+  ts: String
 ) extends SlackEvent
 
 case class ChannelCreated (
@@ -59,8 +59,8 @@ case class ChannelUnarchive (
 
 case class ChannelHistoryChanged (
   latest: Long,
-  ts: Long,
-  event_ts: Long
+  ts: String,
+  event_ts: String
 ) extends SlackEvent
 
 case class ImCreated (
@@ -80,13 +80,13 @@ case class ImClose (
 
 case class ImMarked (
   channel: String,
-  ts: Long
+  ts: String
 ) extends SlackEvent
 
 case class ImHistoryChanged (
   latest: Long,
-  ts: Long,
-  event_ts: Long
+  ts: String,
+  event_ts: String
 ) extends SlackEvent
 
 case class GroupJoin (
@@ -121,13 +121,13 @@ case class GroupRename (
 
 case class GroupMarked (
   channel: String,
-  ts: Long
+  ts: String
 ) extends SlackEvent
 
 case class GroupHistoryChanged (
   latest: Long,
-  ts: Long,
-  event_ts: Long
+  ts: String,
+  event_ts: String
 ) extends SlackEvent
 
 case class FileCreated (
@@ -156,7 +156,7 @@ case class FileChange (
 
 case class FileDeleted (
   file_id: String,
-  event_ts: Long
+  event_ts: String
 ) extends SlackEvent
 
 case class FileCommentAdded (
@@ -210,21 +210,21 @@ case class TeamJoin (
 case class StarAdded (
   user: String,
   item: JsValue, // TODO: Different item types -- https://api.slack.com/methods/stars.list
-  event_ts: Long
+  event_ts: String
 ) extends SlackEvent
 
 case class StarRemoved (
   user: String,
   item: JsValue, // TODO: Different item types -- https://api.slack.com/methods/stars.list
-  event_ts: Long
+  event_ts: String
 ) extends SlackEvent
 
 case class EmojiChanged (
-  event_ts: Long
+  event_ts: String
 ) extends SlackEvent
 
 case class CommandsChanged (
-  event_ts: Long
+  event_ts: String
 ) extends SlackEvent
 
 case class TeamPlanChanged (
