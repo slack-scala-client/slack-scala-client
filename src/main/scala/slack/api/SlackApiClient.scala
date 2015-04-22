@@ -10,7 +10,8 @@ import play.api.libs.json._
 
 object SlackApiClient {
 
-  implicit val historyChunkFmt = Json.format[HistoryChunk]
+  implicit val channelHistoryChunkFmt = Json.format[ChannelHistoryChunk]
+  implicit val groupHistoryChunkFmt = Json.format[GroupHistoryChunk]
   implicit val pagingObjectFmt = Json.format[PagingObject]
   implicit val filesResponseFmt = Json.format[FilesResponse]
   implicit val fileInfoFmt = Json.format[FileInfo]
@@ -57,8 +58,8 @@ class SlackApiClient(token: String) {
   }
 
   // TODO: Paging
-  def channelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
-      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
+  def getChannelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[ChannelHistoryChunk] = {
     var params = createParams (
       ("channel" -> channelId),
       ("latest" -> latest),
@@ -67,7 +68,7 @@ class SlackApiClient(token: String) {
       ("count" -> count)
     )
     val res = makeApiRequest("channels.history", params: _*)
-    res.map(_.as[HistoryChunk])
+    res.map(_.as[ChannelHistoryChunk])
   }
 
   def getChannelInfo(channelId: String)(implicit ec: ExecutionContext): Future[Channel] = {
@@ -86,12 +87,12 @@ class SlackApiClient(token: String) {
   }
 
   def kickFromChannel(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.invite", ("channel" -> channelId), ("user" -> userId))
+    val res = makeApiRequest("channels.kick", ("channel" -> channelId), ("user" -> userId))
     extract[Boolean](res, "ok")
   }
 
-  def listChannels()(implicit ec: ExecutionContext): Future[Seq[Channel]] = {
-    val res = makeApiRequest("channels.list")
+  def listChannels(excludeArchived: Int = 0)(implicit ec: ExecutionContext): Future[Seq[Channel]] = {
+    val res = makeApiRequest("channels.list", ("exclude_archived" -> excludeArchived.toString))
     extract[Seq[Channel]](res, "channels")
   }
 
@@ -212,6 +213,100 @@ class SlackApiClient(token: String) {
   }
 
 
+  /***************************/
+  /****  Group Endpoints  ****/
+  /***************************/
+
+  def archiveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.archive", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def closeGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.close", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def createGroup(name: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiRequest("groups.create", ("name" -> name))
+    extract[Group](res, "group")
+  }
+
+  def createChildGroup(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiRequest("groups.createChild", ("channel" -> channelId))
+    extract[Group](res, "group")
+  }
+
+  def getGroupHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[GroupHistoryChunk] = {
+    var params = createParams (
+      ("channel" -> channelId),
+      ("latest" -> latest),
+      ("oldest" -> oldest),
+      ("inclusive" -> inclusive),
+      ("count" -> count)
+    )
+    val res = makeApiRequest("groups.history", params: _*)
+    res.map(_.as[GroupHistoryChunk])
+  }
+
+  def getGroupInfo(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiRequest("groups.info", ("channel" -> channelId))
+    extract[Group](res, "group")
+  }
+
+  def inviteToGroup(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiRequest("groups.invite", ("channel" -> channelId), ("user" -> userId))
+    extract[Group](res, "group")
+  }
+
+  def kickFromGroup(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.kick", ("channel" -> channelId), ("user" -> userId))
+    extract[Boolean](res, "ok")
+  }
+
+  def leaveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.leave", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def listGroups(excludeArchived: Int = 0)(implicit ec: ExecutionContext): Future[Seq[Group]] = {
+    val res = makeApiRequest("groups.list", ("exclude_archived" -> excludeArchived.toString))
+    extract[Seq[Group]](res, "groups")
+  }
+
+  def markGroup(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.mark", ("channel" -> channelId), ("ts" -> ts))
+    extract[Boolean](res, "ok")
+  }
+
+  def openGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.open", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  // TODO: Lite Group Object
+  def renameGroup(channelId: String, name: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.rename", ("channel" -> channelId), ("name" -> name))
+    extract[Boolean](res, "ok")
+  }
+
+  def setGroupPurpose(channelId: String, purpose: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiRequest("groups.setPurpose", ("channel" -> channelId), ("purpose" -> purpose))
+    extract[String](res, "purpose")
+  }
+
+  def setGroupTopic(channelId: String, topic: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiRequest("groups.setTopic", ("channel" -> channelId), ("topic" -> topic))
+    extract[String](res, "topic")
+  }
+
+  def unarchiveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("groups.unarchive", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+
   /*****************************/
   /****  Private Funstions  ****/
   /*****************************/
@@ -253,11 +348,17 @@ class SlackApiClient(token: String) {
 
 case class ApiError(code: String) extends Exception(code)
 
-case class HistoryChunk (
+case class ChannelHistoryChunk (
   latest: Long,
   messages: Seq[JsValue],
   has_more: Boolean
 ) // TODO: Message
+
+case class GroupHistoryChunk (
+  latest: Long,
+  messages: Seq[JsValue],
+  has_more: Boolean
+)
 
 case class ChatMessage (
   text: String,

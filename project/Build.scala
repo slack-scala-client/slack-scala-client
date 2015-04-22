@@ -44,13 +44,13 @@ object Dependencies {
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
 }
 
-object SlackScala extends Build {
+object SlackScalaClient extends Build {
   import Resolvers._
   import BuildSettings._
   import Defaults._
 
-  lazy val slackScala =
-    Project ("slack-scala", file("."))
+  lazy val slackScalaClient =
+    Project ("slack-scala-client", file("."))
       .settings ( buildSettings : _* )
       .settings ( SbtOneJar.oneJarSettings : _* )
       .settings ( exportJars := true )
