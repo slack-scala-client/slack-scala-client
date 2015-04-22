@@ -352,6 +352,73 @@ class SlackApiClient(token: String) {
     res.map(_.as[RtmStartState])
   }
 
+
+  /****************************/
+  /****  Search Endpoints  ****/
+  /****************************/
+
+  // TODO: Return proper search results (not JsValue)
+  def searchAll(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    var params = createParams (
+      ("query" -> query),
+      ("sort" -> sort),
+      ("sortDir" -> sortDir),
+      ("highlight" -> highlight),
+      ("count" -> count),
+      ("page" -> page)
+    )
+    val res = makeApiRequest("search.all", params: _*)
+    res
+  }
+
+  // TODO: Return proper search results (not JsValue)
+  def searchFiles(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    var params = createParams (
+      ("query" -> query),
+      ("sort" -> sort),
+      ("sortDir" -> sortDir),
+      ("highlight" -> highlight),
+      ("count" -> count),
+      ("page" -> page)
+    )
+    val res = makeApiRequest("search.files", params: _*)
+    res
+  }
+
+  // TODO: Return proper search results (not JsValue)
+  def searchMessages(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    var params = createParams (
+      ("query" -> query),
+      ("sort" -> sort),
+      ("sortDir" -> sortDir),
+      ("highlight" -> highlight),
+      ("count" -> count),
+      ("page" -> page)
+    )
+    val res = makeApiRequest("search.messages", params: _*)
+    res
+  }
+
+
+  /***************************/
+  /****  Stars Endpoints  ****/
+  /***************************/
+
+  // TODO: Return proper star items (not JsValue)
+  def listStars(userId: Option[String], count: Option[Int], page: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
+    var params = createParams (
+      ("user" -> userId),
+      ("count" -> count),
+      ("page" -> page)
+    )
+    val res = makeApiRequest("start.list", params: _*)
+    res
+  }
+
+
   /*****************************/
   /****  Private Functions  ****/
   /*****************************/
