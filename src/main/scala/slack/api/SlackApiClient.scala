@@ -3,9 +3,9 @@ package slack.api
 import slack.models._
 
 import java.io.File
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext,Future}
 
-import dispatch._
+import dispatch.{Http,Req,url,as}
 import play.api.libs.json._
 
 object SlackApiClient {
@@ -208,7 +208,7 @@ class SlackApiClient(token: String) {
     res.map(_.as[FilesResponse])
   }
 
-  def uploadFile(file: File)(implicit ec: ExecutionContext): Future[File] = {
+  def uploadFile(file: File)(implicit ec: ExecutionContext): Future[Boolean] = {
     ??? // TODO
   }
 
