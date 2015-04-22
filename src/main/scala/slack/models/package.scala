@@ -5,8 +5,10 @@ import play.api.libs.json._
 
 package object models {
   implicit val authIdentityFmt = Json.format[AuthIdentity]
+  implicit val teamFmt = Json.format[Team]
   implicit val channelValueFmt = Json.format[ChannelValue]
   implicit val groupValueFmt = Json.format[GroupValue]
+  implicit val imFmt = Json.format[Im]
   implicit val channelFmt = Json.format[Channel]
   implicit val groupFmt = Json.format[Group]
   implicit val userProfileFmt = Json.format[UserProfile]

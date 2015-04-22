@@ -10,8 +10,8 @@ import play.api.libs.json._
 
 object SlackApiClient {
 
-  implicit val channelHistoryChunkFmt = Json.format[ChannelHistoryChunk]
-  implicit val groupHistoryChunkFmt = Json.format[GroupHistoryChunk]
+  implicit val rtmStartStateFmt = Json.format[RtmStartState]
+  implicit val historyChunkFmt = Json.format[HistoryChunk]
   implicit val pagingObjectFmt = Json.format[PagingObject]
   implicit val filesResponseFmt = Json.format[FilesResponse]
   implicit val fileInfoFmt = Json.format[FileInfo]
@@ -59,7 +59,7 @@ class SlackApiClient(token: String) {
 
   // TODO: Paging
   def getChannelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
-      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[ChannelHistoryChunk] = {
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
     var params = createParams (
       ("channel" -> channelId),
       ("latest" -> latest),
@@ -68,7 +68,7 @@ class SlackApiClient(token: String) {
       ("count" -> count)
     )
     val res = makeApiRequest("channels.history", params: _*)
-    res.map(_.as[ChannelHistoryChunk])
+    res.map(_.as[HistoryChunk])
   }
 
   def getChannelInfo(channelId: String)(implicit ec: ExecutionContext): Future[Channel] = {
@@ -238,7 +238,7 @@ class SlackApiClient(token: String) {
   }
 
   def getGroupHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
-      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[GroupHistoryChunk] = {
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
     var params = createParams (
       ("channel" -> channelId),
       ("latest" -> latest),
@@ -247,7 +247,7 @@ class SlackApiClient(token: String) {
       ("count" -> count)
     )
     val res = makeApiRequest("groups.history", params: _*)
-    res.map(_.as[GroupHistoryChunk])
+    res.map(_.as[HistoryChunk])
   }
 
   def getGroupInfo(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
@@ -306,9 +306,54 @@ class SlackApiClient(token: String) {
     extract[Boolean](res, "ok")
   }
 
+  /************************/
+  /****  IM Endpoints  ****/
+  /************************/
+
+  def closeIm(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("im.close", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def getImHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
+    var params = createParams (
+      ("channel" -> channelId),
+      ("latest" -> latest),
+      ("oldest" -> oldest),
+      ("inclusive" -> inclusive),
+      ("count" -> count)
+    )
+    val res = makeApiRequest("im.history", params: _*)
+    res.map(_.as[HistoryChunk])
+  }
+
+  def listIms()(implicit ec: ExecutionContext): Future[Seq[Im]] = {
+    val res = makeApiRequest("im.list")
+    extract[Seq[Im]](res, "ims")
+  }
+
+  def markIm(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("im.mark", ("channel" -> channelId), ("ts" -> ts))
+    extract[Boolean](res, "ok")
+  }
+
+  def openIm(userId: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiRequest("im.open", ("user" -> userId))
+    res.map(r => (r \ "channel" \ "id").as[String])
+  }
+
+  /*************************/
+  /****  RTM Endpoints  ****/
+  /*************************/
+
+  def startRealTimeMessageSession()(implicit ec: ExecutionContext): Future[RtmStartState] = {
+    val res = makeApiRequest("rtm.start")
+    res.map(_.as[RtmStartState])
+  }
 
   /*****************************/
-  /****  Private Funstions  ****/
+  /****  Private Functions  ****/
   /*****************************/
 
   private def makeApiRequest(apiMethod: String, queryParams: (String,String)*)(implicit ec: ExecutionContext): Future[JsValue] = {
@@ -348,13 +393,7 @@ class SlackApiClient(token: String) {
 
 case class ApiError(code: String) extends Exception(code)
 
-case class ChannelHistoryChunk (
-  latest: Long,
-  messages: Seq[JsValue],
-  has_more: Boolean
-) // TODO: Message
-
-case class GroupHistoryChunk (
+case class HistoryChunk (
   latest: Long,
   messages: Seq[JsValue],
   has_more: Boolean
@@ -389,4 +428,20 @@ case class PagingObject (
   total: Int,
   page: Int,
   pages: Int
+)
+
+case class AccessToke (
+  access_token: String,
+  scope: String
+)
+
+case class RtmStartState (
+  url: String,
+  self: User,
+  team: Team,
+  users: Seq[User],
+  channels: Seq[Channel],
+  groups: Seq[Group],
+  ims: Seq[Im],
+  bots: Seq[JsValue]
 )
