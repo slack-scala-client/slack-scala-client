@@ -2,7 +2,6 @@ package slack
 
 import slack.api.SlackApiClient
 import slack.rtm.SlackRtmClient
-import scala.util.{Success,Failure}
 import akka.actor._
 
 object Main extends App {

@@ -4,7 +4,7 @@ import com.github.retronym.SbtOneJar
 
 object BuildSettings {
   val buildOrganization = "com.bryangilbert"
-  val buildVersion      = "1.0"
+  val buildVersion      = "0.1.0"
   val buildScalaVersion = "2.11.6"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -16,7 +16,6 @@ object BuildSettings {
 
 object Resolvers {
   val typesafeRepo = "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
-  val sprayRepo = "spray repo" at "http://repo.spray.io"
 }
 
 object Dependencies {
@@ -24,12 +23,7 @@ object Dependencies {
   val sprayVersion = "1.3.3"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaRemote = "com.typesafe.akka" %% "akka-remote" % akkaVersion
-  val akkaCluster = "com.typesafe.akka" %% "akka-cluster" % akkaVersion
   val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
-  val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
-
-  val akkaStream = "com.typesafe.akka" % "akka-stream-experimental_2.11" % "1.0-M4"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.2"
   val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.11.2"
@@ -38,7 +32,7 @@ object Dependencies {
 
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
-  val akkaDependencies = Seq(akkaActor, akkaRemote, akkaCluster, akkaSlf4j, akkaTestkit, akkaStream)
+  val akkaDependencies = Seq(akkaActor, akkaSlf4j)
   val miscDependencies = Seq(playJson, scalaAsync, dispatch, sprayWebsocket)
   val testDependencies = Seq(scalatest)
 

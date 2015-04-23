@@ -90,9 +90,14 @@ class SlackRtmConnectionActor(token: String) extends Actor with ActorLogging {
   def receive = {
     case frame: TextFrame =>
       val payload = frame.payload.decodeString("utf8")
-      val event = Json.parse(payload).as[SlackEvent]
-      rtmState.update(event)
-      listeners.foreach(_ ! event)
+      val payloadJson = Json.parse(payload)
+      if((payloadJson \ "type").asOpt[String].isDefined){
+        val event = payloadJson.as[SlackEvent]
+        rtmState.update(event)
+        listeners.foreach(_ ! event)
+      } else {
+        // TODO: handle reply_to / response
+      }
     case SendMessage(channelId, text) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
