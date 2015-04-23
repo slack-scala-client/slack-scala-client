@@ -60,7 +60,7 @@ class SlackApiClient(token: String) {
   // TODO: Paging
   def getChannelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
       inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
-    var params = createParams (
+    val params = createParams (
       ("channel" -> channelId),
       ("latest" -> latest),
       ("oldest" -> oldest),
@@ -143,7 +143,7 @@ class SlackApiClient(token: String) {
   }
 
   def postChatMessageFull(channelId: String, message: ChatMessage)(implicit ec: ExecutionContext): Future[String] = {
-    var params = createParams (
+    val params = createParams (
       ("channel" -> channelId),
       ("text" -> message.text),
       ("as_user" -> message.as_user),
@@ -185,7 +185,7 @@ class SlackApiClient(token: String) {
   }
 
   def getFileInfo(fileId: String, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FileInfo] = {
-    var params = createParams (
+    val params = createParams (
       ("file" -> fileId),
       ("count" -> count),
       ("page" -> page)
@@ -196,7 +196,7 @@ class SlackApiClient(token: String) {
 
   def listFiles(userId: Option[String] = None, tsFrom: Option[String] = None, tsTo: Option[String] = None, types: Option[Seq[String]] = None,
       count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FilesResponse] = {
-    var params = createParams (
+    val params = createParams (
       ("user" -> userId),
       ("ts_from" -> tsFrom),
       ("ts_to" -> tsTo),
@@ -239,7 +239,7 @@ class SlackApiClient(token: String) {
 
   def getGroupHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
       inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
-    var params = createParams (
+    val params = createParams (
       ("channel" -> channelId),
       ("latest" -> latest),
       ("oldest" -> oldest),
@@ -317,7 +317,7 @@ class SlackApiClient(token: String) {
 
   def getImHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
       inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
-    var params = createParams (
+    val params = createParams (
       ("channel" -> channelId),
       ("latest" -> latest),
       ("oldest" -> oldest),
@@ -360,7 +360,7 @@ class SlackApiClient(token: String) {
   // TODO: Return proper search results (not JsValue)
   def searchAll(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
       count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    var params = createParams (
+    val params = createParams (
       ("query" -> query),
       ("sort" -> sort),
       ("sortDir" -> sortDir),
@@ -368,14 +368,13 @@ class SlackApiClient(token: String) {
       ("count" -> count),
       ("page" -> page)
     )
-    val res = makeApiRequest("search.all", params: _*)
-    res
+    makeApiRequest("search.all", params: _*)
   }
 
   // TODO: Return proper search results (not JsValue)
   def searchFiles(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
       count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    var params = createParams (
+    val params = createParams (
       ("query" -> query),
       ("sort" -> sort),
       ("sortDir" -> sortDir),
@@ -383,14 +382,13 @@ class SlackApiClient(token: String) {
       ("count" -> count),
       ("page" -> page)
     )
-    val res = makeApiRequest("search.files", params: _*)
-    res
+    makeApiRequest("search.files", params: _*)
   }
 
   // TODO: Return proper search results (not JsValue)
   def searchMessages(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
       count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    var params = createParams (
+    val params = createParams (
       ("query" -> query),
       ("sort" -> sort),
       ("sortDir" -> sortDir),
@@ -398,8 +396,7 @@ class SlackApiClient(token: String) {
       ("count" -> count),
       ("page" -> page)
     )
-    val res = makeApiRequest("search.messages", params: _*)
-    res
+    makeApiRequest("search.messages", params: _*)
   }
 
 
@@ -408,14 +405,63 @@ class SlackApiClient(token: String) {
   /***************************/
 
   // TODO: Return proper star items (not JsValue)
-  def listStars(userId: Option[String], count: Option[Int], page: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
-    var params = createParams (
+  def listStars(userId: Option[String] = None, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    val params = createParams (
       ("user" -> userId),
       ("count" -> count),
       ("page" -> page)
     )
-    val res = makeApiRequest("start.list", params: _*)
-    res
+    makeApiRequest("start.list", params: _*)
+  }
+
+
+  /**************************/
+  /****  Team Endpoints  ****/
+  /**************************/
+
+  // TODO: Pares actual result type: https://api.slack.com/methods/team.accessLogs
+  def getTeamAccessLogs(count: Option[Int], page: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
+    val params = createParams (
+      ("count" -> count),
+      ("page" -> page)
+    )
+    makeApiRequest("team.accessLogs", params: _*)
+  }
+
+  // TODO: Parse actual value type: https://api.slack.com/methods/team.info
+  def getTeamInfo()(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiRequest("team.info")
+  }
+
+
+  /**************************/
+  /****  User Endpoints  ****/
+  /**************************/
+
+  // TODO: Full payload for authed user: https://api.slack.com/methods/users.getPresence
+  def getUserPresence(userId: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiRequest("users.getPresence", ("user" -> userId))
+    extract[String](res, "presence")
+  }
+
+  def getUserInfo(userId: String)(implicit ec: ExecutionContext): Future[User] = {
+    val res = makeApiRequest("users.getInfo", ("user" -> userId))
+    extract[User](res, "user")
+  }
+
+  def listUsers()(implicit ec: ExecutionContext): Future[Seq[User]] = {
+    val res = makeApiRequest("users.list")
+    extract[Seq[User]](res, "members")
+  }
+
+  def setUserActive(userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("users.setActive", ("user" -> userId))
+    extract[Boolean](res, "ok")
+  }
+
+  def setUserPresence(presence: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiRequest("users.setPresence", "presence" -> presence)
+    extract[Boolean](res, "ok")
   }
 
 
