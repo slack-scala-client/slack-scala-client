@@ -14,6 +14,7 @@ import spray.http.{ HttpHeaders, HttpMethods, HttpRequest }
 
 object WebSocketClientActor {
 
+  case class SendFrame(frame: Frame)
   case class RegisterWebsocketListener(listener: ActorRef)
   case class DeregisterWebsocketListener(listener: ActorRef)
 
@@ -51,6 +52,8 @@ class WebSocketClientActor(url: String) extends WebSocketClientWorker with Actor
       listeners.foreach(_ ! frame)
     case frame: Frame =>
       log.info("[WebSocketClient] Received Frame: {}", frame.payload.decodeString("utf8"))
+    case SendFrame(frame) =>
+      connection ! frame
     case _: Http.ConnectionClosed =>
       log.info("[WebSocketClient] Websocket closed")
       context.stop(self)

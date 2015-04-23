@@ -10,8 +10,14 @@ object Main extends App {
   implicit val system = ActorSystem("slack")
   implicit val ec = system.dispatcher
 
-  val rtmClient = SlackRtmClient(token)
-  rtmClient.onMessage { message =>
-    system.log.info("User: {}, Message: {}", message.user, message.text)
+  val client = SlackRtmClient(token)
+  val selfId = client.state.getSelfId()
+
+  client.onMessage { message =>
+    val mentionedIds = SlackUtil.extractMentionedIds(message.text)
+
+    if(mentionedIds.contains(selfId)) {
+      client.sendMessage(message.channel, s"<@${message.user}>: Hey!")
+    }
   }
 }

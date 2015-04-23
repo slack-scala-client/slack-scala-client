@@ -12,6 +12,7 @@ case class Hello (
 // TODO: Message Sub-types
 case class Message (
   ts: String,
+  channel: String,
   user: String,
   text: String,
   is_starred: Option[Boolean]
@@ -65,7 +66,7 @@ case class ChannelHistoryChanged (
 
 case class ImCreated (
   user: String,
-  channel: Channel
+  channel: Im
 ) extends SlackEvent
 
 case class ImOpened (
