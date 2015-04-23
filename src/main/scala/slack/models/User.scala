@@ -3,16 +3,16 @@ package slack.models
 case class User (
   id: String,
   name: String,
-  deleted: Boolean,
-  color: String,
-  profile: UserProfile,
-  is_admin: Boolean,
-  is_owner: Boolean,
-  is_primary_owner: Boolean,
-  is_restricted: Boolean,
-  is_ultra_restricted: Boolean,
-  has_2fa: Boolean,
-  has_files: Boolean
+  deleted: Option[Boolean],
+  color: Option[String],
+  profile: Option[UserProfile],
+  is_admin: Option[Boolean],
+  is_owner: Option[Boolean],
+  is_primary_owner: Option[Boolean],
+  is_restricted: Option[Boolean],
+  is_ultra_restricted: Option[Boolean],
+  has_2fa: Option[Boolean],
+  has_files: Option[Boolean]
 )
 
 case class UserProfile (

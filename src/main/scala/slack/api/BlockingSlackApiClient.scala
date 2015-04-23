@@ -6,16 +6,23 @@ import java.io.File
 import scala.concurrent.{ExecutionContext,Future,Await}
 import scala.concurrent.duration._
 
+import play.api.libs.json._
+
 object BlockingSlackApiClient {
 
   def apply(token: String, duration: FiniteDuration): BlockingSlackApiClient = {
     new BlockingSlackApiClient(token, duration)
   }
+
+  def exchangeOauthForToken(clientId: String, clientSecret: String, code: String, redirectUri: Option[String] = None, 
+      duration: FiniteDuration = 5.seconds)(implicit ec: ExecutionContext): AccessToken = {
+    Await.result(SlackApiClient.exchangeOauthForToken(clientId, clientSecret, code, redirectUri), duration)
+  }
 }
 
 import SlackApiClient._
 
-class BlockingSlackApiClient(token: String, duration: FiniteDuration) {
+class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds) {
   val client = new SlackApiClient(token)
 
     /**************************/
@@ -141,7 +148,7 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration) {
     resolve(client.listFiles(userId, tsFrom, tsTo, types, count, page))
   }
 
-  def uploadFile(file: File)(implicit ec: ExecutionContext): Boolean = {
+  def uploadFile(file: File)(implicit ec: ExecutionContext): SlackFile = {
     resolve(client.uploadFile(file))
   }
 
@@ -247,6 +254,73 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration) {
 
   def startRealTimeMessageSession()(implicit ec: ExecutionContext): RtmStartState = {
     resolve(client.startRealTimeMessageSession())
+  }
+
+  /****************************/
+  /****  Search Endpoints  ****/
+  /****************************/
+
+  def searchAll(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): JsValue = {
+    resolve(client.searchAll(query, sort, sortDir, highlight, count, page))
+  }
+
+  def searchFiles(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): JsValue = {
+    resolve(client.searchFiles(query, sort, sortDir, highlight, count, page))
+  }
+
+  // TODO: Return proper search results (not JsValue)
+  def searchMessages(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): JsValue = {
+    resolve(client.searchMessages(query, sort, sortDir, highlight, count, page))
+  }
+
+
+  /***************************/
+  /****  Stars Endpoints  ****/
+  /***************************/
+
+  def listStars(userId: Option[String] = None, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): JsValue = {
+    resolve(client.listStars(userId, count, page))
+  }
+
+
+  /**************************/
+  /****  Team Endpoints  ****/
+  /**************************/
+
+  def getTeamAccessLogs(count: Option[Int], page: Option[Int])(implicit ec: ExecutionContext): JsValue = {
+    resolve(client.getTeamAccessLogs(count, page))
+  }
+
+  def getTeamInfo()(implicit ec: ExecutionContext): JsValue = {
+    resolve(client.getTeamInfo())
+  }
+
+
+  /**************************/
+  /****  User Endpoints  ****/
+  /**************************/
+
+  def getUserPresence(userId: String)(implicit ec: ExecutionContext): String = {
+    resolve(client.getUserPresence(userId))
+  }
+
+  def getUserInfo(userId: String)(implicit ec: ExecutionContext): User = {
+    resolve(client.getUserInfo(userId))
+  }
+
+  def listUsers()(implicit ec: ExecutionContext): Seq[User] = {
+    resolve(client.listUsers())
+  }
+
+  def setUserActive(userId: String)(implicit ec: ExecutionContext): Boolean = {
+    resolve(client.setUserActive(userId))
+  }
+
+  def setUserPresence(presence: String)(implicit ec: ExecutionContext): Boolean = {
+    resolve(client.setUserPresence(presence))
   }
 
   private def resolve[T](res: Future[T]): T = {

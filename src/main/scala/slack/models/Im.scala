@@ -5,5 +5,5 @@ case class Im (
   is_im: Boolean,
   user: String,
   created: Long,
-  is_user_deleted: Boolean
+  is_user_deleted: Option[Boolean]
 )

@@ -3,479 +3,39 @@ package slack.api
 import slack.models._
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 import scala.concurrent.{ExecutionContext,Future}
 
 import dispatch.{Http,Req,url,as}
+import com.ning.http.multipart.FilePart
 import play.api.libs.json._
 
 object SlackApiClient {
 
   implicit val rtmStartStateFmt = Json.format[RtmStartState]
+  implicit val accessTokenFmt = Json.format[AccessToken]
   implicit val historyChunkFmt = Json.format[HistoryChunk]
   implicit val pagingObjectFmt = Json.format[PagingObject]
   implicit val filesResponseFmt = Json.format[FilesResponse]
   implicit val fileInfoFmt = Json.format[FileInfo]
 
+  val apiBase = url("https://slack.com/api")
+
   def apply(token: String): SlackApiClient = {
     new SlackApiClient(token)
   }
-}
 
-import SlackApiClient._
-
-class SlackApiClient(token: String) {
-
-  val apiBase = url("https://slack.com/api").addQueryParameter("token", token)
-
-
-  /**************************/
-  /***   Test Endpoints   ***/
-  /**************************/
-
-  def test()(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("api.test")
-    extract[Boolean](res, "ok")
-  }
-
-  def testAuth()(implicit ec: ExecutionContext): Future[AuthIdentity] = {
-    val res = makeApiRequest("auth.test")
-    res.map(_.as[AuthIdentity])
-  }
-
-
-  /***************************/
-  /***  Channel Endpoints  ***/
-  /***************************/
-
-  def archiveChannel(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.archive", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  def createChannel(name: String)(implicit ec: ExecutionContext): Future[Channel] = {
-    val res = makeApiRequest("channels.create", ("name" -> name))
-    extract[Channel](res, "channel")
-  }
-
-  // TODO: Paging
-  def getChannelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
-      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
-    val params = createParams (
-      ("channel" -> channelId),
-      ("latest" -> latest),
-      ("oldest" -> oldest),
-      ("inclusive" -> inclusive),
-      ("count" -> count)
+  def exchangeOauthForToken(clientId: String, clientSecret: String, code: String, redirectUri: Option[String] = None)(implicit ec: ExecutionContext): Future[AccessToken] = {
+    val params = Seq (
+      ("client_id" -> clientId),
+      ("client_secret" -> clientSecret),
+      ("code" -> code),
+      ("redirect_uri" -> redirectUri)
     )
-    val res = makeApiRequest("channels.history", params: _*)
-    res.map(_.as[HistoryChunk])
+    val res = makeApiRequest(addQueryParams(apiBase, cleanParams(params)) / "oauth.access")
+    res.map(_.as[AccessToken])
   }
 
-  def getChannelInfo(channelId: String)(implicit ec: ExecutionContext): Future[Channel] = {
-    val res = makeApiRequest("channels.info", ("channel" -> channelId))
-    extract[Channel](res, "channel")
-  }
-
-  def inviteToChannel(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Channel] = {
-    val res = makeApiRequest("channels.invite", ("channel" -> channelId), ("user" -> userId))
-    extract[Channel](res, "channel")
-  }
-
-  def joinChannel(channelId: String)(implicit ec: ExecutionContext): Future[Channel] = {
-    val res = makeApiRequest("channels.join", ("channel" -> channelId))
-    extract[Channel](res, "channel")
-  }
-
-  def kickFromChannel(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.kick", ("channel" -> channelId), ("user" -> userId))
-    extract[Boolean](res, "ok")
-  }
-
-  def listChannels(excludeArchived: Int = 0)(implicit ec: ExecutionContext): Future[Seq[Channel]] = {
-    val res = makeApiRequest("channels.list", ("exclude_archived" -> excludeArchived.toString))
-    extract[Seq[Channel]](res, "channels")
-  }
-
-  def leaveChannel(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.leave", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  def markChannel(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.mark", ("channel" -> channelId), ("ts" -> ts))
-    extract[Boolean](res, "ok")
-  }
-
-  // TODO: Lite Channel Object
-  def renameChannel(channelId: String, name: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.rename", ("channel" -> channelId), ("name" -> name))
-    extract[Boolean](res, "ok")
-  }
-
-  def setChannelPurpose(channelId: String, purpose: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("channels.setPurpose", ("channel" -> channelId), ("purpose" -> purpose))
-    extract[String](res, "purpose")
-  }
-
-  def setChannelTopic(channelId: String, topic: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("channels.setTopic", ("channel" -> channelId), ("topic" -> topic))
-    extract[String](res, "topic")
-  }
-
-  def unarchiveChannel(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("channels.unarchive", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-
-  /**************************/
-  /****  Chat Endpoints  ****/
-  /**************************/
-
-  def deleteChat(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("chats.delete", ("channel" -> channelId), ("ts" -> ts))
-    extract[Boolean](res, "ok")
-  }
-
-  def postChatMessage(channelId: String, text: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("chats.postMessage", ("channel" -> channelId), ("text" -> text))
-    extract[String](res, "ts")
-  }
-
-  def postChatMessageFull(channelId: String, message: ChatMessage)(implicit ec: ExecutionContext): Future[String] = {
-    val params = createParams (
-      ("channel" -> channelId),
-      ("text" -> message.text),
-      ("as_user" -> message.as_user),
-      ("parse" -> message.parse),
-      ("link_names" -> message.link_names),
-      ("attachements" -> message.attachements),
-      ("unfurl_links" -> message.unfurl_links),
-      ("unfurl_media" -> message.unfurl_media),
-      ("icon_url" -> message.icon_url),
-      ("icon_emoji" -> message.icon_emoji)
-    )
-    val res = makeApiRequest("chats.postMessage", params: _*)
-    extract[String](res, "ts")
-  }
-
-  def updateChatMessage(channelId: String, ts: String, text: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("chats.update", ("channel" -> channelId), ("ts" -> ts), ("text" -> text))
-    extract[Boolean](res, "ok")
-  }
-
-
-  /***************************/
-  /****  Emoji Endpoints  ****/
-  /***************************/
-
-  def listEmojis()(implicit ec: ExecutionContext): Future[Map[String,String]] = {
-    val res = makeApiRequest("emoji.list")
-    extract[Map[String,String]](res, "emoji")
-  }
-
-
-  /**************************/
-  /****  File Endpoints  ****/
-  /**************************/
-
-  def deleteFile(fileId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("files.delete", ("file" -> fileId))
-    extract[Boolean](res, "ok")
-  }
-
-  def getFileInfo(fileId: String, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FileInfo] = {
-    val params = createParams (
-      ("file" -> fileId),
-      ("count" -> count),
-      ("page" -> page)
-    )
-    val res = makeApiRequest("files.info", params: _*)
-    res.map(_.as[FileInfo])
-  }
-
-  def listFiles(userId: Option[String] = None, tsFrom: Option[String] = None, tsTo: Option[String] = None, types: Option[Seq[String]] = None,
-      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FilesResponse] = {
-    val params = createParams (
-      ("user" -> userId),
-      ("ts_from" -> tsFrom),
-      ("ts_to" -> tsTo),
-      ("types" -> types.map(_.mkString(","))),
-      ("count" -> count),
-      ("page" -> page)
-    )
-    val res = makeApiRequest("files.list", params: _*)
-    res.map(_.as[FilesResponse])
-  }
-
-  def uploadFile(file: File)(implicit ec: ExecutionContext): Future[Boolean] = {
-    ??? // TODO
-  }
-
-
-  /***************************/
-  /****  Group Endpoints  ****/
-  /***************************/
-
-  def archiveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.archive", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  def closeGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.close", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  def createGroup(name: String)(implicit ec: ExecutionContext): Future[Group] = {
-    val res = makeApiRequest("groups.create", ("name" -> name))
-    extract[Group](res, "group")
-  }
-
-  def createChildGroup(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
-    val res = makeApiRequest("groups.createChild", ("channel" -> channelId))
-    extract[Group](res, "group")
-  }
-
-  def getGroupHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
-      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
-    val params = createParams (
-      ("channel" -> channelId),
-      ("latest" -> latest),
-      ("oldest" -> oldest),
-      ("inclusive" -> inclusive),
-      ("count" -> count)
-    )
-    val res = makeApiRequest("groups.history", params: _*)
-    res.map(_.as[HistoryChunk])
-  }
-
-  def getGroupInfo(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
-    val res = makeApiRequest("groups.info", ("channel" -> channelId))
-    extract[Group](res, "group")
-  }
-
-  def inviteToGroup(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Group] = {
-    val res = makeApiRequest("groups.invite", ("channel" -> channelId), ("user" -> userId))
-    extract[Group](res, "group")
-  }
-
-  def kickFromGroup(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.kick", ("channel" -> channelId), ("user" -> userId))
-    extract[Boolean](res, "ok")
-  }
-
-  def leaveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.leave", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  def listGroups(excludeArchived: Int = 0)(implicit ec: ExecutionContext): Future[Seq[Group]] = {
-    val res = makeApiRequest("groups.list", ("exclude_archived" -> excludeArchived.toString))
-    extract[Seq[Group]](res, "groups")
-  }
-
-  def markGroup(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.mark", ("channel" -> channelId), ("ts" -> ts))
-    extract[Boolean](res, "ok")
-  }
-
-  def openGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.open", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  // TODO: Lite Group Object
-  def renameGroup(channelId: String, name: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.rename", ("channel" -> channelId), ("name" -> name))
-    extract[Boolean](res, "ok")
-  }
-
-  def setGroupPurpose(channelId: String, purpose: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("groups.setPurpose", ("channel" -> channelId), ("purpose" -> purpose))
-    extract[String](res, "purpose")
-  }
-
-  def setGroupTopic(channelId: String, topic: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("groups.setTopic", ("channel" -> channelId), ("topic" -> topic))
-    extract[String](res, "topic")
-  }
-
-  def unarchiveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("groups.unarchive", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  /************************/
-  /****  IM Endpoints  ****/
-  /************************/
-
-  def closeIm(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("im.close", ("channel" -> channelId))
-    extract[Boolean](res, "ok")
-  }
-
-  def getImHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
-      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
-    val params = createParams (
-      ("channel" -> channelId),
-      ("latest" -> latest),
-      ("oldest" -> oldest),
-      ("inclusive" -> inclusive),
-      ("count" -> count)
-    )
-    val res = makeApiRequest("im.history", params: _*)
-    res.map(_.as[HistoryChunk])
-  }
-
-  def listIms()(implicit ec: ExecutionContext): Future[Seq[Im]] = {
-    val res = makeApiRequest("im.list")
-    extract[Seq[Im]](res, "ims")
-  }
-
-  def markIm(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("im.mark", ("channel" -> channelId), ("ts" -> ts))
-    extract[Boolean](res, "ok")
-  }
-
-  def openIm(userId: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("im.open", ("user" -> userId))
-    res.map(r => (r \ "channel" \ "id").as[String])
-  }
-
-  /*************************/
-  /****  RTM Endpoints  ****/
-  /*************************/
-
-  def startRealTimeMessageSession()(implicit ec: ExecutionContext): Future[RtmStartState] = {
-    val res = makeApiRequest("rtm.start")
-    res.map(_.as[RtmStartState])
-  }
-
-
-  /****************************/
-  /****  Search Endpoints  ****/
-  /****************************/
-
-  // TODO: Return proper search results (not JsValue)
-  def searchAll(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
-      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    val params = createParams (
-      ("query" -> query),
-      ("sort" -> sort),
-      ("sortDir" -> sortDir),
-      ("highlight" -> highlight),
-      ("count" -> count),
-      ("page" -> page)
-    )
-    makeApiRequest("search.all", params: _*)
-  }
-
-  // TODO: Return proper search results (not JsValue)
-  def searchFiles(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
-      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    val params = createParams (
-      ("query" -> query),
-      ("sort" -> sort),
-      ("sortDir" -> sortDir),
-      ("highlight" -> highlight),
-      ("count" -> count),
-      ("page" -> page)
-    )
-    makeApiRequest("search.files", params: _*)
-  }
-
-  // TODO: Return proper search results (not JsValue)
-  def searchMessages(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
-      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    val params = createParams (
-      ("query" -> query),
-      ("sort" -> sort),
-      ("sortDir" -> sortDir),
-      ("highlight" -> highlight),
-      ("count" -> count),
-      ("page" -> page)
-    )
-    makeApiRequest("search.messages", params: _*)
-  }
-
-
-  /***************************/
-  /****  Stars Endpoints  ****/
-  /***************************/
-
-  // TODO: Return proper star items (not JsValue)
-  def listStars(userId: Option[String] = None, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
-    val params = createParams (
-      ("user" -> userId),
-      ("count" -> count),
-      ("page" -> page)
-    )
-    makeApiRequest("start.list", params: _*)
-  }
-
-
-  /**************************/
-  /****  Team Endpoints  ****/
-  /**************************/
-
-  // TODO: Pares actual result type: https://api.slack.com/methods/team.accessLogs
-  def getTeamAccessLogs(count: Option[Int], page: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
-    val params = createParams (
-      ("count" -> count),
-      ("page" -> page)
-    )
-    makeApiRequest("team.accessLogs", params: _*)
-  }
-
-  // TODO: Parse actual value type: https://api.slack.com/methods/team.info
-  def getTeamInfo()(implicit ec: ExecutionContext): Future[JsValue] = {
-    makeApiRequest("team.info")
-  }
-
-
-  /**************************/
-  /****  User Endpoints  ****/
-  /**************************/
-
-  // TODO: Full payload for authed user: https://api.slack.com/methods/users.getPresence
-  def getUserPresence(userId: String)(implicit ec: ExecutionContext): Future[String] = {
-    val res = makeApiRequest("users.getPresence", ("user" -> userId))
-    extract[String](res, "presence")
-  }
-
-  def getUserInfo(userId: String)(implicit ec: ExecutionContext): Future[User] = {
-    val res = makeApiRequest("users.getInfo", ("user" -> userId))
-    extract[User](res, "user")
-  }
-
-  def listUsers()(implicit ec: ExecutionContext): Future[Seq[User]] = {
-    val res = makeApiRequest("users.list")
-    extract[Seq[User]](res, "members")
-  }
-
-  def setUserActive(userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("users.setActive", ("user" -> userId))
-    extract[Boolean](res, "ok")
-  }
-
-  def setUserPresence(presence: String)(implicit ec: ExecutionContext): Future[Boolean] = {
-    val res = makeApiRequest("users.setPresence", "presence" -> presence)
-    extract[Boolean](res, "ok")
-  }
-
-
-  /*****************************/
-  /****  Private Functions  ****/
-  /*****************************/
-
-  private def makeApiRequest(apiMethod: String, queryParams: (String,String)*)(implicit ec: ExecutionContext): Future[JsValue] = {
-    var req = apiBase / apiMethod
-    queryParams.foreach { case (k,v) =>
-      req = req.addQueryParameter(k, v)
-    }
-    makeApiRequest(req)
-  }
 
   private def makeApiRequest(request: Req)(implicit ec: ExecutionContext): Future[JsValue] = {
     Http(request OK as.String).map { response =>
@@ -493,7 +53,15 @@ class SlackApiClient(token: String) {
     jsFuture.map(js => (js \ field).as[T])
   }
 
-  private def createParams(params: (String,Any)*): Seq[(String,String)] = {
+  private def addQueryParams(request: Req, queryParams: Seq[(String,String)])(implicit ec: ExecutionContext): Req = {
+    var req = request
+    queryParams.foreach { case (k,v) =>
+      req = req.addQueryParameter(k, v)
+    }
+    req
+  }
+
+  private def cleanParams(params: Seq[(String,Any)]): Seq[(String,String)] = {
     var paramList = Seq[(String,String)]()
     params.foreach {
       case (k, Some(v)) => paramList :+= (k -> v.toString)
@@ -501,6 +69,450 @@ class SlackApiClient(token: String) {
       case (k, v) => paramList :+= (k -> v.toString)
     }
     paramList
+  }
+}
+
+import SlackApiClient._
+
+class SlackApiClient(token: String) {
+
+  val apiBaseWithToken = apiBase.addQueryParameter("token", token)
+
+
+  /**************************/
+  /***   Test Endpoints   ***/
+  /**************************/
+
+  def test()(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("api.test")
+    extract[Boolean](res, "ok")
+  }
+
+  def testAuth()(implicit ec: ExecutionContext): Future[AuthIdentity] = {
+    val res = makeApiMethodRequest("auth.test")
+    res.map(_.as[AuthIdentity])
+  }
+
+
+  /***************************/
+  /***  Channel Endpoints  ***/
+  /***************************/
+
+  def archiveChannel(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("channels.archive", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def createChannel(name: String)(implicit ec: ExecutionContext): Future[Channel] = {
+    val res = makeApiMethodRequest("channels.create", ("name" -> name))
+    extract[Channel](res, "channel")
+  }
+
+  // TODO: Paging
+  def getChannelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
+    val res = makeApiMethodRequest (
+      "channels.history",
+      ("channel" -> channelId),
+      ("latest" -> latest),
+      ("oldest" -> oldest),
+      ("inclusive" -> inclusive),
+      ("count" -> count))
+    res.map(_.as[HistoryChunk])
+  }
+
+  def getChannelInfo(channelId: String)(implicit ec: ExecutionContext): Future[Channel] = {
+    val res = makeApiMethodRequest("channels.info", ("channel" -> channelId))
+    extract[Channel](res, "channel")
+  }
+
+  def inviteToChannel(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Channel] = {
+    val res = makeApiMethodRequest("channels.invite", ("channel" -> channelId), ("user" -> userId))
+    extract[Channel](res, "channel")
+  }
+
+  def joinChannel(channelId: String)(implicit ec: ExecutionContext): Future[Channel] = {
+    val res = makeApiMethodRequest("channels.join", ("channel" -> channelId))
+    extract[Channel](res, "channel")
+  }
+
+  def kickFromChannel(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("channels.kick", ("channel" -> channelId), ("user" -> userId))
+    extract[Boolean](res, "ok")
+  }
+
+  def listChannels(excludeArchived: Int = 0)(implicit ec: ExecutionContext): Future[Seq[Channel]] = {
+    val res = makeApiMethodRequest("channels.list", ("exclude_archived" -> excludeArchived.toString))
+    extract[Seq[Channel]](res, "channels")
+  }
+
+  def leaveChannel(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("channels.leave", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def markChannel(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("channels.mark", ("channel" -> channelId), ("ts" -> ts))
+    extract[Boolean](res, "ok")
+  }
+
+  // TODO: Lite Channel Object
+  def renameChannel(channelId: String, name: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("channels.rename", ("channel" -> channelId), ("name" -> name))
+    extract[Boolean](res, "ok")
+  }
+
+  def setChannelPurpose(channelId: String, purpose: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("channels.setPurpose", ("channel" -> channelId), ("purpose" -> purpose))
+    extract[String](res, "purpose")
+  }
+
+  def setChannelTopic(channelId: String, topic: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("channels.setTopic", ("channel" -> channelId), ("topic" -> topic))
+    extract[String](res, "topic")
+  }
+
+  def unarchiveChannel(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("channels.unarchive", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+
+  /**************************/
+  /****  Chat Endpoints  ****/
+  /**************************/
+
+  def deleteChat(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("chats.delete", ("channel" -> channelId), ("ts" -> ts))
+    extract[Boolean](res, "ok")
+  }
+
+  def postChatMessage(channelId: String, text: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("chats.postMessage", ("channel" -> channelId), ("text" -> text))
+    extract[String](res, "ts")
+  }
+
+  def postChatMessageFull(channelId: String, message: ChatMessage)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest (
+      "chats.postMessage",
+      ("channel" -> channelId),
+      ("text" -> message.text),
+      ("as_user" -> message.as_user),
+      ("parse" -> message.parse),
+      ("link_names" -> message.link_names),
+      ("attachements" -> message.attachements),
+      ("unfurl_links" -> message.unfurl_links),
+      ("unfurl_media" -> message.unfurl_media),
+      ("icon_url" -> message.icon_url),
+      ("icon_emoji" -> message.icon_emoji))
+    extract[String](res, "ts")
+  }
+
+  def updateChatMessage(channelId: String, ts: String, text: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("chats.update", ("channel" -> channelId), ("ts" -> ts), ("text" -> text))
+    extract[Boolean](res, "ok")
+  }
+
+
+  /***************************/
+  /****  Emoji Endpoints  ****/
+  /***************************/
+
+  def listEmojis()(implicit ec: ExecutionContext): Future[Map[String,String]] = {
+    val res = makeApiMethodRequest("emoji.list")
+    extract[Map[String,String]](res, "emoji")
+  }
+
+
+  /**************************/
+  /****  File Endpoints  ****/
+  /**************************/
+
+  def deleteFile(fileId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("files.delete", ("file" -> fileId))
+    extract[Boolean](res, "ok")
+  }
+
+  def getFileInfo(fileId: String, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FileInfo] = {
+    val res = makeApiMethodRequest("files.info", ("file" -> fileId), ("count" -> count), ("page" -> page))
+    res.map(_.as[FileInfo])
+  }
+
+  def listFiles(userId: Option[String] = None, tsFrom: Option[String] = None, tsTo: Option[String] = None, types: Option[Seq[String]] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[FilesResponse] = {
+    val res = makeApiMethodRequest (
+      "files.list",
+      ("user" -> userId),
+      ("ts_from" -> tsFrom),
+      ("ts_to" -> tsTo),
+      ("types" -> types.map(_.mkString(","))),
+      ("count" -> count),
+      ("page" -> page))
+    res.map(_.as[FilesResponse])
+  }
+
+  def uploadFile(file: File, content: Option[String] = None, filetype: Option[String] = None, filename: Option[String] = None,
+      title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit ec: ExecutionContext): Future[SlackFile] = {
+    val params = Seq (
+      ("content" -> content),
+      ("filetype" -> filetype),
+      ("filename" -> filename),
+      ("title" -> title),
+      ("initial_comment" -> initialComment),
+      ("channels" -> channels.map(_.mkString(",")))
+    )
+    val multi = apiBaseWithToken.setContentType("multipart/form-data", StandardCharsets.UTF_8.toString).setHeader("Transfer-Encoding", "chunked").POST
+    val withFile = multi.addBodyPart(new FilePart("file", file))
+    val res = makeApiRequest(addQueryParams(withFile, cleanParams(params)))
+    extract[SlackFile](res, "file")
+  }
+
+
+  /***************************/
+  /****  Group Endpoints  ****/
+  /***************************/
+
+  def archiveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.archive", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def closeGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.close", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def createGroup(name: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiMethodRequest("groups.create", ("name" -> name))
+    extract[Group](res, "group")
+  }
+
+  def createChildGroup(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiMethodRequest("groups.createChild", ("channel" -> channelId))
+    extract[Group](res, "group")
+  }
+
+  def getGroupHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
+    val res = makeApiMethodRequest (
+      "groups.history",
+      ("channel" -> channelId),
+      ("latest" -> latest),
+      ("oldest" -> oldest),
+      ("inclusive" -> inclusive),
+      ("count" -> count))
+    res.map(_.as[HistoryChunk])
+  }
+
+  def getGroupInfo(channelId: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiMethodRequest("groups.info", ("channel" -> channelId))
+    extract[Group](res, "group")
+  }
+
+  def inviteToGroup(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Group] = {
+    val res = makeApiMethodRequest("groups.invite", ("channel" -> channelId), ("user" -> userId))
+    extract[Group](res, "group")
+  }
+
+  def kickFromGroup(channelId: String, userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.kick", ("channel" -> channelId), ("user" -> userId))
+    extract[Boolean](res, "ok")
+  }
+
+  def leaveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.leave", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def listGroups(excludeArchived: Int = 0)(implicit ec: ExecutionContext): Future[Seq[Group]] = {
+    val res = makeApiMethodRequest("groups.list", ("exclude_archived" -> excludeArchived.toString))
+    extract[Seq[Group]](res, "groups")
+  }
+
+  def markGroup(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.mark", ("channel" -> channelId), ("ts" -> ts))
+    extract[Boolean](res, "ok")
+  }
+
+  def openGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.open", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  // TODO: Lite Group Object
+  def renameGroup(channelId: String, name: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.rename", ("channel" -> channelId), ("name" -> name))
+    extract[Boolean](res, "ok")
+  }
+
+  def setGroupPurpose(channelId: String, purpose: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("groups.setPurpose", ("channel" -> channelId), ("purpose" -> purpose))
+    extract[String](res, "purpose")
+  }
+
+  def setGroupTopic(channelId: String, topic: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("groups.setTopic", ("channel" -> channelId), ("topic" -> topic))
+    extract[String](res, "topic")
+  }
+
+  def unarchiveGroup(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("groups.unarchive", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  /************************/
+  /****  IM Endpoints  ****/
+  /************************/
+
+  def closeIm(channelId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("im.close", ("channel" -> channelId))
+    extract[Boolean](res, "ok")
+  }
+
+  def getImHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+      inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): Future[HistoryChunk] = {
+    val res = makeApiMethodRequest (
+      "im.history",
+      ("channel" -> channelId),
+      ("latest" -> latest),
+      ("oldest" -> oldest),
+      ("inclusive" -> inclusive),
+      ("count" -> count))
+    res.map(_.as[HistoryChunk])
+  }
+
+  def listIms()(implicit ec: ExecutionContext): Future[Seq[Im]] = {
+    val res = makeApiMethodRequest("im.list")
+    extract[Seq[Im]](res, "ims")
+  }
+
+  def markIm(channelId: String, ts: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("im.mark", ("channel" -> channelId), ("ts" -> ts))
+    extract[Boolean](res, "ok")
+  }
+
+  def openIm(userId: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("im.open", ("user" -> userId))
+    res.map(r => (r \ "channel" \ "id").as[String])
+  }
+
+  /*************************/
+  /****  RTM Endpoints  ****/
+  /*************************/
+
+  def startRealTimeMessageSession()(implicit ec: ExecutionContext): Future[RtmStartState] = {
+    val res = makeApiMethodRequest("rtm.start")
+    res.map(_.as[RtmStartState])
+  }
+
+
+  /****************************/
+  /****  Search Endpoints  ****/
+  /****************************/
+
+  // TODO: Return proper search results (not JsValue)
+  def searchAll(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiMethodRequest (
+      "search.all",
+      ("query" -> query),
+      ("sort" -> sort),
+      ("sortDir" -> sortDir),
+      ("highlight" -> highlight),
+      ("count" -> count),
+      ("page" -> page))
+  }
+
+  // TODO: Return proper search results (not JsValue)
+  def searchFiles(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiMethodRequest (
+      "search.files",
+      ("query" -> query),
+      ("sort" -> sort),
+      ("sortDir" -> sortDir),
+      ("highlight" -> highlight),
+      ("count" -> count),
+      ("page" -> page))
+  }
+
+  // TODO: Return proper search results (not JsValue)
+  def searchMessages(query: String, sort: Option[String] = None, sortDir: Option[String] = None, highlight: Option[String] = None,
+      count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiMethodRequest (
+      "search.messages",
+      ("query" -> query),
+      ("sort" -> sort),
+      ("sortDir" -> sortDir),
+      ("highlight" -> highlight),
+      ("count" -> count),
+      ("page" -> page))
+  }
+
+
+  /***************************/
+  /****  Stars Endpoints  ****/
+  /***************************/
+
+  // TODO: Return proper star items (not JsValue)
+  def listStars(userId: Option[String] = None, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiMethodRequest("start.list", ("user" -> userId), ("count" -> count), ("page" -> page))
+  }
+
+
+  /**************************/
+  /****  Team Endpoints  ****/
+  /**************************/
+
+  // TODO: Pares actual result type: https://api.slack.com/methods/team.accessLogs
+  def getTeamAccessLogs(count: Option[Int], page: Option[Int])(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiMethodRequest("team.accessLogs", ("count" -> count), ("page" -> page))
+  }
+
+  // TODO: Parse actual value type: https://api.slack.com/methods/team.info
+  def getTeamInfo()(implicit ec: ExecutionContext): Future[JsValue] = {
+    makeApiMethodRequest("team.info")
+  }
+
+
+  /**************************/
+  /****  User Endpoints  ****/
+  /**************************/
+
+  // TODO: Full payload for authed user: https://api.slack.com/methods/users.getPresence
+  def getUserPresence(userId: String)(implicit ec: ExecutionContext): Future[String] = {
+    val res = makeApiMethodRequest("users.getPresence", ("user" -> userId))
+    extract[String](res, "presence")
+  }
+
+  def getUserInfo(userId: String)(implicit ec: ExecutionContext): Future[User] = {
+    val res = makeApiMethodRequest("users.getInfo", ("user" -> userId))
+    extract[User](res, "user")
+  }
+
+  def listUsers()(implicit ec: ExecutionContext): Future[Seq[User]] = {
+    val res = makeApiMethodRequest("users.list")
+    extract[Seq[User]](res, "members")
+  }
+
+  def setUserActive(userId: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("users.setActive", ("user" -> userId))
+    extract[Boolean](res, "ok")
+  }
+
+  def setUserPresence(presence: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("users.setPresence", "presence" -> presence)
+    extract[Boolean](res, "ok")
+  }
+
+
+  /*****************************/
+  /****  Private Functions  ****/
+  /*****************************/
+
+  private def makeApiMethodRequest(apiMethod: String, queryParams: (String,Any)*)(implicit ec: ExecutionContext): Future[JsValue] = {
+    var req = apiBaseWithToken / apiMethod
+    makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
   }
 }
 
@@ -543,7 +555,7 @@ case class PagingObject (
   pages: Int
 )
 
-case class AccessToke (
+case class AccessToken (
   access_token: String,
   scope: String
 )

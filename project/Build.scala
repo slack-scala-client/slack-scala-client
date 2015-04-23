@@ -34,11 +34,12 @@ object Dependencies {
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.2"
   val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.11.2"
   val playJson = "com.typesafe.play" %% "play-json" % "2.3.7"
+  val sprayWebsocket = "com.wandoulabs.akka" %% "spray-websocket" % "0.1.4"
 
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
   val akkaDependencies = Seq(akkaActor, akkaRemote, akkaCluster, akkaSlf4j, akkaTestkit, akkaStream)
-  val miscDependencies = Seq(playJson, scalaAsync, dispatch)
+  val miscDependencies = Seq(playJson, scalaAsync, dispatch, sprayWebsocket)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
