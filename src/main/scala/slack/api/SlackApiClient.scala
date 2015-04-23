@@ -1,6 +1,7 @@
 package slack.api
 
 import slack.models._
+import slack.api._
 
 import java.io.File
 import java.nio.charset.StandardCharsets

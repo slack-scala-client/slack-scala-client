@@ -10,7 +10,7 @@ import play.api.libs.json._
 
 object BlockingSlackApiClient {
 
-  def apply(token: String, duration: FiniteDuration): BlockingSlackApiClient = {
+  def apply(token: String, duration: FiniteDuration = 5.seconds): BlockingSlackApiClient = {
     new BlockingSlackApiClient(token, duration)
   }
 
