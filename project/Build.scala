@@ -1,6 +1,5 @@
 import sbt._
 import Keys._
-import com.github.retronym.SbtOneJar
 
 object BuildSettings {
   val buildOrganization = "com.bryangilbert"
@@ -47,8 +46,6 @@ object SlackScalaClient extends Build {
   lazy val slackScalaClient =
     Project ("slack-scala-client", file("."))
       .settings ( buildSettings : _* )
-      .settings ( SbtOneJar.oneJarSettings : _* )
-      .settings ( exportJars := true )
       .settings ( resolvers ++= Seq(typesafeRepo) )
       .settings ( libraryDependencies ++= Dependencies.allDependencies )
       .settings ( scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xlint", "-Xfatal-warnings", "-feature") )

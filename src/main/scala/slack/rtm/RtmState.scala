@@ -19,6 +19,14 @@ class RtmState(start: RtmStartState) {
   private var _ims = start.ims
   private var _bots = start.bots
 
+  def self: User = _self
+  def team: Team = _team
+  def users: Seq[User] = _users
+  def channels: Seq[Channel] = _channels
+  def groups: Seq[Group] = _groups
+  def ims: Seq[Im] = _ims
+  def bots: Seq[JsValue] = _bots
+
   def getUserIdForName(name: String): Option[String] = {
     _users.find(_.name == name).map(_.id)
   }
@@ -27,8 +35,8 @@ class RtmState(start: RtmStartState) {
     _channels.find(_.name == name).map(_.id)
   }
 
-  def getSelfId(): String = {
-    _self.id
+  def getUserById(id: String): Option[User] = {
+    _users.find(_.id == id)
   }
 
   // TODO: Add remaining update events

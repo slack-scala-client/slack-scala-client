@@ -10,7 +10,7 @@ object Main extends App {
   implicit val ec = system.dispatcher
 
   val client = SlackRtmClient(token)
-  val selfId = client.state.getSelfId()
+  val selfId = client.state.self.id
 
   client.onMessage { message =>
     val mentionedIds = SlackUtil.extractMentionedIds(message.text)

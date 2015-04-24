@@ -60,6 +60,10 @@ class SlackRtmClient(token: String)(implicit arf: ActorRefFactory) {
   def getState(): RtmState = {
     state
   }
+
+  def close() {
+    arf.stop(actor)
+  }
 }
 
 object SlackRtmConnectionActor {

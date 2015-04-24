@@ -14,7 +14,7 @@ object BlockingSlackApiClient {
     new BlockingSlackApiClient(token, duration)
   }
 
-  def exchangeOauthForToken(clientId: String, clientSecret: String, code: String, redirectUri: Option[String] = None, 
+  def exchangeOauthForToken(clientId: String, clientSecret: String, code: String, redirectUri: Option[String] = None,
       duration: FiniteDuration = 5.seconds)(implicit ec: ExecutionContext): AccessToken = {
     Await.result(SlackApiClient.exchangeOauthForToken(clientId, clientSecret, code, redirectUri), duration)
   }
