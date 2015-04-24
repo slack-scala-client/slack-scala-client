@@ -25,7 +25,8 @@ import SlackApiClient._
 class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds) {
   val client = new SlackApiClient(token)
 
-    /**************************/
+
+  /**************************/
   /***   Test Endpoints   ***/
   /**************************/
 
@@ -109,12 +110,11 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.deleteChat(channelId, ts))
   }
 
-  def postChatMessage(channelId: String, text: String)(implicit ec: ExecutionContext): String = {
-    resolve(client.postChatMessage(channelId, text))
-  }
-
-  def postChatMessageFull(channelId: String, message: ChatMessage)(implicit ec: ExecutionContext): String = {
-    resolve(client.postChatMessageFull(channelId, message))
+  def postChatMessage(channelId: String, text: String, username: Option[String] = None, asUser: Option[Boolean] = None,
+      parse: Option[String] = None, linkNames: Option[String] = None, attachements: Option[Seq[JsValue]] = None,
+      unfurlLinks: Option[Boolean] = None, unfurlMedia: Option[Boolean] = None, iconUrl: Option[String] = None,
+      iconEmoji: Option[String] = None)(implicit ec: ExecutionContext): String = {
+    resolve(client.postChatMessage(channelId, text, username, asUser, parse, linkNames, attachements, unfurlLinks, unfurlMedia, iconUrl, iconEmoji))
   }
 
   def updateChatMessage(channelId: String, ts: String, text: String)(implicit ec: ExecutionContext): Boolean = {
