@@ -25,9 +25,11 @@ object SlackRtmClient {
 
 class SlackRtmClient(token: String)(implicit arf: ActorRefFactory) {
   implicit val timeout = new Timeout(5.second)
+  implicit val ec = arf.dispatcher
 
-  val actor = SlackRtmConnectionActor(token)
-  val state = Await.result((actor ? StateRequest()).mapTo[StateResponse], 5.seconds).state
+  val apiClient = BlockingSlackApiClient(token)
+  val state = RtmState(apiClient.startRealTimeMessageSession())
+  val actor = SlackRtmConnectionActor(token, state)
 
   def onEvent(f: (SlackEvent) => Unit): ActorRef = {
     val handler = EventHandlerActor(f)
@@ -75,21 +77,22 @@ object SlackRtmConnectionActor {
   case class SendMessage(channelId: String, text: String)
   case class StateRequest()
   case class StateResponse(state: RtmState)
+  case object ReconnectWebSocket
 
-  def apply(token: String)(implicit arf: ActorRefFactory): ActorRef = {
-    arf.actorOf(Props(new SlackRtmConnectionActor(token)))
+  def apply(token: String, state: RtmState)(implicit arf: ActorRefFactory): ActorRef = {
+    arf.actorOf(Props(new SlackRtmConnectionActor(token, state)))
   }
 }
 
-class SlackRtmConnectionActor(token: String) extends Actor with ActorLogging {
+class SlackRtmConnectionActor(token: String, state: RtmState) extends Actor with ActorLogging {
 
   implicit val ec = context.dispatcher
   val apiClient = BlockingSlackApiClient(token)
-  val initialRtmState = apiClient.startRealTimeMessageSession()
-  val rtmState = RtmState(initialRtmState)
-  val webSocketClient = WebSocketClientActor(initialRtmState.url)
   val listeners = MSet[ActorRef]()
   val idCounter = new AtomicLong(1L)
+
+  var connectFailures = 0
+  var webSocketClient: Option[ActorRef] = None
 
   def receive = {
     case frame: TextFrame =>
@@ -97,7 +100,7 @@ class SlackRtmConnectionActor(token: String) extends Actor with ActorLogging {
       val payloadJson = Json.parse(payload)
       if((payloadJson \ "type").asOpt[String].isDefined){
         val event = payloadJson.as[SlackEvent]
-        rtmState.update(event)
+        state.update(event)
         listeners.foreach(_ ! event)
       } else {
         // TODO: handle reply_to / response
@@ -105,26 +108,51 @@ class SlackRtmConnectionActor(token: String) extends Actor with ActorLogging {
     case SendMessage(channelId, text) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
-      webSocketClient ! SendFrame(TextFrame(ByteString(payload)))
+      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
     case StateRequest() =>
-      sender ! StateResponse(rtmState)
+      sender ! StateResponse(state)
     case AddEventListener(listener) =>
       listeners += listener
       context.watch(listener)
     case RemoveEventListener(listener) =>
       listeners -= listener
+    case WebSocketClientConnected =>
+      log.info("[SlackRtmConnectionActor] WebSocket Client successfully connected")
+      connectFailures = 0
+    case WebSocketClientConnectFailed =>
+      val delay = Math.pow(2.0, connectFailures.toDouble).toInt
+      log.info("[SlackRtmConnectionActor] WebSocket Client failed to connect, retrying in {} seconds", delay)
+      connectFailures += 1
+      context.system.scheduler.scheduleOnce(delay.seconds, self, ReconnectWebSocket)
+    case WebSocketClientDisconnected =>
+      log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
+      connectWebSocket()
+    case ReconnectWebSocket =>
+      connectWebSocket()
     case Terminated(actor) =>
       listeners -= actor
     case _ =>
   }
 
+  def connectWebSocket() {
+    log.info("[SlackRtmConnectionActor] Starting web socket client")
+    try {
+      val initialRtmState = apiClient.startRealTimeMessageSession()
+      state.reset(initialRtmState)
+      webSocketClient = Some(WebSocketClientActor(initialRtmState.url, Seq(self)))
+    } catch {
+      case e: Exception =>
+        log.error(e, "Caught exception trying to connect websocket")
+        self ! WebSocketClientConnectFailed
+    }
+  }
+
   override def preStart() {
-    log.info("[SlackRtmConnectionActor] Registering with web socket client")
-    webSocketClient ! RegisterWebsocketListener(self)
+    connectWebSocket()
   }
 
   override def postStop() {
-    context.stop(webSocketClient)
+    webSocketClient.foreach(context.stop)
   }
 }
 

@@ -58,7 +58,7 @@ val client = BlockingSlackApiClient(token)  // Default timeout of 5 seconds
 val channels = client.getChannels()  // => Seq[Channel]
 ```
 
-The api clients implement the full slack api. A full list of the available endpoints can be found directly on the classes: [SlackApiClient](src/main/scala/slack/api/SlackApiClient.scala) and [BlockingSlackApiClient](src/main/scala/slack/api/BlockingSlackApiClient.scala)
+The api clients implement the full slack api. A full list of the available endpoints can be found directly on the classes: [SlackApiClient](src/main/scala/slack/api/SlackApiClient.scala#L83-L507) and [BlockingSlackApiClient](src/main/scala/slack/api/BlockingSlackApiClient.scala#L28-L324)
 
 
 RTM Client Usage
@@ -154,9 +154,16 @@ client.onMessage { message =>
 ```
 
 
+WebSocket Re-Connection Behavior
+--------------------------------
+
+The WebSocket connection sends a PingFrame every second and if it ever goes more than 10 seconds without receiving a PongFrame, it will terminate the WebSocket connection and attempt to establish a new connection. It will continue to do this using an exponential backoff until it is able to successfully reconnect to the RTM WebSocket API.
+
+
 Caveat Emptor
 -------------
 
 - The slack api contains a lot methods and not every implemented api method has been executed (i.e. Some may not work; pull requests accepted!)
-- Websocket re-connection logic still needs to be added (Coming Soon!)
 - Responses to RTM messages sent out are not currently checked to verify they were successfully received (Coming Soon!)
+- Investigate a way to ensure all missed messages are received during a disconnection
+- A small number of response types have yet to be fleshed out

@@ -17,9 +17,15 @@ object WebSocketClientActor {
   case class SendFrame(frame: Frame)
   case class RegisterWebsocketListener(listener: ActorRef)
   case class DeregisterWebsocketListener(listener: ActorRef)
+  case object WebSocketClientDisconnected
+  case object WebSocketClientConnected
+  case object WebSocketClientConnectFailed
+  case object CheckPongSendPing
 
-  def apply(url: String)(implicit arf: ActorRefFactory): ActorRef = {
-    arf.actorOf(Props(new WebSocketClientActor(url)))
+  val WEBSOCKET_TIMEOUT = 10000L
+
+  def apply(url: String, listeners: Seq[ActorRef])(implicit arf: ActorRefFactory): ActorRef = {
+    arf.actorOf(Props(new WebSocketClientActor(url, listeners)))
   }
 
   def websocketHeaders(host: String, port: Int) = List (
@@ -33,33 +39,47 @@ object WebSocketClientActor {
 
 import WebSocketClientActor._
 
-class WebSocketClientActor(url: String) extends WebSocketClientWorker with ActorLogging {
+class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends WebSocketClientWorker with ActorLogging {
   implicit val ec = context.dispatcher
   implicit val system = context.system
 
-  val listeners = MSet[ActorRef]()
+  val listeners = MSet[ActorRef](initialListeners: _*)
   val uri = new URI(url)
   log.info("[WebSocketClient] Connecting to RTM: {}", uri)
   IO(UHttp) ! Http.Connect(uri.getHost, if(uri.getPort > 0) uri.getPort else 443, true)
 
+  var pingPongTask: Option[Cancellable] = None
+  var lastPing: Option[Long] = None
+  var lastPong: Option[Long] = None
+
   def upgradeRequest = HttpRequest(HttpMethods.GET, uri.getPath, websocketHeaders(uri.getHost, uri.getPort))
 
-  override def receive: Receive = super.receive orElse listenerReceive
+  override def receive: Receive = coreReceive orElse super.receive
 
-  def businessLogic: Receive = listenerReceive orElse {
+  def businessLogic: Receive = coreReceive orElse {
+    case CheckPongSendPing =>
+      handlePingPongCheck()
     case frame: TextFrame =>
       log.info("[WebSocketClient] Received Text Frame: {}", frame.payload.decodeString("utf8"))
       listeners.foreach(_ ! frame)
+    case frame: PongFrame =>
+      lastPong = Some(System.currentTimeMillis)
     case frame: Frame =>
-      log.info("[WebSocketClient] Received Frame: {}", frame.payload.decodeString("utf8"))
+      log.info("[WebSocketClient] Received Frame: {}", frame)
     case SendFrame(frame) =>
       connection ! frame
+    case UpgradedToWebSocket =>
+      pingPongTask = Some(context.system.scheduler.schedule(1.second, 1.second, self, CheckPongSendPing))
+      listeners.foreach(_ ! WebSocketClientConnected)
     case _: Http.ConnectionClosed =>
       log.info("[WebSocketClient] Websocket closed")
       context.stop(self)
   }
 
-  def listenerReceive: PartialFunction[Any, Unit] = {
+  def coreReceive: PartialFunction[Any, Unit] = {
+    case Http.CommandFailed(con: Http.Connect) =>
+      log.info("[WebSocketClientActor] Connection Failed")
+      listeners.foreach(_ ! WebSocketClientConnectFailed)
     case RegisterWebsocketListener(listener) =>
       log.info("[WebSocketClientActor] Registring listener")
       listeners += listener
@@ -68,5 +88,38 @@ class WebSocketClientActor(url: String) extends WebSocketClientWorker with Actor
       listeners -= listener
     case Terminated(actor) =>
       listeners -= actor
+  }
+
+  def handlePingPongCheck() {
+    if(!pingPongInitialized) {
+      initializePingPong()
+    } else if(pongTimedOut) {
+      listeners.foreach(_ ! WebSocketClientDisconnected)
+      context.stop(self)
+    } else {
+      sendPing()
+    }
+  }
+
+  def pingPongInitialized: Boolean = lastPing.isDefined && lastPong.isDefined
+
+  def initializePingPong() {
+    connection ! PingFrame()
+    lastPong = Some(System.currentTimeMillis)
+    lastPing = Some(System.currentTimeMillis)
+  }
+
+  def receivedPong: Boolean = lastPong.get > lastPing.get
+
+  def pongTimedOut: Boolean = (System.currentTimeMillis - lastPong.get) > WEBSOCKET_TIMEOUT
+
+  def sendPing() {
+    connection ! PingFrame()
+    lastPing = Some(System.currentTimeMillis)
+  }
+
+  override def postStop() {
+    pingPongTask.foreach(_.cancel)
+    context.stop(connection)
   }
 }

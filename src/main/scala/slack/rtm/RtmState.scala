@@ -60,6 +60,16 @@ class RtmState(start: RtmStartState) {
     }
   }
 
+  private[rtm] def reset(start: RtmStartState) {
+    _self = start.self
+    _team = start.team
+    _users = start.users
+    _channels = start.channels
+    _groups = start.groups
+    _ims = start.ims
+    _bots = start.bots
+  }
+
   private def addReplaceChannel(chan: Channel) {
     removeChannel(chan.id)
     _channels :+= chan
