@@ -96,14 +96,19 @@ class SlackRtmConnectionActor(token: String, state: RtmState) extends Actor with
 
   def receive = {
     case frame: TextFrame =>
-      val payload = frame.payload.decodeString("utf8")
-      val payloadJson = Json.parse(payload)
-      if((payloadJson \ "type").asOpt[String].isDefined){
-        val event = payloadJson.as[SlackEvent]
-        state.update(event)
-        listeners.foreach(_ ! event)
-      } else {
-        // TODO: handle reply_to / response
+      try {
+        val payload = frame.payload.decodeString("utf8")
+        val payloadJson = Json.parse(payload)
+        if((payloadJson \ "type").asOpt[String].isDefined){
+          val event = payloadJson.as[SlackEvent]
+          state.update(event)
+          listeners.foreach(_ ! event)
+        } else {
+          // TODO: handle reply_to / response
+        }
+      } catch {
+        case e: Exception =>
+          log.error(e, "[SlackRtmClient] Error parsing text frame")
       }
     case SendMessage(channelId, text) =>
       val nextId = idCounter.getAndIncrement
