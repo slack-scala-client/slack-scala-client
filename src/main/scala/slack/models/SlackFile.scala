@@ -3,7 +3,7 @@ package slack.models
 // TODO: 22 field limit :(
 case class SlackFile (
   id: String,
-  create: Long,
+  created: Long,
   timestamp: Long,
   name: Option[String],
   title: String,

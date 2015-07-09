@@ -22,6 +22,7 @@ package object models {
   implicit val subMessageFmt= Json.format[SubMessage]
   implicit val messageWithSubtypeFmt = Json.format[MessageWithSubtype]
   implicit val reactionAddedFmt= Json.format[ReactionAdded]
+  implicit val reactionRemovedFmt= Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
   implicit val channelMarkedFmt = Json.format[ChannelMarked]
   implicit val channelCreatedFmt = Json.format[ChannelCreated]
@@ -86,6 +87,7 @@ package object models {
         case e: SubMessage => Json.toJson(e)
         case e: UserTyping => Json.toJson(e)
         case e: ReactionAdded => Json.toJson(e)
+        case e: ReactionRemoved => Json.toJson(e)
         case e: ChannelMarked => Json.toJson(e)
         case e: ChannelCreated => Json.toJson(e)
         case e: ChannelJoined => Json.toJson(e)
@@ -152,7 +154,8 @@ package object models {
           case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
           case "message" => JsSuccess(jsValue.as[Message])
           case "user_typing" => JsSuccess(jsValue.as[UserTyping])
-            case "reaction_added" => JsSuccess(jsValue.as[ReactionAdded])
+          case "reaction_added" => JsSuccess(jsValue.as[ReactionAdded])
+          case "reaction_removed" => JsSuccess(jsValue.as[ReactionRemoved])
           case "channel_marked" => JsSuccess(jsValue.as[ChannelMarked])
           case "channel_created" => JsSuccess(jsValue.as[ChannelCreated])
           case "channel_joined" => JsSuccess(jsValue.as[ChannelJoined])
