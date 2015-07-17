@@ -166,7 +166,6 @@ package object models {
           case "channel_unarchive" => JsSuccess(jsValue.as[ChannelUnarchive])
           case "channel_history_changed" => JsSuccess(jsValue.as[ChannelHistoryChanged])
           case "im_created" => JsSuccess(jsValue.as[ImCreated])
-          case "im_opened" => JsSuccess(jsValue.as[ImOpened])
           case "im_open" => JsSuccess(jsValue.as[ImOpened])
           case "im_close" => JsSuccess(jsValue.as[ImClose])
           case "im_marked" => JsSuccess(jsValue.as[ImMarked])
