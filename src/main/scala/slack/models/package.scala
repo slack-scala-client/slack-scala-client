@@ -19,6 +19,10 @@ package object models {
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
   implicit val messageFmt = Json.format[Message]
+  implicit val subMessageFmt= Json.format[SubMessage]
+  implicit val messageWithSubtypeFmt = Json.format[MessageWithSubtype]
+  implicit val reactionAddedFmt= Json.format[ReactionAdded]
+  implicit val reactionRemovedFmt= Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
   implicit val channelMarkedFmt = Json.format[ChannelMarked]
   implicit val channelCreatedFmt = Json.format[ChannelCreated]
@@ -79,7 +83,11 @@ package object models {
       event match {
         case e: Hello => Json.toJson(e)
         case e: Message => Json.toJson(e)
+        case e: MessageWithSubtype => Json.toJson(e)
+        case e: SubMessage => Json.toJson(e)
         case e: UserTyping => Json.toJson(e)
+        case e: ReactionAdded => Json.toJson(e)
+        case e: ReactionRemoved => Json.toJson(e)
         case e: ChannelMarked => Json.toJson(e)
         case e: ChannelCreated => Json.toJson(e)
         case e: ChannelJoined => Json.toJson(e)
@@ -139,11 +147,15 @@ package object models {
   implicit val slackEventReads = new Reads[SlackEvent] {
     def reads(jsValue: JsValue): JsResult[SlackEvent] = {
       val etype = (jsValue \ "type").asOpt[String]
+      val subtype = (jsValue \ "subtype").asOpt[String]
       if(etype.isDefined) {
         etype.get match {
           case "hello" => JsSuccess(jsValue.as[Hello])
+          case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
           case "message" => JsSuccess(jsValue.as[Message])
           case "user_typing" => JsSuccess(jsValue.as[UserTyping])
+          case "reaction_added" => JsSuccess(jsValue.as[ReactionAdded])
+          case "reaction_removed" => JsSuccess(jsValue.as[ReactionRemoved])
           case "channel_marked" => JsSuccess(jsValue.as[ChannelMarked])
           case "channel_created" => JsSuccess(jsValue.as[ChannelCreated])
           case "channel_joined" => JsSuccess(jsValue.as[ChannelJoined])
@@ -154,7 +166,7 @@ package object models {
           case "channel_unarchive" => JsSuccess(jsValue.as[ChannelUnarchive])
           case "channel_history_changed" => JsSuccess(jsValue.as[ChannelHistoryChanged])
           case "im_created" => JsSuccess(jsValue.as[ImCreated])
-          case "im_opened" => JsSuccess(jsValue.as[ImOpened])
+          case "im_open" => JsSuccess(jsValue.as[ImOpened])
           case "im_close" => JsSuccess(jsValue.as[ImClose])
           case "im_marked" => JsSuccess(jsValue.as[ImMarked])
           case "im_history_changed" => JsSuccess(jsValue.as[ImHistoryChanged])
@@ -166,7 +178,7 @@ package object models {
           case "group_unarchive" => JsSuccess(jsValue.as[GroupUnarchive])
           case "group_rename" => JsSuccess(jsValue.as[GroupRename])
           case "group_marked" => JsSuccess(jsValue.as[GroupMarked])
-          case "grouo_history_changed" => JsSuccess(jsValue.as[GroupHistoryChanged])
+          case "group_history_changed" => JsSuccess(jsValue.as[GroupHistoryChanged])
           case "file_created" => JsSuccess(jsValue.as[FileCreated])
           case "file_shared" => JsSuccess(jsValue.as[FileShared])
           case "file_unshared" => JsSuccess(jsValue.as[FileUnshared])
