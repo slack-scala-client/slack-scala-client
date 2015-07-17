@@ -178,7 +178,7 @@ package object models {
           case "group_unarchive" => JsSuccess(jsValue.as[GroupUnarchive])
           case "group_rename" => JsSuccess(jsValue.as[GroupRename])
           case "group_marked" => JsSuccess(jsValue.as[GroupMarked])
-          case "grouo_history_changed" => JsSuccess(jsValue.as[GroupHistoryChanged])
+          case "group_history_changed" => JsSuccess(jsValue.as[GroupHistoryChanged])
           case "file_created" => JsSuccess(jsValue.as[FileCreated])
           case "file_shared" => JsSuccess(jsValue.as[FileShared])
           case "file_unshared" => JsSuccess(jsValue.as[FileUnshared])
