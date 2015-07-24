@@ -18,6 +18,37 @@ case class Message (
   is_starred: Option[Boolean]
 ) extends SlackEvent
 
+case class SubMessage (
+  ts: String,
+  user: String,
+  text: String,
+  is_starred: Option[Boolean]
+) extends SlackEvent
+
+// TODO: Message Sub-types
+case class MessageWithSubtype (
+  ts: String,
+  message: SubMessage,
+  subtype: String,
+  hidden: Option[Boolean],
+  event_ts: String,
+  channel: String
+) extends SlackEvent
+
+case class ReactionAdded (
+  reaction: String,
+  item: JsValue, // TODO: Different item types -- https://api.slack.com/methods/stars.list
+  event_ts: String,
+  user: String
+) extends SlackEvent
+
+case class ReactionRemoved (
+  reaction: String,
+  item: JsValue, // TODO: Different item types -- https://api.slack.com/methods/stars.list
+  event_ts: String,
+  user: String
+) extends SlackEvent
+
 case class UserTyping (
   channel: String,
   user: String
