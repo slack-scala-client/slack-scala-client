@@ -13,6 +13,7 @@ package object models {
   implicit val groupFmt = Json.format[Group]
   implicit val userProfileFmt = Json.format[UserProfile]
   implicit val userFmt = Json.format[User]
+  implicit val reactionFmt = Json.format[Reaction]
   implicit val slackCommentFmt = Json.format[SlackComment]
   implicit val slackFileFmt = Json.format[SlackFile]
 

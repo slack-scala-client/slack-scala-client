@@ -19,6 +19,7 @@ object SlackApiClient {
   implicit val pagingObjectFmt = Json.format[PagingObject]
   implicit val filesResponseFmt = Json.format[FilesResponse]
   implicit val fileInfoFmt = Json.format[FileInfo]
+  implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
   val apiBase = url("https://slack.com/api")
 
@@ -395,6 +396,49 @@ class SlackApiClient(token: String) {
     res.map(r => (r \ "channel" \ "id").as[String])
   }
 
+
+  /******************************/
+  /****  Reaction Endpoints  ****/
+  /******************************/
+
+  def addReaction(emojiName: String, file: Option[String] = None, fileComment: Option[String] = None, channelId: Option[String] = None,
+                    timestamp: Option[String] = None)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("reactions.add", ("name" -> emojiName), ("file" -> file), ("file_comment" -> fileComment),
+                                        ("channel" -> channelId), ("timestamp" -> timestamp))
+    extract[Boolean](res, "ok")
+  }
+
+  def addReactionToMessage(emojiName: String, channelId: String, timestamp: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    addReaction(emojiName = emojiName, channelId = Some(channelId), timestamp = Some(timestamp))
+  }
+
+  def getReactions(file: Option[String] = None, fileComment: Option[String] = None, channelId: Option[String] = None,
+                    timestamp: Option[String] = None, full: Option[Boolean] = None)(implicit ec: ExecutionContext): Future[Seq[Reaction]] = {
+    val res = makeApiMethodRequest("reactions.get", ("file" -> file), ("file_comment" -> fileComment), ("channel" -> channelId),
+                                            ("timestamp" -> timestamp), ("full" -> full))
+    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq[Reaction]()))
+  }
+
+  def getReactionsForMessage(channelId: String, timestamp: String, full: Option[Boolean] = None)(implicit ec: ExecutionContext): Future[Seq[Reaction]] = {
+    getReactions(channelId = Some(channelId), timestamp = Some(timestamp), full = full)
+  }
+
+  def listReactionsForUser(userId: Option[String], full: Boolean = false, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): Future[ReactionsResponse] = {
+    val res = makeApiMethodRequest("reations.list", ("user" -> userId), ("full" -> full), ("count" -> count), ("page" -> page))
+    res.map(_.as[ReactionsResponse])
+  }
+
+  def removeReaction(emojiName: String, file: Option[String] = None, fileComment: Option[String] = None, channelId: Option[String] = None,
+                    timestamp: Option[String] = None)(implicit ec: ExecutionContext): Future[Boolean] = {
+    val res = makeApiMethodRequest("reactions.remove", ("name" -> emojiName), ("file" -> file), ("file_comment" -> fileComment),
+                                        ("channel" -> channelId), ("timestamp" -> timestamp))
+    extract[Boolean](res, "ok")
+  }
+
+  def removeReactionFromMessage(emojiName: String, channelId: String, timestamp: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    removeReaction(emojiName = emojiName, channelId = Some(channelId), timestamp = Some(timestamp))
+  }
+
   /*************************/
   /****  RTM Endpoints  ****/
   /*************************/
@@ -447,7 +491,6 @@ class SlackApiClient(token: String) {
       ("count" -> count),
       ("page" -> page))
   }
-
 
   /***************************/
   /****  Stars Endpoints  ****/
@@ -531,6 +574,11 @@ case class FileInfo (
 
 case class FilesResponse (
   files: Seq[SlackFile],
+  paging: PagingObject
+)
+
+case class ReactionsResponse (
+  items: Seq[JsValue], // TODO: Parse out each object type w/ reactions
   paging: PagingObject
 )
 
