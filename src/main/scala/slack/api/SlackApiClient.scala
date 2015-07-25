@@ -190,7 +190,7 @@ class SlackApiClient(token: String) {
   }
 
   def postChatMessage(channelId: String, text: String, username: Option[String] = None, asUser: Option[Boolean] = None,
-      parse: Option[String] = None, linkNames: Option[String] = None, attachements: Option[Seq[JsValue]] = None,
+      parse: Option[String] = None, linkNames: Option[String] = None, attachments: Option[Seq[Attachment]] = None,
       unfurlLinks: Option[Boolean] = None, unfurlMedia: Option[Boolean] = None, iconUrl: Option[String] = None,
       iconEmoji: Option[String] = None)(implicit ec: ExecutionContext): Future[String] = {
     val res = makeApiMethodRequest (
@@ -200,7 +200,7 @@ class SlackApiClient(token: String) {
       ("as_user" -> asUser),
       ("parse" -> parse),
       ("link_names" -> linkNames),
-      ("attachements" -> attachements),
+      ("attachments" -> attachments.map(a => Json.stringify(Json.toJson(a)))),
       ("unfurl_links" -> unfurlLinks),
       ("unfurl_media" -> unfurlMedia),
       ("icon_url" -> iconUrl),

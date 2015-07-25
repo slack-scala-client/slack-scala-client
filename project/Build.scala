@@ -12,6 +12,7 @@ object BuildSettings {
     organization := buildOrganization,
     version      := buildVersion,
     scalaVersion := buildScalaVersion
+  )
 }
 
 object Resolvers {
