@@ -18,12 +18,12 @@ import WebSocketClientActor._
 import SlackRtmConnectionActor._
 
 object SlackRtmClient {
-  def apply(token: String, duration: FiniteDuration)(implicit arf: ActorRefFactory): SlackRtmClient = {
+  def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory): SlackRtmClient = {
     new SlackRtmClient(token, duration)
   }
 }
 
-class SlackRtmClient(token: String, duration: FiniteDuration)(implicit arf: ActorRefFactory) {
+class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory) {
   implicit val timeout = new Timeout(duration)
   implicit val ec = arf.dispatcher
 

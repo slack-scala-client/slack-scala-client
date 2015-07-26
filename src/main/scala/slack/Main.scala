@@ -6,11 +6,11 @@ import slack.rtm.SlackRtmClient
 import scala.concurrent.duration._
 
 object Main extends App {
-  val token = "xoxb-4519113137-pin7xf7s5CI0wxeQHltVEfkr"
+  val token = "..."
   implicit val system = ActorSystem("slack")
   implicit val ec = system.dispatcher
 
-  val client = SlackRtmClient(token, 5.seconds)
+  val client = SlackRtmClient(token)
   val selfId = client.state.self.id
 
   client.onEvent { event =>
