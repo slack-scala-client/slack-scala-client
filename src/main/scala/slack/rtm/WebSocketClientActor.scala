@@ -60,19 +60,19 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
     case CheckPongSendPing =>
       handlePingPongCheck()
     case frame: TextFrame =>
-      log.info("[WebSocketClient] Received Text Frame: {}", frame.payload.decodeString("utf8"))
+      log.debug("[WebSocketClientActor] Received Text Frame: {}", frame.payload.decodeString("utf8"))
       listeners.foreach(_ ! frame)
     case frame: PongFrame =>
       lastPong = Some(System.currentTimeMillis)
     case frame: Frame =>
-      log.info("[WebSocketClient] Received Frame: {}", frame)
+      log.debug("[WebSocketClientActor] Received Frame: {}", frame)
     case SendFrame(frame) =>
       connection ! frame
     case UpgradedToWebSocket =>
       pingPongTask = Some(context.system.scheduler.schedule(1.second, 1.second, self, CheckPongSendPing))
       listeners.foreach(_ ! WebSocketClientConnected)
     case _: Http.ConnectionClosed =>
-      log.info("[WebSocketClient] Websocket closed")
+      log.info("[WebSocketClientActor] Websocket closed")
       context.stop(self)
   }
 
@@ -81,7 +81,7 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
       log.info("[WebSocketClientActor] Connection Failed")
       listeners.foreach(_ ! WebSocketClientConnectFailed)
     case RegisterWebsocketListener(listener) =>
-      log.info("[WebSocketClientActor] Registring listener")
+      log.info("[WebSocketClientActor] Registering listener")
       listeners += listener
       context.watch(listener)
     case DeregisterWebsocketListener(listener) =>
@@ -108,8 +108,6 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
     lastPong = Some(System.currentTimeMillis)
     lastPing = Some(System.currentTimeMillis)
   }
-
-  def receivedPong: Boolean = lastPong.get > lastPing.get
 
   def pongTimedOut: Boolean = (System.currentTimeMillis - lastPong.get) > WEBSOCKET_TIMEOUT
 

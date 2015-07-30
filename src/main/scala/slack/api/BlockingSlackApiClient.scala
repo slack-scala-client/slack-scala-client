@@ -248,6 +248,43 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.openIm(userId))
   }
 
+
+  /******************************/
+  /****  Reaction Endpoints  ****/
+  /******************************/
+
+  def addReaction(emojiName: String, file: Option[String] = None, fileComment: Option[String] = None, channelId: Option[String] = None,
+                    timestamp: Option[String] = None)(implicit ec: ExecutionContext): Boolean = {
+    resolve(client.addReaction(emojiName, file, fileComment, channelId, timestamp))
+  }
+
+  def addReactionToMessage(emojiName: String, channelId: String, timestamp: String)(implicit ec: ExecutionContext): Boolean = {
+    resolve(client.addReactionToMessage(emojiName, channelId, timestamp))
+  }
+
+  def getReactions(file: Option[String] = None, fileComment: Option[String] = None, channelId: Option[String] = None,
+                    timestamp: Option[String] = None, full: Option[Boolean] = None)(implicit ec: ExecutionContext): Seq[Reaction] = {
+    resolve(client.getReactions(file, fileComment, channelId, timestamp, full))
+  }
+
+  def getReactionsForMessage(channelId: String, timestamp: String, full: Option[Boolean] = None)(implicit ec: ExecutionContext): Seq[Reaction] = {
+    resolve(client.getReactionsForMessage(channelId, timestamp, full))
+  }
+
+  def listReactionsForUser(userId: Option[String], full: Boolean = false, count: Option[Int] = None, page: Option[Int] = None)(implicit ec: ExecutionContext): ReactionsResponse = {
+    resolve(client.listReactionsForUser(userId, full, count, page))
+  }
+
+  def removeReaction(emojiName: String, file: Option[String] = None, fileComment: Option[String] = None, channelId: Option[String] = None,
+                    timestamp: Option[String] = None)(implicit ec: ExecutionContext): Boolean = {
+    resolve(client.removeReaction(emojiName, file, fileComment, channelId, timestamp))
+  }
+
+  def removeReactionFromMessage(emojiName: String, channelId: String, timestamp: String)(implicit ec: ExecutionContext): Boolean = {
+    resolve(client.removeReactionFromMessage(emojiName, channelId, timestamp))
+  }
+
+
   /*************************/
   /****  RTM Endpoints  ****/
   /*************************/
@@ -255,6 +292,7 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
   def startRealTimeMessageSession()(implicit ec: ExecutionContext): RtmStartState = {
     resolve(client.startRealTimeMessageSession())
   }
+
 
   /****************************/
   /****  Search Endpoints  ****/

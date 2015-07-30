@@ -5,7 +5,7 @@ import sbtrelease._
 
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
-  val buildVersion      = "0.1.1"
+  val buildVersion      = "0.1.2-SNAPSHOT"
   val buildScalaVersion = "2.11.7"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
