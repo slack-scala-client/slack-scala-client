@@ -528,7 +528,7 @@ class SlackApiClient(token: String) {
   }
 
   def getUserInfo(userId: String)(implicit ec: ExecutionContext): Future[User] = {
-    val res = makeApiMethodRequest("users.getInfo", ("user" -> userId))
+    val res = makeApiMethodRequest("users.info", ("user" -> userId))
     extract[User](res, "user")
   }
 
