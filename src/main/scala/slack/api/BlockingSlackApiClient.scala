@@ -51,7 +51,7 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.createChannel(name))
   }
 
-  def getChannelHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+  def getChannelHistory(channelId: String, latest: Option[String] = None, oldest: Option[String] = None,
       inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): HistoryChunk = {
     resolve(client.getChannelHistory(channelId, latest, oldest, inclusive, count))
   }
@@ -173,7 +173,7 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.createChildGroup(channelId))
   }
 
-  def getGroupHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+  def getGroupHistory(channelId: String, latest: Option[String] = None, oldest: Option[String] = None,
       inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): HistoryChunk = {
     resolve(client.getGroupHistory(channelId, latest, oldest, inclusive, count))
   }
@@ -231,7 +231,7 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.closeIm(channelId))
   }
 
-  def getImHistory(channelId: String, latest: Option[Long] = None, oldest: Option[Long] = None,
+  def getImHistory(channelId: String, latest: Option[String] = None, oldest: Option[String] = None,
       inclusive: Option[Int] = None, count: Option[Int] = None)(implicit ec: ExecutionContext): HistoryChunk = {
     resolve(client.getImHistory(channelId, latest, oldest, inclusive, count))
   }
