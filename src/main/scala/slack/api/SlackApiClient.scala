@@ -196,6 +196,7 @@ class SlackApiClient(token: String) {
       "chat.postMessage",
       ("channel" -> channelId),
       ("text" -> text),
+      ("username" -> username),
       ("as_user" -> asUser),
       ("parse" -> parse),
       ("link_names" -> linkNames),
