@@ -29,7 +29,7 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
 
   val apiClient = BlockingSlackApiClient(token, duration)
   val state = RtmState(apiClient.startRealTimeMessageSession())
-  val actor = SlackRtmConnectionActor(token, state)
+  val actor = SlackRtmConnectionActor(token, state, duration)
 
   def onEvent(f: (SlackEvent) => Unit): ActorRef = {
     val handler = EventHandlerActor(f)
@@ -79,15 +79,15 @@ object SlackRtmConnectionActor {
   case class StateResponse(state: RtmState)
   case object ReconnectWebSocket
 
-  def apply(token: String, state: RtmState)(implicit arf: ActorRefFactory): ActorRef = {
-    arf.actorOf(Props(new SlackRtmConnectionActor(token, state)))
+  def apply(token: String, state: RtmState, duration: FiniteDuration)(implicit arf: ActorRefFactory): ActorRef = {
+    arf.actorOf(Props(new SlackRtmConnectionActor(token, state, duration)))
   }
 }
 
-class SlackRtmConnectionActor(token: String, state: RtmState) extends Actor with ActorLogging {
+class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDuration) extends Actor with ActorLogging {
 
   implicit val ec = context.dispatcher
-  val apiClient = BlockingSlackApiClient(token)
+  val apiClient = BlockingSlackApiClient(token, duration)
   val listeners = MSet[ActorRef]()
   val idCounter = new AtomicLong(1L)
 
