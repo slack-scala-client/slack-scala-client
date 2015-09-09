@@ -28,10 +28,10 @@ case class SubMessage (
 // TODO: Message Sub-types
 case class MessageWithSubtype (
   ts: String,
-  message: SubMessage,
+  message: Option[SubMessage],
   subtype: String,
   hidden: Option[Boolean],
-  event_ts: String,
+  event_ts: Option[String],
   channel: String
 ) extends SlackEvent
 
@@ -121,12 +121,12 @@ case class ImHistoryChanged (
   event_ts: String
 ) extends SlackEvent
 
-case class GroupJoin (
+case class GroupJoined(
   channel: Channel
 ) extends SlackEvent
 
 case class GroupLeft (
-  channel: Channel
+  channel: String
 ) extends SlackEvent
 
 case class GroupOpen (
