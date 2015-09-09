@@ -94,7 +94,6 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
     if(!pingPongInitialized) {
       initializePingPong()
     } else if(pongTimedOut) {
-      listeners.foreach(_ ! WebSocketClientDisconnected)
       context.stop(self)
     } else {
       sendPing()
@@ -117,6 +116,7 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
   }
 
   override def postStop() {
+    listeners.foreach(_ ! WebSocketClientDisconnected)
     pingPongTask.foreach(_.cancel)
     context.stop(connection)
   }
