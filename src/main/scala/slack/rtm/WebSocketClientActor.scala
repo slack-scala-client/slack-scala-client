@@ -118,6 +118,6 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
   override def postStop() {
     listeners.foreach(_ ! WebSocketClientDisconnected)
     pingPongTask.foreach(_.cancel)
-    context.stop(connection)
+    Option(connection).foreach(context.stop)
   }
 }
