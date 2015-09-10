@@ -129,13 +129,14 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       log.info("[SlackRtmConnectionActor] WebSocket Client failed to connect, retrying in {} seconds", delay)
       connectFailures += 1
       context.system.scheduler.scheduleOnce(delay.seconds, self, ReconnectWebSocket)
-    case WebSocketClientDisconnected =>
-      log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
-      connectWebSocket()
     case ReconnectWebSocket =>
       connectWebSocket()
     case Terminated(actor) =>
       listeners -= actor
+      if (webSocketClient.isDefined && webSocketClient.get == actor) {
+        log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
+        connectWebSocket()
+      }
     case _ =>
   }
 
@@ -145,6 +146,7 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       val initialRtmState = apiClient.startRealTimeMessageSession()
       state.reset(initialRtmState)
       webSocketClient = Some(WebSocketClientActor(initialRtmState.url, Seq(self)))
+      webSocketClient.foreach(context.watch)
     } catch {
       case e: Exception =>
         log.error(e, "Caught exception trying to connect websocket")

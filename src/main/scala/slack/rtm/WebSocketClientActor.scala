@@ -17,7 +17,6 @@ object WebSocketClientActor {
   case class SendFrame(frame: Frame)
   case class RegisterWebsocketListener(listener: ActorRef)
   case class DeregisterWebsocketListener(listener: ActorRef)
-  case object WebSocketClientDisconnected
   case object WebSocketClientConnected
   case object WebSocketClientConnectFailed
   case object CheckPongSendPing
@@ -116,8 +115,8 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
   }
 
   override def postStop() {
-    listeners.foreach(_ ! WebSocketClientDisconnected)
     pingPongTask.foreach(_.cancel)
     Option(connection).foreach(context.stop)
+    log.info("[WebSocketClientActor] Terminating Actor Instance")
   }
 }
