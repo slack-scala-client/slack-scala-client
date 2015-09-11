@@ -14,6 +14,7 @@ object Main extends App {
   client.onEvent { event =>
     system.log.info("Received new event: {}", event)
     /*
+    import models._
     event match {
       case message: Message => {
         val mentionedIds = SlackUtil.extractMentionedIds(message.text)
