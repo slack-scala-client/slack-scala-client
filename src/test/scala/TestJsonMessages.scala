@@ -1,13 +1,13 @@
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
-import slack.models.SlackEvent
+import slack.models.{MessageSubtypes, SlackEvent}
 
 /**
  * Created by ptx on 9/5/15.
  */
 class TestJsonMessages extends FunSuite {
 
-  test("user prencese change") {
+  test("user presence change") {
 
     val json = Json.parse( """{"type":"presence_change","user":"U0A2DCEBS","presence":"active"}""")
     val ev = json.as[SlackEvent]
@@ -94,6 +94,44 @@ class TestJsonMessages extends FunSuite {
       "type": "group_left", "channel": "G0AAYN0E7"
     }""")
     val ev = json.as[SlackEvent]
+  }
+
+  test("bot message parsed") {
+    val json = Json.parse(
+      """{
+        |  "type":"message",
+        |  "user":"U0A2DCEBS",
+        |  "channel":"G0AAYN0E7",
+        |  "text": "Huzzah!",
+        |  "subtype":"bot_message",
+        |  "bot_id":"U0A2DCEB4",
+        |  "username":"Mr. Huzzah"
+        |}""".stripMargin)
+    val ev = json.as[MessageSubtypes.BotMessage]
+  }
+
+  test("me message parsed") {
+    val json = Json.parse(
+      """{
+        |  "type":"message",
+        |  "user":"U0A2DCEBS",
+        |  "channel":"G0AAYN0E7",
+        |  "text": "Cheers!",
+        |  "subtype":"me_message"
+        |}""".stripMargin)
+    val ev = json.as[MessageSubtypes.MeMessage]
+  }
+
+  test("unhandled message parsed") {
+    val json = Json.parse(
+      """{
+        |  "type":"message",
+        |  "user":"U0A2DCEBS",
+        |  "channel":"G0AAYN0E7",
+        |  "text": "An ordinary box for pizza.",
+        |  "subtype":"pizza_box"
+        |}""".stripMargin)
+    val ev = json.as[MessageSubtypes.UnhandledSubtype]
   }
 
 }
