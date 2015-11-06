@@ -39,7 +39,7 @@ The async client returns futures as the result of each of its API functions:
 
 ```scala
 val client = SlackApiClient(token)
-val res = client.getChannels() // => Future[Seq[Channel]]
+val res = client.listChannels() // => Future[Seq[Channel]]
 
 res.onComplete {
     case Success(channels) =>  //...
@@ -51,7 +51,7 @@ res.onComplete {
 
 ```scala
 val client = BlockingSlackApiClient(token)  // Default timeout of 5 seconds
-val channels = client.getChannels()  // => Seq[Channel]
+val channels = client.listChannels()  // => Seq[Channel]
 ```
 
 The API clients implement the full Slack API. A full list of the available endpoints can be found directly on the classes: [SlackApiClient](src/main/scala/slack/api/SlackApiClient.scala#L83-L507) and [BlockingSlackApiClient](src/main/scala/slack/api/BlockingSlackApiClient.scala#L28-L324)
