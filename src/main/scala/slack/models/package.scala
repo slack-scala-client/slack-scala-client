@@ -22,8 +22,6 @@ package object models {
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
   implicit val messageFmt = Json.format[Message]
-  implicit val subMessageFmt= Json.format[SubMessage]
-  implicit val messageWithSubtypeFmt = Json.format[MessageWithSubtype]
   implicit val reactionAddedFmt= Json.format[ReactionAdded]
   implicit val reactionRemovedFmt= Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
@@ -80,6 +78,24 @@ package object models {
   implicit val accountsChangedFmt = Json.format[AccountsChanged]
   implicit val teamMigrationStartedFmt = Json.format[TeamMigrationStarted]
 
+  // Message sub-types
+  import MessageSubtypes._
+  implicit val messageSubtypeBotMessageFmt = Json.format[BotMessage]
+  implicit val messageSubtypeMeMessageFmt = Json.format[MeMessage]
+  implicit val messageSubtypeChannelNameMessageFmt = Json.format[ChannelNameMessage]
+  implicit val messageSubtypeHandledSubtypeFmt = Json.format[UnhandledSubtype]
+  implicit val messageWithSubtypeWrites: Writes[MessageWithSubtype] = {
+    import play.api.libs.functional.syntax._
+    (
+      (JsPath \ "ts").write[String] and
+        (JsPath \ "channel").write[String] and
+        (JsPath \ "user").write[String] and
+        (JsPath \ "text").write[String] and
+        (JsPath \ "is_starred").write[Option[Boolean]] and
+        (JsPath \ "subtype").write[String]
+      )((msg: MessageWithSubtype) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.messageSubType.subtype))
+  }
+
   // Event Reads/Writes
   implicit val slackEventWrites = new Writes[SlackEvent] {
     def writes(event: SlackEvent) = {
@@ -87,7 +103,10 @@ package object models {
         case e: Hello => Json.toJson(e)
         case e: Message => Json.toJson(e)
         case e: MessageWithSubtype => Json.toJson(e)
-        case e: SubMessage => Json.toJson(e)
+        case e: BotMessage => Json.toJson(e)
+        case e: MeMessage => Json.toJson(e)
+        case e: ChannelNameMessage => Json.toJson(e)
+        case e: UnhandledSubtype => Json.toJson(e)
         case e: UserTyping => Json.toJson(e)
         case e: ReactionAdded => Json.toJson(e)
         case e: ReactionRemoved => Json.toJson(e)
@@ -143,6 +162,32 @@ package object models {
         case e: BotChanged => Json.toJson(e)
         case e: AccountsChanged => Json.toJson(e)
         case e: TeamMigrationStarted => Json.toJson(e)
+      }
+    }
+  }
+
+  implicit val subMessageReads = new Reads[MessageWithSubtype] {
+    def reads(jsValue: JsValue): JsResult[MessageWithSubtype] = {
+      (jsValue \ "subtype").asOpt[String] match {
+        case Some(subtype) =>
+          import MessageSubtypes._
+          val submessage = subtype match {
+            case "bot_message" => jsValue.as[BotMessage]
+            case "me_message" => jsValue.as[MeMessage]
+            case "channel_name" => jsValue.as[ChannelNameMessage]
+            case _ => jsValue.as[UnhandledSubtype]
+          }
+          JsSuccess(
+            MessageWithSubtype(
+              (jsValue \ "ts").as[String],
+              (jsValue \ "channel").as[String],
+              (jsValue \ "user").as[String],
+              (jsValue \ "text").as[String],
+              (jsValue \ "is_starred").asOpt[Boolean],
+              submessage
+            )
+          )
+        case None => JsError("Not a message with a subtype.")
       }
     }
   }

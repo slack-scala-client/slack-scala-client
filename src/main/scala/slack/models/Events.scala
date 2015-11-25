@@ -18,22 +18,43 @@ case class Message (
   is_starred: Option[Boolean]
 ) extends SlackEvent
 
-case class SubMessage (
-  ts: String,
-  user: String,
-  text: String,
-  is_starred: Option[Boolean]
-) extends SlackEvent
-
 // TODO: Message Sub-types
 case class MessageWithSubtype (
-  ts: String,
-  message: Option[SubMessage],
-  subtype: String,
-  hidden: Option[Boolean],
-  event_ts: Option[String],
-  channel: String
+ ts: String,
+ channel: String,
+ user: String,
+ text: String,
+ is_starred: Option[Boolean],
+ messageSubType: MessageSubtype
 ) extends SlackEvent
+
+sealed trait MessageSubtype {
+  def subtype: String
+}
+
+object MessageSubtypes {
+
+  // Fallback for unhandled message sub-types
+  case class UnhandledSubtype(subtype: String) extends MessageSubtype
+
+  case class BotMessage(
+    bot_id: String,
+    username: Option[String]
+  ) extends MessageSubtype {
+    val subtype = "bot_message"
+  }
+
+  case class MeMessage(subtype: String) extends MessageSubtype {
+    //val subtype = "me_message"
+  }
+
+  case class ChannelNameMessage(
+    oldname: String,
+    name: String
+  ) extends MessageSubtype {
+    val subtype = "channel_name"
+  }
+}
 
 case class ReactionAdded (
   reaction: String,
