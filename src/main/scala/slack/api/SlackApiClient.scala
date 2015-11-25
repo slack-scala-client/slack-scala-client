@@ -261,7 +261,7 @@ class SlackApiClient(token: String) {
       ("initial_comment" -> initialComment),
       ("channels" -> channels.map(_.mkString(",")))
     )
-    val multi = apiBaseWithToken.setContentType("multipart/form-data", StandardCharsets.UTF_8.toString).setHeader("Transfer-Encoding", "chunked").POST
+    val multi = (apiBaseWithToken / "files.upload").setContentType("multipart/form-data", StandardCharsets.UTF_8.toString).setHeader("Transfer-Encoding", "chunked").POST
     val withFile = multi.addBodyPart(new FilePart("file", file))
     val res = makeApiRequest(addQueryParams(withFile, cleanParams(params)))
     extract[SlackFile](res, "file")
