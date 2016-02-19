@@ -313,3 +313,8 @@ case class AccountsChanged (
 case class TeamMigrationStarted (
   `type`: String
 ) extends SlackEvent
+
+case class ReconnectUrl (
+  `type`: String,
+  url: Option[String] // Optional because currently undocumented and could change
+) extends SlackEvent

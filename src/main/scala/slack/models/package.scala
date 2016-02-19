@@ -77,6 +77,7 @@ package object models {
   implicit val botChangedFmt = Json.format[BotChanged]
   implicit val accountsChangedFmt = Json.format[AccountsChanged]
   implicit val teamMigrationStartedFmt = Json.format[TeamMigrationStarted]
+  implicit val reconnectUrlFmt = Json.format[ReconnectUrl]
 
   // Message sub-types
   import MessageSubtypes._
@@ -162,6 +163,7 @@ package object models {
         case e: BotChanged => Json.toJson(e)
         case e: AccountsChanged => Json.toJson(e)
         case e: TeamMigrationStarted => Json.toJson(e)
+        case e: ReconnectUrl => Json.toJson(e)
       }
     }
   }
@@ -256,6 +258,7 @@ package object models {
           case "bot_changed" => JsSuccess(jsValue.as[BotChanged])
           case "accounts_changed" => JsSuccess(jsValue.as[AccountsChanged])
           case "team_migration_started" => JsSuccess(jsValue.as[TeamMigrationStarted])
+          case "reconnect_url" => JsSuccess(jsValue.as[ReconnectUrl])
           case t: String => JsError(ValidationError("Invalid type property: {}", t))
         }
       } else {
