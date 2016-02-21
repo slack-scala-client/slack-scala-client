@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent.{ExecutionContext,Future}
 
 import dispatch.{Http,Req,url,as}
-import com.ning.http.multipart.FilePart
+import com.ning.http.client.multipart.FilePart
 import play.api.libs.json._
 
 object SlackApiClient {
