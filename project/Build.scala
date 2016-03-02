@@ -5,13 +5,43 @@ import sbtrelease._
 
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
-  val buildVersion      = "0.1.4-SNAPSHOT"
+  val buildVersion      = "0.1.4"
   val buildScalaVersion = "2.11.7"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,
     version      := buildVersion,
-    scalaVersion := buildScalaVersion
+    scalaVersion := buildScalaVersion,
+    publishMavenStyle := true,
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    publishArtifact in Test := false,
+    pomIncludeRepository := { _ => false },
+    pomExtra := (
+      <url>https://github.com/gilbertw1/slack-scala-client</url>
+      <licenses>
+        <license>
+          <name>MIT</name>
+          <url>https://opensource.org/licenses/MIT</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:gilbertw1/slack-scala-client.git</url>
+        <connection>scm:git:git@github.com:gilbertw1/slack-scala-client.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>gilbertw1</id>
+          <name>Bryan Gilbert</name>
+          <url>http://bryangilbert.com</url>
+        </developer>
+      </developers>)
   )
 }
 
