@@ -22,6 +22,8 @@ package object models {
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
   implicit val messageFmt = Json.format[Message]
+  implicit val editMessageFmt = Json.format[EditMessage]
+  implicit val messageChangedFmt = Json.format[MessageChanged]
   implicit val reactionAddedFmt= Json.format[ReactionAdded]
   implicit val reactionRemovedFmt= Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
@@ -103,6 +105,7 @@ package object models {
       event match {
         case e: Hello => Json.toJson(e)
         case e: Message => Json.toJson(e)
+        case e: MessageChanged => Json.toJson(e)
         case e: MessageWithSubtype => Json.toJson(e)
         case e: BotMessage => Json.toJson(e)
         case e: MeMessage => Json.toJson(e)
@@ -201,6 +204,7 @@ package object models {
       if(etype.isDefined) {
         etype.get match {
           case "hello" => JsSuccess(jsValue.as[Hello])
+          case "message" if subtype.contains("message_changed") => JsSuccess(jsValue.as[MessageChanged])
           case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
           case "message" => JsSuccess(jsValue.as[Message])
           case "user_typing" => JsSuccess(jsValue.as[UserTyping])

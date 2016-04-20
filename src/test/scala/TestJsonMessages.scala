@@ -1,6 +1,6 @@
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
-import slack.models.{MessageSubtypes, SlackEvent}
+import slack.models.{MessageChanged, MessageSubtypes, SlackEvent}
 
 /**
  * Created by ptx on 9/5/15.
@@ -132,6 +132,35 @@ class TestJsonMessages extends FunSuite {
         |  "subtype":"pizza_box"
         |}""".stripMargin)
     val ev = json.as[MessageSubtypes.UnhandledSubtype]
+  }
+
+  test("message_changed event parsed") {
+    val json = Json.parse(
+      """{
+        |  "type":"message",
+        |  "message":{
+        |    "type":"message",
+        |    "user":"U0W6K3Y6T",
+        |    "text":"Hi",
+        |    "edited":{
+        |      "user":"U0W6K3Y6T",
+        |      "ts":"1461159087.000000"
+        |    },
+        |    "ts":"1461159085.000005"
+        |  },
+        |  "subtype":"message_changed",
+        |  "hidden":true,
+        |  "channel":"G1225QJGJ",
+        |  "previous_message":{
+        |    "type":"message",
+        |    "user":"U0W6K3Y6T",
+        |    "text":"Hii",
+        |    "ts":"1461159085.000005"
+        |  },
+        |  "event_ts":"1461159087.697321",
+        |  "ts":"1461159087.000006"
+        |}""".stripMargin)
+    val ev = json.as[MessageChanged]
   }
 
 }
