@@ -18,6 +18,20 @@ case class Message (
   is_starred: Option[Boolean]
 ) extends SlackEvent
 
+case class EditMessage (
+  user: String,
+  text: String,
+  ts:String
+)
+
+case class MessageChanged (
+  message: EditMessage,
+  previous_message: EditMessage,
+  ts: String,
+  event_ts: String,
+  channel: String
+) extends SlackEvent
+
 // TODO: Message Sub-types
 case class MessageWithSubtype (
  ts: String,
