@@ -11,6 +11,8 @@ case class Channel (
   is_member: Option[Boolean],
   is_general: Option[Boolean],
   is_channel: Option[Boolean],
+  is_group: Option[Boolean],
+  is_mpim: Option[Boolean],
   num_members: Option[Int],
   members: Option[Seq[String]],
   topic: Option[ChannelValue],

@@ -1,6 +1,6 @@
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
-import slack.models.{MessageChanged, MessageSubtypes, SlackEvent}
+import slack.models.{GroupJoined, MessageChanged, MessageSubtypes, SlackEvent}
 
 /**
  * Created by ptx on 9/5/15.
@@ -161,6 +161,19 @@ class TestJsonMessages extends FunSuite {
         |  "ts":"1461159087.000006"
         |}""".stripMargin)
     val ev = json.as[MessageChanged]
+  }
+
+
+  test("parse additional params in channel") {
+    val json = Json.parse(
+      """{"type": "group_joined", "channel": {"topic": {"last_set": 0, "value": "", "creator": ""},
+        |"name": "test-2", "last_read": "1461761466.000002", "creator": "U0T2SJ99Q", "is_mpim": false, "is_archived": false,
+        |"created": 1461761466, "is_group": true, "members": ["U0T2SJ99Q", "U12NQNABX"], "unread_count": 0, "is_open": true,
+        |"purpose": {"last_set": 0, "value": "", "creator": ""}, "unread_count_display": 0, "id": "G145D40VC"}}""".stripMargin)
+    val ev = json.as[GroupJoined]
+    assert(ev.channel.is_mpim.contains(false))
+    assert(ev.channel.is_group.contains(true))
+    assert(ev.channel.is_channel.isEmpty)
   }
 
 }
