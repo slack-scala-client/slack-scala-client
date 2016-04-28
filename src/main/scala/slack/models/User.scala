@@ -6,6 +6,7 @@ case class User (
   deleted: Option[Boolean],
   color: Option[String],
   profile: Option[UserProfile],
+  is_bot: Option[Boolean],
   is_admin: Option[Boolean],
   is_owner: Option[Boolean],
   is_primary_owner: Option[Boolean],
