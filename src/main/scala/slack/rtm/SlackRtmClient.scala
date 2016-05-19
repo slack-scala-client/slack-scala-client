@@ -1,21 +1,18 @@
 package slack.rtm
 
-import slack.api._
-import slack.models._
-
-import scala.concurrent._
-import scala.collection.mutable.{Set => MSet}
-import scala.concurrent.duration._
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.actor._
-import akka.util.{ByteString,Timeout}
-import akka.pattern.ask
+import akka.util.{ByteString, Timeout}
 import play.api.libs.json._
+import slack.api._
+import slack.models._
+import slack.rtm.SlackRtmConnectionActor._
+import slack.rtm.WebSocketClientActor._
 import spray.can.websocket.frame._
 
-import WebSocketClientActor._
-import SlackRtmConnectionActor._
+import scala.collection.mutable.{Set => MSet}
+import scala.concurrent.duration._
 
 object SlackRtmClient {
   def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory): SlackRtmClient = {
@@ -48,7 +45,7 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
   }
 
   def indicateTyping(channel: String) {
-    ???
+    actor ! TypingMessage(channel)
   }
 
   def addEventListener(listener: ActorRef) {
@@ -71,10 +68,12 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
 object SlackRtmConnectionActor {
 
   implicit val sendMessageFmt = Json.format[MessageSend]
+  implicit val typingMessageFmt = Json.format[MessageTyping]
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
   case class SendMessage(channelId: String, text: String)
+  case class TypingMessage(channelId: String)
   case class StateRequest()
   case class StateResponse(state: RtmState)
   case object ReconnectWebSocket
@@ -110,6 +109,10 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
         case e: Exception =>
           log.error(e, "[SlackRtmClient] Error parsing text frame")
       }
+    case TypingMessage(channelId) =>
+      val nextId = idCounter.getAndIncrement
+      val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
+      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
     case SendMessage(channelId, text) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
@@ -164,3 +167,4 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
 }
 
 case class MessageSend(id: Long, channel: String, text: String, `type`: String = "message")
+case class MessageTyping(id: Long, channel: String, `type`: String = "typing")
