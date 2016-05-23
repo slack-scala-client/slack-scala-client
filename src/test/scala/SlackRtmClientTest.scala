@@ -13,4 +13,14 @@ class SlackRtmClientTest extends FunSuite {
     rtm.state.self.id //waiting for rtm to start
     rtm.indicateTyping(channel)
   }
+
+  ignore("team domain") {
+    val rtm = SlackRtmClient(rtmToken)
+    val domain = rtm.state.team.domain
+    val name = rtm.state.team.name
+    assert(domain.equals("my-team"))
+    assert(name.equals("My Team"))
+  }
+
+
 }
