@@ -22,10 +22,12 @@ package object models {
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
   implicit val messageFmt = Json.format[Message]
+  implicit val messageReply = Json.format[Reply]
   implicit val editMessageFmt = Json.format[EditMessage]
+  implicit val botMessageFmt = Json.format[BotMessage]
   implicit val messageChangedFmt = Json.format[MessageChanged]
-  implicit val reactionAddedFmt= Json.format[ReactionAdded]
-  implicit val reactionRemovedFmt= Json.format[ReactionRemoved]
+  implicit val reactionAddedFmt = Json.format[ReactionAdded]
+  implicit val reactionRemovedFmt = Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
   implicit val channelMarkedFmt = Json.format[ChannelMarked]
   implicit val channelCreatedFmt = Json.format[ChannelCreated]
@@ -83,7 +85,7 @@ package object models {
 
   // Message sub-types
   import MessageSubtypes._
-  implicit val messageSubtypeBotMessageFmt = Json.format[BotMessage]
+
   implicit val messageSubtypeMeMessageFmt = Json.format[MeMessage]
   implicit val messageSubtypeChannelNameMessageFmt = Json.format[ChannelNameMessage]
   implicit val messageSubtypeHandledSubtypeFmt = Json.format[UnhandledSubtype]
@@ -96,7 +98,7 @@ package object models {
         (JsPath \ "text").write[String] and
         (JsPath \ "is_starred").write[Option[Boolean]] and
         (JsPath \ "subtype").write[String]
-      )((msg: MessageWithSubtype) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.messageSubType.subtype))
+      ) ((msg: MessageWithSubtype) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.messageSubType.subtype))
   }
 
   // Event Reads/Writes
@@ -105,9 +107,10 @@ package object models {
       event match {
         case e: Hello => Json.toJson(e)
         case e: Message => Json.toJson(e)
+        case e: Reply => Json.toJson(e)
         case e: MessageChanged => Json.toJson(e)
-        case e: MessageWithSubtype => Json.toJson(e)
         case e: BotMessage => Json.toJson(e)
+        case e: MessageWithSubtype => Json.toJson(e)
         case e: MeMessage => Json.toJson(e)
         case e: ChannelNameMessage => Json.toJson(e)
         case e: UnhandledSubtype => Json.toJson(e)
@@ -177,7 +180,6 @@ package object models {
         case Some(subtype) =>
           import MessageSubtypes._
           val submessage = subtype match {
-            case "bot_message" => jsValue.as[BotMessage]
             case "me_message" => jsValue.as[MeMessage]
             case "channel_name" => jsValue.as[ChannelNameMessage]
             case _ => jsValue.as[UnhandledSubtype]
@@ -201,10 +203,11 @@ package object models {
     def reads(jsValue: JsValue): JsResult[SlackEvent] = {
       val etype = (jsValue \ "type").asOpt[String]
       val subtype = (jsValue \ "subtype").asOpt[String]
-      if(etype.isDefined) {
+      if (etype.isDefined) {
         etype.get match {
           case "hello" => JsSuccess(jsValue.as[Hello])
           case "message" if subtype.contains("message_changed") => JsSuccess(jsValue.as[MessageChanged])
+          case "message" if subtype.contains("bot_message") => JsSuccess(jsValue.as[BotMessage])
           case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
           case "message" => JsSuccess(jsValue.as[Message])
           case "user_typing" => JsSuccess(jsValue.as[UserTyping])
@@ -265,6 +268,8 @@ package object models {
           case "reconnect_url" => JsSuccess(jsValue.as[ReconnectUrl])
           case t: String => JsError(ValidationError("Invalid type property: {}", t))
         }
+      } else if ((jsValue \ "reply_to").asOpt[Long].isDefined) {
+        JsSuccess(jsValue.as[Reply])
       } else {
         JsError(ValidationError("Required (string) event type property is missing."))
       }

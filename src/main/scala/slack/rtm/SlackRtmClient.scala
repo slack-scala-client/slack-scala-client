@@ -40,8 +40,8 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
     handler
   }
 
-  def sendMessage(channelId: String, text: String) {
-    actor ! SendMessage(channelId, text)
+  def sendMessage(channelId: String, text: String, id: Option[Long] = None) {
+    actor ! SendMessage(channelId, text, id)
   }
 
   def indicateTyping(channel: String) {
@@ -72,7 +72,7 @@ object SlackRtmConnectionActor {
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
-  case class SendMessage(channelId: String, text: String)
+  case class SendMessage(channelId: String, text: String, id:Option[Long] = None)
   case class TypingMessage(channelId: String)
   case class StateRequest()
   case class StateResponse(state: RtmState)
@@ -98,12 +98,10 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       try {
         val payload = frame.payload.decodeString("utf8")
         val payloadJson = Json.parse(payload)
-        if((payloadJson \ "type").asOpt[String].isDefined){
+        if ((payloadJson \ "type").asOpt[String].isDefined || (payloadJson \ "reply_to").asOpt[Long].isDefined) {
           val event = payloadJson.as[SlackEvent]
           state.update(event)
           listeners.foreach(_ ! event)
-        } else {
-          // TODO: handle reply_to / response
         }
       } catch {
         case e: Exception =>
@@ -113,8 +111,8 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
-    case SendMessage(channelId, text) =>
-      val nextId = idCounter.getAndIncrement
+    case SendMessage(channelId, text, id) =>
+      val nextId = id.getOrElse(idCounter.getAndIncrement)
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
     case StateRequest() =>
