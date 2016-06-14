@@ -18,6 +18,8 @@ package object models {
   implicit val reactionFmt = Json.format[Reaction]
   implicit val slackCommentFmt = Json.format[SlackComment]
   implicit val slackFileFmt = Json.format[SlackFile]
+  implicit val slackFileIdFmt = Json.format[SlackFileId]
+  implicit val updateResponseFmt = Json.format[UpdateResponse]
 
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
@@ -26,6 +28,7 @@ package object models {
   implicit val editMessageFmt = Json.format[EditMessage]
   implicit val botMessageFmt = Json.format[BotMessage]
   implicit val messageChangedFmt = Json.format[MessageChanged]
+  implicit val messageDeletedFmt = Json.format[MessageDeleted]
   implicit val reactionAddedFmt = Json.format[ReactionAdded]
   implicit val reactionRemovedFmt = Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
@@ -88,6 +91,7 @@ package object models {
 
   implicit val messageSubtypeMeMessageFmt = Json.format[MeMessage]
   implicit val messageSubtypeChannelNameMessageFmt = Json.format[ChannelNameMessage]
+  implicit val messageSubtypeFileShareMessageFmt = Json.format[FileShareMessage]
   implicit val messageSubtypeHandledSubtypeFmt = Json.format[UnhandledSubtype]
   implicit val messageWithSubtypeWrites: Writes[MessageWithSubtype] = {
     import play.api.libs.functional.syntax._
@@ -109,10 +113,12 @@ package object models {
         case e: Message => Json.toJson(e)
         case e: Reply => Json.toJson(e)
         case e: MessageChanged => Json.toJson(e)
+        case e: MessageDeleted => Json.toJson(e)
         case e: BotMessage => Json.toJson(e)
         case e: MessageWithSubtype => Json.toJson(e)
         case e: MeMessage => Json.toJson(e)
         case e: ChannelNameMessage => Json.toJson(e)
+        case e: FileShareMessage => Json.toJson(e)
         case e: UnhandledSubtype => Json.toJson(e)
         case e: UserTyping => Json.toJson(e)
         case e: ReactionAdded => Json.toJson(e)
@@ -179,9 +185,10 @@ package object models {
       (jsValue \ "subtype").asOpt[String] match {
         case Some(subtype) =>
           import MessageSubtypes._
-          val submessage = subtype match {
+          val subMessage = subtype match {
             case "me_message" => jsValue.as[MeMessage]
             case "channel_name" => jsValue.as[ChannelNameMessage]
+            case "file_share" => jsValue.as[FileShareMessage]
             case _ => jsValue.as[UnhandledSubtype]
           }
           JsSuccess(
@@ -191,7 +198,7 @@ package object models {
               (jsValue \ "user").as[String],
               (jsValue \ "text").as[String],
               (jsValue \ "is_starred").asOpt[Boolean],
-              submessage
+              subMessage
             )
           )
         case None => JsError("Not a message with a subtype.")
@@ -207,6 +214,7 @@ package object models {
         etype.get match {
           case "hello" => JsSuccess(jsValue.as[Hello])
           case "message" if subtype.contains("message_changed") => JsSuccess(jsValue.as[MessageChanged])
+          case "message" if subtype.contains("message_deleted") => JsSuccess(jsValue.as[MessageDeleted])
           case "message" if subtype.contains("bot_message") => JsSuccess(jsValue.as[BotMessage])
           case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
           case "message" => JsSuccess(jsValue.as[Message])

@@ -1,12 +1,12 @@
 package slack.api
 
-import slack.models._
-
 import java.io.File
-import scala.concurrent.{ExecutionContext,Future,Await}
-import scala.concurrent.duration._
 
 import play.api.libs.json._
+import slack.models._
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object BlockingSlackApiClient {
 
@@ -117,7 +117,7 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.postChatMessage(channelId, text, username, asUser, parse, linkNames, attachments, unfurlLinks, unfurlMedia, iconUrl, iconEmoji))
   }
 
-  def updateChatMessage(channelId: String, ts: String, text: String)(implicit ec: ExecutionContext): Boolean = {
+  def updateChatMessage(channelId: String, ts: String, text: String)(implicit ec: ExecutionContext): UpdateResponse = {
     resolve(client.updateChatMessage(channelId, ts, text))
   }
 

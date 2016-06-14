@@ -32,6 +32,13 @@ case class MessageChanged (
   channel: String
 ) extends SlackEvent
 
+case class MessageDeleted (
+  ts: String,
+  deleted_ts: String,
+  event_ts: String,
+  channel: String
+) extends SlackEvent
+
 case class BotMessage (
   ts: String,
   channel: String,
@@ -68,6 +75,12 @@ object MessageSubtypes {
     name: String
   ) extends MessageSubtype {
     val subtype = "channel_name"
+  }
+
+  case class FileShareMessage(
+    file: SlackFileId
+  ) extends MessageSubtype {
+    val subtype = "file_share"
   }
 }
 
@@ -199,19 +212,19 @@ case class GroupHistoryChanged (
 ) extends SlackEvent
 
 case class FileCreated (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FileShared (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FileUnshared (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FilePublic (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FilePrivate (
@@ -219,7 +232,7 @@ case class FilePrivate (
 ) extends SlackEvent
 
 case class FileChange (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FileDeleted (
@@ -228,17 +241,17 @@ case class FileDeleted (
 ) extends SlackEvent
 
 case class FileCommentAdded (
-  file: SlackFile,
+  file_id: String,
   comment: JsValue // TODO: SlackComment?
 ) extends SlackEvent
 
 case class FileCommentEdited (
-  file: SlackFile,
+  file_id: String,
   comment: JsValue // TODO: SlackComment?
 ) extends SlackEvent
 
 case class FileCommentDeleted (
-  file: SlackFile,
+  file_id: String,
   comment: String
 ) extends SlackEvent
 

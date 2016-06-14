@@ -1,6 +1,7 @@
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
-import slack.models.{BotMessage, GroupJoined, MessageChanged, MessageSubtypes, SlackEvent}
+import slack.models.MessageSubtypes.FileShareMessage
+import slack.models.{BotMessage, GroupJoined, MessageChanged, MessageSubtypes, MessageWithSubtype, SlackEvent, SlackFileId}
 
 /**
  * Created by ptx on 9/5/15.
@@ -169,6 +170,18 @@ class TestJsonMessages extends FunSuite {
         |"first_name":null,"real_name":"","name":null},"channel":"D1632C4LU","ts":"1464985393.000154"}""".stripMargin)
     val ev = json.as[BotMessage]
     assert(ev.bot_id.equals("B1E2Y493N"))
+  }
+
+  test("parse file share message") {
+    val json = Json.parse(
+      """{"username": "<@U0X6J06MD|super-roger>", "display_as_bot": false,
+        |  "text": "<@U0X6J06MD|super-roger> uploaded a file: <https://okroger-agents-dev.slack.com/files/super-roger/F1FVBN542/ok.png|ok>",
+        |   "upload": true, "ts": "1465589621.000008", "subtype": "file_share", "user": "U0X6J06MD",
+        |   "file": { "id": "F1FVBN542"}, "team": "T0W6887JS",
+        |         "type": "message", "channel": "G172PTNSH"}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    assert(ev.isInstanceOf[MessageWithSubtype])
+    assert(ev.asInstanceOf[MessageWithSubtype].messageSubType.equals(FileShareMessage(SlackFileId("F1FVBN542"))))
   }
 
 }

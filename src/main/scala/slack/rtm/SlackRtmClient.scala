@@ -44,6 +44,10 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
     actor ! SendMessage(channelId, text, id)
   }
 
+  def editMessage(channelId: String, ts: String, text: String) {
+    actor ! BotEditMessage(channelId, ts, text)
+  }
+
   def indicateTyping(channel: String) {
     actor ! TypingMessage(channel)
   }
@@ -68,11 +72,13 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
 object SlackRtmConnectionActor {
 
   implicit val sendMessageFmt = Json.format[MessageSend]
+  implicit val botEditMessageFmt = Json.format[BotEditMessage]
   implicit val typingMessageFmt = Json.format[MessageTyping]
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
   case class SendMessage(channelId: String, text: String, id:Option[Long] = None)
+  case class BotEditMessage(channelId: String, ts: String, text: String, as_user: Boolean = true, `type`:String = "chat.update")
   case class TypingMessage(channelId: String)
   case class StateRequest()
   case class StateResponse(state: RtmState)
@@ -114,6 +120,9 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
     case SendMessage(channelId, text, id) =>
       val nextId = id.getOrElse(idCounter.getAndIncrement)
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
+      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
+    case bm: BotEditMessage =>
+      val payload = Json.stringify(Json.toJson(bm))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
     case StateRequest() =>
       sender ! StateResponse(state)
