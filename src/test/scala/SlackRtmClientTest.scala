@@ -49,7 +49,7 @@ class SlackRtmClientTest extends FunSuite {
     val rtmApi = SlackApiClient(rtmToken)
     val future = rtmApi.updateChatMessage(channel, "1465891701.000006", "edit-x", Some(true))
     val result = Await.result(future, 5.seconds)
-    assert(result.equals(true))
+    assert(result.ok.equals(true))
   }
 
 

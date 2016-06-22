@@ -4,6 +4,8 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 package object models {
+  implicit val confirmFieldFmt = Json.format[ConfirmField]
+  implicit val actionFieldFmt = Json.format[ActionField]
   implicit val attachmentFieldFmt = Json.format[AttachmentField]
   implicit val attachmentFmt = Json.format[Attachment]
   implicit val authIdentityFmt = Json.format[AuthIdentity]
