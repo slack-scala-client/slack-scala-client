@@ -47,8 +47,8 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
     actor ! SendMessage(channelId, text)
   }
 
-  def indicateTyping(channel: String) {
-    ???
+  def indicateTyping(channelId: String) {
+    actor ! IndicateTyping(channelId)
   }
 
   def addEventListener(listener: ActorRef) {
@@ -71,10 +71,12 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
 object SlackRtmConnectionActor {
 
   implicit val sendMessageFmt = Json.format[MessageSend]
+  implicit val typingIndicatedFmt = Json.format[TypingIndicated]
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
   case class SendMessage(channelId: String, text: String)
+  case class IndicateTyping(channelId: String)
   case class StateRequest()
   case class StateResponse(state: RtmState)
   case object ReconnectWebSocket
@@ -113,6 +115,10 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
     case SendMessage(channelId, text) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
+      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
+    case IndicateTyping(channelId) =>
+      val nextId = idCounter.getAndIncrement
+      val payload = Json.stringify(Json.toJson(TypingIndicated(nextId, channelId)))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
     case StateRequest() =>
       sender ! StateResponse(state)
@@ -164,3 +170,4 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
 }
 
 case class MessageSend(id: Long, channel: String, text: String, `type`: String = "message")
+case class TypingIndicated(id: Long, channel: String, `type`: String = "typing")
