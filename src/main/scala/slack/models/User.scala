@@ -13,7 +13,9 @@ case class User (
   is_restricted: Option[Boolean],
   is_ultra_restricted: Option[Boolean],
   has_2fa: Option[Boolean],
-  has_files: Option[Boolean]
+  has_files: Option[Boolean],
+  tz: Option[String],
+  presence: Option[String]
 )
 
 case class UserProfile (

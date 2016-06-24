@@ -13,6 +13,7 @@ import spray.can.websocket.frame._
 
 import scala.collection.mutable.{Set => MSet}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 object SlackRtmClient {
   def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory): SlackRtmClient = {
@@ -105,13 +106,15 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
         val payload = frame.payload.decodeString("utf8")
         val payloadJson = Json.parse(payload)
         if ((payloadJson \ "type").asOpt[String].isDefined || (payloadJson \ "reply_to").asOpt[Long].isDefined) {
-          val event = payloadJson.as[SlackEvent]
-          state.update(event)
-          listeners.foreach(_ ! event)
+          Try(payloadJson.as[SlackEvent]) match {
+            case Success(event) =>
+              state.update(event)
+              listeners.foreach(_ ! event)
+            case Failure(e) => log.error(e, s"[SlackRtmClient] Error reading event: $payload")
+          }
         }
       } catch {
-        case e: Exception =>
-          log.error(e, "[SlackRtmClient] Error parsing text frame")
+        case e: Exception => log.error(e, "[SlackRtmClient] Error parsing text frame")
       }
     case TypingMessage(channelId) =>
       val nextId = idCounter.getAndIncrement
