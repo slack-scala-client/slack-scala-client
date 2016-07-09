@@ -1,8 +1,6 @@
 slack-scala-client
 ==================
 
-[![Build Status](https://travis-ci.org/manojkakarla/slack-scala-client.svg?branch=master)](https://travis-ci.org/manojkakarla/slack-scala-client)
-
 A Scala library for interacting with the Slack API and real time messaging interface
 
 
@@ -11,7 +9,7 @@ Installation
 
 Add SBT dependency:
 
-    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.1.4"
+    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.1.7"
 
 
 API Client Usage
