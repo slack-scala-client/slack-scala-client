@@ -15,6 +15,7 @@ case class User (
   has_2fa: Option[Boolean],
   has_files: Option[Boolean],
   tz: Option[String],
+  tz_offset: Option[Int],
   presence: Option[String]
 )
 
