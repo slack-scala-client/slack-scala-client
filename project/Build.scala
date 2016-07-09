@@ -6,7 +6,7 @@ import sbtrelease._
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
   val buildVersion      = "0.1.7"
-  val buildScalaVersion = "2.11.7"
+  val buildScalaVersion = "2.11.8"
 
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,
@@ -50,18 +50,19 @@ object Resolvers {
 }
 
 object Dependencies {
-  val akkaVersion = "2.4.2"
+  val akkaVersion = "2.4.4"
   val sprayVersion = "1.3.3"
+  val playVersion = "2.5.4"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.5"
   val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.11.3"
-  val playJson = "com.typesafe.play" %% "play-json" % "2.4.3"
-  val sprayWebsocket = "com.wandoulabs.akka" %% "spray-websocket" % "0.1.4"
+  val playJson = "com.typesafe.play" %% "play-json" % playVersion
+  val playWS = "com.typesafe.play" %% "play-ws" % playVersion
 
-  val playWS = "com.typesafe.play" %% "play-ws" % "2.4.3"
+  val sprayWebsocket = "com.wandoulabs.akka" %% "spray-websocket" % "0.1.4"
 
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
