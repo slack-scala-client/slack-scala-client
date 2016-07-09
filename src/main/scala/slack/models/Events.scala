@@ -277,7 +277,7 @@ case class ManualPresenceChange (
 
 case class PrefChange (
   name: String,
-  value: String
+  value: JsValue
 ) extends SlackEvent
 
 case class UserChange (
@@ -348,3 +348,7 @@ case class ReconnectUrl (
 ) extends SlackEvent
 
 case class Reply(ok:Boolean, reply_to: Long, ts: String,  text: String) extends SlackEvent
+
+case class AppsChanged(app: App, event_ts: String) extends SlackEvent
+
+case class AppsUninstalled(app_id: String, event_ts: String) extends SlackEvent
