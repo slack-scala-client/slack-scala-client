@@ -16,7 +16,7 @@ case class SlackFile (
   is_external: Boolean,
   external_type: String,
   size: Long,
-  url: String,
+  url: Option[String],
   url_download: Option[String],
   url_private: Option[String],
   url_private_download: Option[String]

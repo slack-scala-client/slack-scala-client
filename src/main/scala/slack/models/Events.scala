@@ -18,6 +18,35 @@ case class Message (
   is_starred: Option[Boolean]
 ) extends SlackEvent
 
+case class EditMessage (
+  user: String,
+  text: String,
+  ts:String
+)
+
+case class MessageChanged (
+  message: EditMessage,
+  previous_message: EditMessage,
+  ts: String,
+  event_ts: String,
+  channel: String
+) extends SlackEvent
+
+case class MessageDeleted (
+  ts: String,
+  deleted_ts: String,
+  event_ts: String,
+  channel: String
+) extends SlackEvent
+
+case class BotMessage (
+  ts: String,
+  channel: String,
+  text: String,
+  bot_id: String,
+  username: Option[String]
+) extends SlackEvent
+
 // TODO: Message Sub-types
 case class MessageWithSubtype (
  ts: String,
@@ -37,13 +66,6 @@ object MessageSubtypes {
   // Fallback for unhandled message sub-types
   case class UnhandledSubtype(subtype: String) extends MessageSubtype
 
-  case class BotMessage(
-    bot_id: String,
-    username: Option[String]
-  ) extends MessageSubtype {
-    val subtype = "bot_message"
-  }
-
   case class MeMessage(subtype: String) extends MessageSubtype {
     //val subtype = "me_message"
   }
@@ -53,6 +75,12 @@ object MessageSubtypes {
     name: String
   ) extends MessageSubtype {
     val subtype = "channel_name"
+  }
+
+  case class FileShareMessage(
+    file: SlackFileId
+  ) extends MessageSubtype {
+    val subtype = "file_share"
   }
 }
 
@@ -184,19 +212,19 @@ case class GroupHistoryChanged (
 ) extends SlackEvent
 
 case class FileCreated (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FileShared (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FileUnshared (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FilePublic (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FilePrivate (
@@ -204,7 +232,7 @@ case class FilePrivate (
 ) extends SlackEvent
 
 case class FileChange (
-  file: SlackFile
+  file_id: String
 ) extends SlackEvent
 
 case class FileDeleted (
@@ -213,17 +241,17 @@ case class FileDeleted (
 ) extends SlackEvent
 
 case class FileCommentAdded (
-  file: SlackFile,
+  file_id: String,
   comment: JsValue // TODO: SlackComment?
 ) extends SlackEvent
 
 case class FileCommentEdited (
-  file: SlackFile,
+  file_id: String,
   comment: JsValue // TODO: SlackComment?
 ) extends SlackEvent
 
 case class FileCommentDeleted (
-  file: SlackFile,
+  file_id: String,
   comment: String
 ) extends SlackEvent
 
@@ -318,3 +346,5 @@ case class ReconnectUrl (
   `type`: String,
   url: Option[String] // Optional because currently undocumented and could change
 ) extends SlackEvent
+
+case class Reply(ok:Boolean, reply_to: Long, ts: String,  text: String) extends SlackEvent
