@@ -347,4 +347,9 @@ case class ReconnectUrl (
   url: Option[String] // Optional because currently undocumented and could change
 ) extends SlackEvent
 
-case class Reply(ok:Boolean, reply_to: Long, ts: String,  text: String) extends SlackEvent
+case class Reply(
+  ok: Boolean,
+  reply_to: Long,
+  ts: String,
+  text: String
+) extends SlackEvent

@@ -1,19 +1,21 @@
 package slack.rtm
 
-import java.util.concurrent.atomic.AtomicLong
-
-import akka.actor._
-import akka.util.{ByteString, Timeout}
-import play.api.libs.json._
 import slack.api._
 import slack.models._
 import slack.rtm.SlackRtmConnectionActor._
 import slack.rtm.WebSocketClientActor._
-import spray.can.websocket.frame._
 
+import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{Set => MSet}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+
+import akka.actor._
+import akka.util.{ByteString, Timeout}
+import akka.pattern.ask
+import play.api.libs.json._
+import spray.can.websocket.frame._
 
 object SlackRtmClient {
   def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory): SlackRtmClient = {
@@ -41,8 +43,8 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
     handler
   }
 
-  def sendMessage(channelId: String, text: String, id: Option[Long] = None) {
-    actor ! SendMessage(channelId, text, id)
+  def sendMessage(channelId: String, text: String): Future[Long] = {
+    (actor ? SendMessage(channelId, text)).mapTo[Long]
   }
 
   def editMessage(channelId: String, ts: String, text: String) {
@@ -78,7 +80,7 @@ object SlackRtmConnectionActor {
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
-  case class SendMessage(channelId: String, text: String, id:Option[Long] = None)
+  case class SendMessage(channelId: String, text: String)
   case class BotEditMessage(channelId: String, ts: String, text: String, as_user: Boolean = true, `type`:String = "chat.update")
   case class TypingMessage(channelId: String)
   case class StateRequest()
@@ -120,10 +122,11 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
-    case SendMessage(channelId, text, id) =>
-      val nextId = id.getOrElse(idCounter.getAndIncrement)
+    case SendMessage(channelId, text) =>
+      val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
+      sender ! nextId
     case bm: BotEditMessage =>
       val payload = Json.stringify(Json.toJson(bm))
       webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
