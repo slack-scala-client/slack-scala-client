@@ -10,6 +10,10 @@ object SlackUtil {
     mentionrx.findAllMatchIn(text).toVector.map(_.subgroups.head)
   }
 
+  def mentionsId(text: String, id: String): Boolean = {
+    mentionrx.findAllMatchIn(text).toVector.map(_.subgroups.head).contains(id)
+  }
+
   def isDirectMsg(m: Message): Boolean = {
     m.channel.startsWith("D")
   }
