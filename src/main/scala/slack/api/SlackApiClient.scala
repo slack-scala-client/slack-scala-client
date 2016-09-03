@@ -45,7 +45,7 @@ object SlackApiClient {
       if(ok) {
         parsed
       } else {
-        throw new ApiError((parsed \ "error").as[String])
+        throw ApiError((parsed \ "error").as[String])
       }
     }
   }
@@ -191,7 +191,8 @@ class SlackApiClient(token: String) {
   def postChatMessage(channelId: String, text: String, username: Option[String] = None, asUser: Option[Boolean] = None,
       parse: Option[String] = None, linkNames: Option[String] = None, attachments: Option[Seq[Attachment]] = None,
       unfurlLinks: Option[Boolean] = None, unfurlMedia: Option[Boolean] = None, iconUrl: Option[String] = None,
-      iconEmoji: Option[String] = None)(implicit ec: ExecutionContext): Future[String] = {
+      iconEmoji: Option[String] = None, replaceOriginal: Option[Boolean]= None,
+      deleteOriginal: Option[Boolean] = None)(implicit ec: ExecutionContext): Future[String] = {
     val res = makeApiMethodRequest (
       "chat.postMessage",
       "channel" -> channelId,
@@ -204,7 +205,9 @@ class SlackApiClient(token: String) {
       "unfurl_links" -> unfurlLinks,
       "unfurl_media" -> unfurlMedia,
       "icon_url" -> iconUrl,
-      "icon_emoji" -> iconEmoji)
+      "icon_emoji" -> iconEmoji,
+      "replace_original" -> replaceOriginal,
+      "delete_original" -> deleteOriginal)
     extract[String](res, "ts")
   }
 

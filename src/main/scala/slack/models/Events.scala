@@ -78,7 +78,7 @@ object MessageSubtypes {
   }
 
   case class FileShareMessage(
-    file: SlackFileId
+    file: SlackFile
   ) extends MessageSubtype {
     val subtype = "file_share"
   }

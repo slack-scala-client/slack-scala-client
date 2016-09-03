@@ -2,7 +2,7 @@ package slack.models
 
 case class SlackComment (
   id: String,
-  tiemstamp: Long,
+  timestamp: Long,
   user: String,
   comment: String
 )
