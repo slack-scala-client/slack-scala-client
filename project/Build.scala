@@ -83,6 +83,7 @@ object SlackScalaClient extends Build {
       .settings ( buildSettings : _* )
       .settings ( resolvers ++= Seq(typesafeRepo) )
       .settings ( libraryDependencies ++= Dependencies.allDependencies )
+      .settings ( dependencyOverrides += "io.spray" %% "spray-can" % Dependencies.sprayVersion)
       .settings ( scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xlint", "-Xfatal-warnings", "-feature") )
 
 }
