@@ -78,7 +78,7 @@ object MessageSubtypes {
   }
 
   case class FileShareMessage(
-    file: SlackFileId
+    file: SlackFile
   ) extends MessageSubtype {
     val subtype = "file_share"
   }
@@ -277,7 +277,7 @@ case class ManualPresenceChange (
 
 case class PrefChange (
   name: String,
-  value: String
+  value: JsValue
 ) extends SlackEvent
 
 case class UserChange (
@@ -352,4 +352,14 @@ case class Reply(
   reply_to: Long,
   ts: String,
   text: String
+) extends SlackEvent
+
+case class AppsChanged(
+  app: App,
+  event_ts: String
+) extends SlackEvent
+
+case class AppsUninstalled(
+  app_id: String,
+  event_ts: String
 ) extends SlackEvent

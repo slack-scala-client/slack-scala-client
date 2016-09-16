@@ -19,7 +19,8 @@ case class SlackFile (
   url: Option[String],
   url_download: Option[String],
   url_private: Option[String],
-  url_private_download: Option[String]
+  url_private_download: Option[String],
+  initial_comment: Option[SlackComment]
   //thumb_64: Option[String],
   //thumb_80: Option[String],
   //thumb_360: Option[String],
@@ -36,7 +37,6 @@ case class SlackFile (
   //public_url_shared: Boolean,
   //channels: Seq[String],
   //groups: Option[Seq[String]],
-  //initial_comment: Option[JsValue], // TODO: SlackComment?
   //num_stars: Option[Int],
   //is_starred: Option[Boolean]
 )

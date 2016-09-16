@@ -22,6 +22,7 @@ package object models {
   implicit val slackFileFmt = Json.format[SlackFile]
   implicit val slackFileIdFmt = Json.format[SlackFileId]
   implicit val updateResponseFmt = Json.format[UpdateResponse]
+  implicit val appFmt = Json.format[App]
 
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
@@ -87,6 +88,8 @@ package object models {
   implicit val accountsChangedFmt = Json.format[AccountsChanged]
   implicit val teamMigrationStartedFmt = Json.format[TeamMigrationStarted]
   implicit val reconnectUrlFmt = Json.format[ReconnectUrl]
+  implicit val appsChangedFmt = Json.format[AppsChanged]
+  implicit val appsUninstalledFmt = Json.format[AppsUninstalled]
 
   // Message sub-types
   import MessageSubtypes._
@@ -178,6 +181,8 @@ package object models {
         case e: AccountsChanged => Json.toJson(e)
         case e: TeamMigrationStarted => Json.toJson(e)
         case e: ReconnectUrl => Json.toJson(e)
+        case e: AppsChanged => Json.toJson(e)
+        case e: AppsUninstalled => Json.toJson(e)
       }
     }
   }
@@ -276,6 +281,8 @@ package object models {
           case "accounts_changed" => JsSuccess(jsValue.as[AccountsChanged])
           case "team_migration_started" => JsSuccess(jsValue.as[TeamMigrationStarted])
           case "reconnect_url" => JsSuccess(jsValue.as[ReconnectUrl])
+          case "apps_changed" => JsSuccess(jsValue.as[AppsChanged])
+          case "apps_uninstalled" => JsSuccess(jsValue.as[AppsUninstalled])
           case t: String => JsError(ValidationError("Invalid type property: {}", t))
         }
       } else if ((jsValue \ "reply_to").asOpt[Long].isDefined) {
