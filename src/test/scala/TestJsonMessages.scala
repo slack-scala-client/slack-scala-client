@@ -1,7 +1,7 @@
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
-import slack.models.{BotMessage, GroupJoined, MessageChanged, MessageSubtypes, MessageWithSubtype, SlackEvent, SlackFileId}
+import slack.models.{BotMessage, GroupJoined, MessageChanged, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile}
 
 /**
  * Created by ptx on 9/5/15.
@@ -177,11 +177,40 @@ class TestJsonMessages extends FunSuite {
       """{"username": "<@U0X6J06MD|super-roger>", "display_as_bot": false,
         |  "text": "<@U0X6J06MD|super-roger> uploaded a file: <https://okroger-agents-dev.slack.com/files/super-roger/F1FVBN542/ok.png|ok>",
         |   "upload": true, "ts": "1465589621.000008", "subtype": "file_share", "user": "U0X6J06MD",
-        |   "file": { "id": "F1FVBN542"}, "team": "T0W6887JS",
+        |   "file": { "id": "F1FVBN542", "created":1465567656, "timestamp": 1465569974, "name":"test-file", "title":"test-title",
+        |   "mimetype":"image/png","filetype":"image/png","pretty_type":"test", "user":"U1234", "mode":"test-mode",
+        |   "editable":false,"is_external":false, "external_type":"etype", "size":2000}, "team": "T0W6887JS",
         |         "type": "message", "channel": "G172PTNSH"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.isInstanceOf[MessageWithSubtype])
-    assert(ev.asInstanceOf[MessageWithSubtype].messageSubType.equals(FileShareMessage(SlackFileId("F1FVBN542"))))
+    assert(ev.asInstanceOf[MessageWithSubtype].messageSubType.equals(FileShareMessage(SlackFile("F1FVBN542",
+      1465567656, 1465569974, Some("test-file"), "test-title", "image/png", "image/png",
+      "test", "U1234", "test-mode", editable = false, is_external = false, "etype", 2000, None, None, None, None, None))))
   }
 
+  test("parse reaction added to message") {
+    val json = Json.parse(
+      """{"type":"reaction_added","user":"U024BE7LH","reaction":"thumbsup","item_user":"U0G9QF9C6",
+        |"item":{"type":"message","channel":"C0G9QF9GZ","ts":"1360782400.498405"},
+        |"event_ts":"1360782804.083113"}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemMessage("C0G9QF9GZ", "1360782400.498405"), "1360782804.083113", "U024BE7LH")))
+  }
+
+  test("parse reaction added to file") {
+    val json = Json.parse(
+      """{"type":"reaction_added","user":"U024BE7LH","reaction":"thumbsup","item_user":"U0G9QF9C6",
+        |"item":{"type":"file","file":"F0HS27V1Z"},
+        |"event_ts":"1360782804.083113"}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemFile("F0HS27V1Z"), "1360782804.083113", "U024BE7LH")))
+  }
+
+  test("parse reaction removed from file comment") {
+    val json = Json.parse(
+      """{"type":"reaction_removed","user":"U024BE7LH","reaction":"thumbsup","item_user":"U0G9QF9C6",
+        |"item":{"type":"file_comment","file":"F0HS27V1Z","file_comment": "FC0HS2KBEZ"},
+        |"event_ts":"1360782804.083113"}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    assert(ev.equals(ReactionRemoved("thumbsup", ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"), "1360782804.083113", "U024BE7LH")))
+  }
 }

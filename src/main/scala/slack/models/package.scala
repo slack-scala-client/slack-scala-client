@@ -23,6 +23,31 @@ package object models {
   implicit val slackFileIdFmt = Json.format[SlackFileId]
   implicit val updateResponseFmt = Json.format[UpdateResponse]
   implicit val appFmt = Json.format[App]
+  implicit val reactionMsgFmt = Json.format[ReactionItemMessage]
+  implicit val reactionFileFmt = Json.format[ReactionItemFile]
+  implicit val reactionFileCommentFmt = Json.format[ReactionItemFileComment]
+  implicit val reactionItemReads = new Reads[ReactionItem] {
+    def reads(json: JsValue): JsResult[ReactionItem] = {
+      val rType = (json \ "type").asOpt[String]
+      if (rType.isDefined) {
+        rType.get match {
+          case "message" => JsSuccess(json.as[ReactionItemMessage])
+          case "file" => JsSuccess(json.as[ReactionItemFile])
+          case "file_comment" => JsSuccess(json.as[ReactionItemFileComment])
+          case t: String => JsError(ValidationError("Invalid type property: {}", t))
+        }
+      } else {
+        JsError(ValidationError("Required (string) event type property is missing."))
+      }
+    }
+  }
+  implicit val reactionItemWrites = new Writes[ReactionItem] {
+    override def writes(item: ReactionItem): JsValue = item match {
+      case i:ReactionItemMessage => Json.toJson(i)
+      case i:ReactionItemFile => Json.toJson(i)
+      case i:ReactionItemFileComment => Json.toJson(i)
+    }
+  }
 
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
