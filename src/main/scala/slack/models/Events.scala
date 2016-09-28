@@ -174,6 +174,23 @@ case class GroupJoined(
   channel: Channel
 ) extends SlackEvent
 
+case class MpImJoined(
+  channel: Channel
+) extends SlackEvent
+
+case class MpImOpen(
+  user: String,
+  channel: String,
+  event_ts: String
+) extends SlackEvent
+
+case class MpImClose(
+  user: String,
+  channel: String,
+  event_ts: String,
+  converted_to: Option[String]
+) extends SlackEvent
+
 case class GroupLeft (
   channel: String
 ) extends SlackEvent

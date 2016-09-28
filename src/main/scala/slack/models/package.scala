@@ -74,6 +74,9 @@ package object models {
   implicit val imCloseFmt = Json.format[ImClose]
   implicit val imMarkedFmt = Json.format[ImMarked]
   implicit val imHistoryChangedFmt = Json.format[ImHistoryChanged]
+  implicit val mpImOpenFmt = Json.format[MpImOpen]
+  implicit val mpImCloseFmt = Json.format[MpImClose]
+  implicit val mpImJoinFmt = Json.format[MpImJoined]
   implicit val groupJoinFmt = Json.format[GroupJoined]
   implicit val groupLeftFmt = Json.format[GroupLeft]
   implicit val groupOpenFmt = Json.format[GroupOpen]
@@ -167,6 +170,9 @@ package object models {
         case e: ImClose => Json.toJson(e)
         case e: ImMarked => Json.toJson(e)
         case e: ImHistoryChanged => Json.toJson(e)
+        case e: MpImOpen => Json.toJson(e)
+        case e: MpImClose => Json.toJson(e)
+        case e: MpImJoined => Json.toJson(e)
         case e: GroupJoined => Json.toJson(e)
         case e: GroupLeft => Json.toJson(e)
         case e: GroupOpen => Json.toJson(e)
@@ -267,6 +273,9 @@ package object models {
           case "im_close" => JsSuccess(jsValue.as[ImClose])
           case "im_marked" => JsSuccess(jsValue.as[ImMarked])
           case "im_history_changed" => JsSuccess(jsValue.as[ImHistoryChanged])
+          case "mpim_open" => JsSuccess(jsValue.as[MpImOpen])
+          case "mpim_close" => JsSuccess(jsValue.as[MpImClose])
+          case "mpim_joined" => JsSuccess(jsValue.as[MpImJoined])
           case "group_joined" => JsSuccess(jsValue.as[GroupJoined])
           case "group_left" => JsSuccess(jsValue.as[GroupLeft])
           case "group_open" => JsSuccess(jsValue.as[GroupOpen])

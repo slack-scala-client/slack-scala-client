@@ -33,7 +33,7 @@ class SlackRtmClientTest extends FunSuite {
     assert(name.equals("My Team"))
   }
 
-  test("send message and parse reply") {
+  ignore("send message and parse reply") {
     val latch = new CountDownLatch(1)
     val promise = Promise[Long]()
     rtmClient.onEvent {
