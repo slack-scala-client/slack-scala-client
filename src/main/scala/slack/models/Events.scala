@@ -86,14 +86,14 @@ object MessageSubtypes {
 
 case class ReactionAdded (
   reaction: String,
-  item: JsValue, // TODO: Different item types -- https://api.slack.com/methods/stars.list
+  item: ReactionItem,
   event_ts: String,
   user: String
 ) extends SlackEvent
 
 case class ReactionRemoved (
   reaction: String,
-  item: JsValue, // TODO: Different item types -- https://api.slack.com/methods/stars.list
+  item: ReactionItem,
   event_ts: String,
   user: String
 ) extends SlackEvent
@@ -172,6 +172,23 @@ case class ImHistoryChanged (
 
 case class GroupJoined(
   channel: Channel
+) extends SlackEvent
+
+case class MpImJoined(
+  channel: Channel
+) extends SlackEvent
+
+case class MpImOpen(
+  user: String,
+  channel: String,
+  event_ts: String
+) extends SlackEvent
+
+case class MpImClose(
+  user: String,
+  channel: String,
+  event_ts: String,
+  converted_to: Option[String]
 ) extends SlackEvent
 
 case class GroupLeft (
