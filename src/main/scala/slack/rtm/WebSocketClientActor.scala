@@ -1,84 +1,70 @@
 package slack.rtm
 
 import java.net.URI
-import scala.collection.mutable.{Set => MSet}
+import scala.collection.mutable.{ Set => MSet }
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.{ Try, Success, Failure }
 
-import akka.actor._
-import akka.io.IO
-import spray.can.Http
-import spray.can.server.UHttp
-import spray.can.websocket._
-import spray.can.websocket.frame._
-import spray.http.{ HttpHeaders, HttpMethods, HttpRequest }
+import akka.actor.{ Actor, ActorRef, ActorRefFactory, ActorLogging, Props, Terminated }
+import akka.{ Done, NotUsed }
+import akka.http.scaladsl.Http
+import akka.stream.{ ActorMaterializer, OverflowStrategy }
+import akka.stream.scaladsl._
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ws.{ Message, TextMessage, WebSocketRequest }
 
 object WebSocketClientActor {
-
-  case class SendFrame(frame: Frame)
+  case class SendWSMessage(message: Message)
   case class RegisterWebsocketListener(listener: ActorRef)
   case class DeregisterWebsocketListener(listener: ActorRef)
+
   case object WebSocketClientConnected
+  case object WebSocketClientDisconnected
   case object WebSocketClientConnectFailed
-  case object CheckPongSendPing
+
+  case class WebSocketConnectSuccess(queue: SourceQueue[Message], closed: Future[Done])
+  case object WebSocketConnectFailure
+  case object WebSocketDisconnected
 
   val WEBSOCKET_TIMEOUT = 10000L
 
   def apply(url: String, listeners: Seq[ActorRef])(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new WebSocketClientActor(url, listeners)))
   }
-
-  def websocketHeaders(host: String, port: Int) = List (
-    HttpHeaders.Host(host, if(port > 0) port else 443),
-    HttpHeaders.Connection("Upgrade"),
-    HttpHeaders.RawHeader("Upgrade", "websocket"),
-    HttpHeaders.RawHeader("Sec-WebSocket-Version", "13"),
-    HttpHeaders.RawHeader("Sec-WebSocket-Key", "x3JJHMbDL1EzLkh9GBhXDw==")
-  )
 }
 
 import WebSocketClientActor._
 
-class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends WebSocketClientWorker with ActorLogging {
+// TODO: ping / pong handling
+class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends Actor with ActorLogging {
   implicit val ec = context.dispatcher
   implicit val system = context.system
+  implicit val materalizer = ActorMaterializer()
 
   val listeners = MSet[ActorRef](initialListeners: _*)
   val uri = new URI(url)
-  log.info("[WebSocketClient] Connecting to RTM: {}", uri)
-  IO(UHttp) ! Http.Connect(uri.getHost, if(uri.getPort > 0) uri.getPort else 443, true)
+  var outboundMessageQueue: Option[SourceQueue[Message]] = None
 
-  var pingPongTask: Option[Cancellable] = None
-  var lastPing: Option[Long] = None
-  var lastPong: Option[Long] = None
-
-  def upgradeRequest = HttpRequest(HttpMethods.GET, uri.getPath, websocketHeaders(uri.getHost, uri.getPort))
-
-  override def receive: Receive = coreReceive orElse super.receive
-
-  def businessLogic: Receive = coreReceive orElse {
-    case CheckPongSendPing =>
-      handlePingPongCheck()
-    case frame: TextFrame =>
-      log.debug("[WebSocketClientActor] Received Text Frame: {}", frame.payload.decodeString("utf8"))
-      listeners.foreach(_ ! frame)
-    case frame: PongFrame =>
-      lastPong = Some(System.currentTimeMillis)
-    case frame: Frame =>
-      log.debug("[WebSocketClientActor] Received Frame: {}", frame)
-    case SendFrame(frame) =>
-      connection ! frame
-    case UpgradedToWebSocket =>
-      pingPongTask = Some(context.system.scheduler.schedule(1.second, 1.second, self, CheckPongSendPing))
-      listeners.foreach(_ ! WebSocketClientConnected)
-    case _: Http.ConnectionClosed =>
-      log.info("[WebSocketClientActor] Websocket closed")
+  override def receive = {
+    case m: TextMessage =>
+      log.debug("[WebSocketClientActor] Received Text Message: {}", m)
+      sendToListeners(m)
+    case m: Message =>
+      log.debug("[WebsocketClientActor] Received Message: {}", m)
+    case SendWSMessage(m) =>
+      if (outboundMessageQueue.isDefined) {
+        outboundMessageQueue.get.offer(m)
+      }
+    case WebSocketConnectSuccess(queue, closed) =>
+      outboundMessageQueue = Some(queue)
+      closed.onComplete(_ => self ! WebSocketDisconnected)
+      sendToListeners(WebSocketClientConnected)
+    case WebSocketConnectFailure =>
+      sendToListeners(WebSocketClientConnectFailed)
+    case WebSocketDisconnected =>
+      log.info("[WebSocketClientActor] WebSocket disconnected.")
       context.stop(self)
-  }
-
-  def coreReceive: PartialFunction[Any, Unit] = {
-    case Http.CommandFailed(con: Http.Connect) =>
-      log.info("[WebSocketClientActor] Connection Failed")
-      listeners.foreach(_ ! WebSocketClientConnectFailed)
     case RegisterWebsocketListener(listener) =>
       log.info("[WebSocketClientActor] Registering listener")
       listeners += listener
@@ -87,36 +73,49 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
       listeners -= listener
     case Terminated(actor) =>
       listeners -= actor
+    case _ =>
   }
 
-  def handlePingPongCheck() {
-    if(!pingPongInitialized) {
-      initializePingPong()
-    } else if(pongTimedOut) {
-      context.stop(self)
-    } else {
-      sendPing()
+  def sendToListeners(m: Any) {
+    listeners.foreach(_ ! m)
+  }
+
+  def connectWebSocket() {
+    val messageSink: Sink[Message, Future[Done]] = {
+      Sink.foreach {
+        case message => self ! message
+      }
+    }
+
+    val queueSource: Source[Message, SourceQueue[Message]] = {
+      Source.queue[Message](1000, OverflowStrategy.dropHead)
+    }
+
+    val flow: Flow[Message, Message, (Future[Done], SourceQueue[Message])] =
+      Flow.fromSinkAndSourceMat(messageSink, queueSource)(Keep.both)
+
+    val (upgradeResponse, (closed, messageSourceQueue)) = Http().singleWebSocketRequest(WebSocketRequest(url), flow)
+
+    upgradeResponse.onComplete {
+      case Success(upgrade) if upgrade.response.status == StatusCodes.SwitchingProtocols =>
+        log.info("[WebSocketClientActor] Web socket connection success")
+        self ! WebSocketConnectSuccess(messageSourceQueue, closed)
+      case Success(upgrade) =>
+        log.info("[WebSocketClientActor] Web socket connection failed: {}", upgrade.response)
+        self ! WebSocketConnectFailure
+      case Failure(err) =>
+        log.info("[WebSocketClientActor] Web socket connection failed with error: {}", err.getMessage)
+        self ! WebSocketConnectFailure
     }
   }
 
-  def pingPongInitialized: Boolean = lastPing.isDefined && lastPong.isDefined
-
-  def initializePingPong() {
-    connection ! PingFrame()
-    lastPong = Some(System.currentTimeMillis)
-    lastPing = Some(System.currentTimeMillis)
-  }
-
-  def pongTimedOut: Boolean = (System.currentTimeMillis - lastPong.get) > WEBSOCKET_TIMEOUT
-
-  def sendPing() {
-    connection ! PingFrame()
-    lastPing = Some(System.currentTimeMillis)
+  override def preStart() {
+    log.info("WebSocketClientActor] Connecting to RTM: {}", url)
+    connectWebSocket()
   }
 
   override def postStop() {
-    pingPongTask.foreach(_.cancel)
-    Option(connection).foreach(context.stop)
-    log.info("[WebSocketClientActor] Terminating Actor Instance")
+    log.info("[WebSocketClientActor] Stopping and notifying listeners.")
+    sendToListeners(WebSocketClientDisconnected)
   }
 }

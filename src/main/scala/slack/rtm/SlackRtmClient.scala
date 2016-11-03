@@ -15,7 +15,7 @@ import akka.actor._
 import akka.util.{ByteString, Timeout}
 import akka.pattern.ask
 import play.api.libs.json._
-import spray.can.websocket.frame._
+import akka.http.scaladsl.model.ws.TextMessage
 
 object SlackRtmClient {
   def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory): SlackRtmClient = {
@@ -103,9 +103,9 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
   var webSocketClient: Option[ActorRef] = None
 
   def receive = {
-    case frame: TextFrame =>
+    case message: TextMessage =>
       try {
-        val payload = frame.payload.decodeString("utf8")
+        val payload = message.getStrictText
         val payloadJson = Json.parse(payload)
         if ((payloadJson \ "type").asOpt[String].isDefined || (payloadJson \ "reply_to").asOpt[Long].isDefined) {
           Try(payloadJson.as[SlackEvent]) match {
@@ -116,20 +116,20 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
           }
         }
       } catch {
-        case e: Exception => log.error(e, "[SlackRtmClient] Error parsing text frame")
+        case e: Exception => log.error(e, "[SlackRtmClient] Error parsing text message")
       }
     case TypingMessage(channelId) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
-      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
+      webSocketClient.get ! SendWSMessage(TextMessage(payload))
     case SendMessage(channelId, text) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text)))
-      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
+      webSocketClient.get ! SendWSMessage(TextMessage(payload))
       sender ! nextId
     case bm: BotEditMessage =>
       val payload = Json.stringify(Json.toJson(bm))
-      webSocketClient.get ! SendFrame(TextFrame(ByteString(payload)))
+      webSocketClient.get ! SendWSMessage(TextMessage(payload))
     case StateRequest() =>
       sender ! StateResponse(state)
     case AddEventListener(listener) =>
@@ -140,6 +140,8 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
     case WebSocketClientConnected =>
       log.info("[SlackRtmConnectionActor] WebSocket Client successfully connected")
       connectFailures = 0
+    case WebSocketClientDisconnected =>
+      handleWebSocketDisconnect(sender)
     case WebSocketClientConnectFailed =>
       val delay = Math.pow(2.0, connectFailures.toDouble).toInt
       log.info("[SlackRtmConnectionActor] WebSocket Client failed to connect, retrying in {} seconds", delay)
@@ -149,10 +151,7 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       connectWebSocket()
     case Terminated(actor) =>
       listeners -= actor
-      if (webSocketClient.isDefined && webSocketClient.get == actor) {
-        log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
-        connectWebSocket()
-      }
+      handleWebSocketDisconnect(actor)
     case _ =>
   }
 
@@ -167,6 +166,13 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
       case e: Exception =>
         log.error(e, "Caught exception trying to connect websocket")
         self ! WebSocketClientConnectFailed
+    }
+  }
+
+  def handleWebSocketDisconnect(actor: ActorRef) {
+    if (webSocketClient.isDefined && webSocketClient.get == actor) {
+      log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
+      connectWebSocket()
     }
   }
 
