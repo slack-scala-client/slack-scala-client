@@ -14,7 +14,8 @@ case class Attachment (
   fields: Seq[AttachmentField] = Seq.empty,
   image_url: Option[String] = None,
   thumb_url: Option[String] = None,
-  actions: Seq[ActionField] = Seq.empty
+  actions: Seq[ActionField] = Seq.empty,
+  mrkdwn_in: Seq[String] = Seq.empty
 )
 
 case class AttachmentField(title: String, value: String, short: Boolean)
