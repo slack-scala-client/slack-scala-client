@@ -23,11 +23,9 @@ object WebSocketClientActor {
   case object WebSocketClientDisconnected
   case object WebSocketClientConnectFailed
 
-  case class WebSocketConnectSuccess(queue: SourceQueue[Message], closed: Future[Done])
+  case class WebSocketConnectSuccess(queue: SourceQueueWithComplete[Message], closed: Future[Done])
   case object WebSocketConnectFailure
   case object WebSocketDisconnected
-
-  val WEBSOCKET_TIMEOUT = 10000L
 
   def apply(url: String, listeners: Seq[ActorRef])(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new WebSocketClientActor(url, listeners)))
@@ -44,7 +42,7 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
 
   val listeners = MSet[ActorRef](initialListeners: _*)
   val uri = new URI(url)
-  var outboundMessageQueue: Option[SourceQueue[Message]] = None
+  var outboundMessageQueue: Option[SourceQueueWithComplete[Message]] = None
 
   override def receive = {
     case m: TextMessage =>
@@ -87,11 +85,11 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
       }
     }
 
-    val queueSource: Source[Message, SourceQueue[Message]] = {
+    val queueSource: Source[Message, SourceQueueWithComplete[Message]] = {
       Source.queue[Message](1000, OverflowStrategy.dropHead)
     }
 
-    val flow: Flow[Message, Message, (Future[Done], SourceQueue[Message])] =
+    val flow: Flow[Message, Message, (Future[Done], SourceQueueWithComplete[Message])] =
       Flow.fromSinkAndSourceMat(messageSink, queueSource)(Keep.both)
 
     val (upgradeResponse, (closed, messageSourceQueue)) = Http().singleWebSocketRequest(WebSocketRequest(url), flow)
@@ -115,6 +113,7 @@ class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends
   }
 
   override def postStop() {
+    outboundMessageQueue.foreach(_.complete)
     log.info("[WebSocketClientActor] Stopping and notifying listeners.")
     sendToListeners(WebSocketClientDisconnected)
   }

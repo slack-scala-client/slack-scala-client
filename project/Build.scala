@@ -55,18 +55,16 @@ object Dependencies {
   val playVersion = "2.5.9"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaVersion
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
   val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.11.3"
   val playJson = "com.typesafe.play" %% "play-json" % playVersion
-  val playWS = "com.typesafe.play" %% "play-ws" % playVersion
 
-  val scalatest = "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+  val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
-  val akkaDependencies = Seq(akkaActor, akkaSlf4j, akkaHttp)
-  val miscDependencies = Seq(playWS, playJson, scalaAsync, dispatch)
+  val akkaDependencies = Seq(akkaActor, akkaHttp)
+  val miscDependencies = Seq(playJson, scalaAsync, dispatch)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
