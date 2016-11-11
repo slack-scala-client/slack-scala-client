@@ -10,6 +10,10 @@ Installation
 Add SBT dependency:
 
     libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.1.8"
+    
+Pre-Release akka-http version:
+
+    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.0-SNAPSHOT"
 
 
 API Client Usage
