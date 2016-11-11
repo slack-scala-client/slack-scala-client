@@ -13,6 +13,7 @@ Add SBT dependency:
     
 Pre-Release akka-http version:
 
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
     libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.0-SNAPSHOT"
 
 
