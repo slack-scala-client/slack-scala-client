@@ -15,6 +15,13 @@ Pre-Release akka-http version:
 
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
     libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.0-SNAPSHOT"
+    
+
+Scaladoc
+--------
+
+* [0.2.0-SNAPSHOT](http://doc.bryangilbert.com/slack-scala-client/0.2.0-SNAPSHOT/)
+* [0.1.8](http://doc.bryangilbert.com/slack-scala-client/0.1.8/)
 
 
 API Client Usage
