@@ -14,7 +14,7 @@ import akka.stream.scaladsl._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ws.{ Message, TextMessage, WebSocketRequest }
 
-object WebSocketClientActor {
+private[rtm] object WebSocketClientActor {
   case class SendWSMessage(message: Message)
   case class RegisterWebsocketListener(listener: ActorRef)
   case class DeregisterWebsocketListener(listener: ActorRef)
@@ -34,8 +34,7 @@ object WebSocketClientActor {
 
 import WebSocketClientActor._
 
-// TODO: ping / pong handling
-class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends Actor with ActorLogging {
+private[rtm] class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends Actor with ActorLogging {
   implicit val ec = context.dispatcher
   implicit val system = context.system
   implicit val materalizer = ActorMaterializer()

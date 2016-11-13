@@ -24,12 +24,12 @@ object SlackRtmClient {
 }
 
 class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory) {
-  implicit val timeout = new Timeout(duration)
-  implicit val ec = arf.dispatcher
+  private implicit val timeout = new Timeout(duration)
+  private implicit val ec = arf.dispatcher
 
-  val apiClient = BlockingSlackApiClient(token, duration)
+  private val apiClient = BlockingSlackApiClient(token, duration)
   val state = RtmState(apiClient.startRealTimeMessageSession())
-  val actor = SlackRtmConnectionActor(token, state, duration)
+  private val actor = SlackRtmConnectionActor(token, state, duration)
 
   def onEvent(f: (SlackEvent) => Unit): ActorRef = {
     val handler = EventHandlerActor(f)
@@ -72,7 +72,7 @@ class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implic
   }
 }
 
-object SlackRtmConnectionActor {
+private[rtm] object SlackRtmConnectionActor {
 
   implicit val sendMessageFmt = Json.format[MessageSend]
   implicit val botEditMessageFmt = Json.format[BotEditMessage]
@@ -92,7 +92,7 @@ object SlackRtmConnectionActor {
   }
 }
 
-class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDuration) extends Actor with ActorLogging {
+private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDuration) extends Actor with ActorLogging {
 
   implicit val ec = context.dispatcher
   val apiClient = BlockingSlackApiClient(token, duration)
@@ -185,5 +185,5 @@ class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDu
   }
 }
 
-case class MessageSend(id: Long, channel: String, text: String, `type`: String = "message")
-case class MessageTyping(id: Long, channel: String, `type`: String = "typing")
+private[rtm] case class MessageSend(id: Long, channel: String, text: String, `type`: String = "message")
+private[rtm] case class MessageTyping(id: Long, channel: String, `type`: String = "typing")

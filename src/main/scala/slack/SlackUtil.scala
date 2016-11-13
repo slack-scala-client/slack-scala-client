@@ -4,7 +4,7 @@ import slack.models.Message
 
 object SlackUtil {
 
-  val mentionrx = """<@(\w+)>""".r
+  private val mentionrx = """<@(\w+)>""".r
 
   def extractMentionedIds(text: String): Seq[String] = {
     mentionrx.findAllMatchIn(text).toVector.map(_.subgroups.head)

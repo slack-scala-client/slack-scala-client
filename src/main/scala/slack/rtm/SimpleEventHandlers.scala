@@ -3,13 +3,13 @@ package slack.rtm
 import slack.models._
 import akka.actor._
 
-object EventHandlerActor {
+private[rtm] object EventHandlerActor {
   def apply(f: (SlackEvent) => Unit)(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new EventHandlerActor(f)))
   }
 }
 
-class EventHandlerActor(f: (SlackEvent) => Unit) extends Actor with ActorLogging {
+private[rtm] class EventHandlerActor(f: (SlackEvent) => Unit) extends Actor with ActorLogging {
   def receive = {
     case e: SlackEvent =>
       try {
@@ -22,13 +22,13 @@ class EventHandlerActor(f: (SlackEvent) => Unit) extends Actor with ActorLogging
   }
 }
 
-object MessageHandlerActor {
+private[rtm] object MessageHandlerActor {
   def apply(f: (Message) => Unit)(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new MessageHandlerActor(f)))
   }
 }
 
-class MessageHandlerActor(f: (Message) => Unit) extends Actor with ActorLogging {
+private[rtm] class MessageHandlerActor(f: (Message) => Unit) extends Actor with ActorLogging {
   def receive = {
     case m: Message =>
       try {

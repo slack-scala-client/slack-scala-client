@@ -12,15 +12,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object SlackApiClient {
 
-  implicit val rtmStartStateFmt = Json.format[RtmStartState]
-  implicit val accessTokenFmt = Json.format[AccessToken]
-  implicit val historyChunkFmt = Json.format[HistoryChunk]
-  implicit val pagingObjectFmt = Json.format[PagingObject]
-  implicit val filesResponseFmt = Json.format[FilesResponse]
-  implicit val fileInfoFmt = Json.format[FileInfo]
-  implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
+  private[api] implicit val rtmStartStateFmt = Json.format[RtmStartState]
+  private[api] implicit val accessTokenFmt = Json.format[AccessToken]
+  private[api] implicit val historyChunkFmt = Json.format[HistoryChunk]
+  private[api] implicit val pagingObjectFmt = Json.format[PagingObject]
+  private[api] implicit val filesResponseFmt = Json.format[FilesResponse]
+  private[api] implicit val fileInfoFmt = Json.format[FileInfo]
+  private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
-  val apiBase = url("https://slack.com/api")
+  private val apiBase = url("https://slack.com/api")
 
   def apply(token: String): SlackApiClient = {
     new SlackApiClient(token)
@@ -77,7 +77,7 @@ import SlackApiClient._
 
 class SlackApiClient(token: String) {
 
-  val apiBaseWithToken = apiBase.addQueryParameter("token", token)
+  private val apiBaseWithToken = apiBase.addQueryParameter("token", token)
 
 
   /**************************/
