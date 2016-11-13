@@ -1,0 +1,8 @@
+test {
+  channel="<your channel id here>"
+  apiKey="<your API Key here>"
+  team {
+    domain = "<the domain of the slack>"
+    name = <the name of the slack>"
+  }
+}

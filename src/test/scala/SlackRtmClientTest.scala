@@ -14,26 +14,27 @@ import akka.actor.ActorSystem
 class SlackRtmClientTest extends FunSuite {
 
   implicit val system = ActorSystem("slack")
-  val channel = "..."
-  val rtmToken = "..."
+
+  val channel = system.settings.config.getString("test.channel")
+  val rtmToken =  system.settings.config.getString("test.apiKey")
 
   lazy val rtmClient = {
     val rtm = SlackRtmClient(rtmToken)
     assert(rtm.state.self.id != null)
     rtm
   }
-  ignore("rtm typing") {
+  test("rtm typing") {
     rtmClient.indicateTyping(channel)
   }
 
-  ignore("team domain") {
+  test("team domain") {
     val domain = rtmClient.state.team.domain
     val name = rtmClient.state.team.name
-    assert(domain.equals("my-team"))
-    assert(name.equals("My Team"))
+    assert(domain.equals(system.settings.config.getString("test.team.domain")))
+    assert(name.equals(system.settings.config.getString("test.team.name")))
   }
 
-  ignore("send message and parse reply") {
+  test("send message and parse reply") {
     val latch = new CountDownLatch(1)
     val promise = Promise[Long]()
     rtmClient.onEvent {
