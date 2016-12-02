@@ -41,10 +41,10 @@ val token = "<Your Token Here>"
 val client = SlackApiClient(token)
 ```
 
-Calling any api functions requires an implicit `ExecutionContext`... the global one can be imported simply:
+Calling any api functions requires an implicit `ActorSystem`... one can be created simply:
 
 ```scala
-import scala.concurrent.ExecutionContext.Implicits.global
+implicit val system = ActorSystem("slack")
 ```
 
 The async client returns futures as the result of each of its API functions:
@@ -72,7 +72,7 @@ The API clients implement the full Slack API. A full list of the available endpo
 RTM Client Usage
 ----------------
 
-The real time messaging client is implemented using akka and requires having an implicit `ActorRefFactory` in scope. Either an `ActorSystem` or `ActorContext` will work:
+The real time messaging client is implemented using akka and requires having an implicit `ActorSystem` in scope. Either an `ActorSystem` or `ActorContext` will work:
 
 ```scala
 import slack.rtm.SlackRtmClient
