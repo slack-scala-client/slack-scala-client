@@ -50,21 +50,19 @@ object Resolvers {
 }
 
 object Dependencies {
-  val akkaVersion = "2.4.11"
-  val sprayVersion = "1.3.3"
-  val playVersion = "2.5.9"
+  val akkaVersion = "2.4.14"
+  val playVersion = "2.5.10"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % akkaVersion
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.0"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
-  val dispatch = "net.databinder.dispatch" %% "dispatch-core" % "0.11.3"
   val playJson = "com.typesafe.play" %% "play-json" % playVersion
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
   val akkaDependencies = Seq(akkaActor, akkaHttp)
-  val miscDependencies = Seq(playJson, scalaAsync, dispatch)
+  val miscDependencies = Seq(playJson, scalaAsync)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies

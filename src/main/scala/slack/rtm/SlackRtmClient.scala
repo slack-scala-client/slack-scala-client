@@ -18,12 +18,12 @@ import play.api.libs.json._
 import akka.http.scaladsl.model.ws.TextMessage
 
 object SlackRtmClient {
-  def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory): SlackRtmClient = {
+  def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem): SlackRtmClient = {
     new SlackRtmClient(token, duration)
   }
 }
 
-class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorRefFactory) {
+class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem) {
   private implicit val timeout = new Timeout(duration)
   private implicit val ec = arf.dispatcher
 
@@ -95,6 +95,7 @@ private[rtm] object SlackRtmConnectionActor {
 private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDuration) extends Actor with ActorLogging {
 
   implicit val ec = context.dispatcher
+  implicit val system = context.system
   val apiClient = BlockingSlackApiClient(token, duration)
   val listeners = MSet[ActorRef]()
   val idCounter = new AtomicLong(1L)
