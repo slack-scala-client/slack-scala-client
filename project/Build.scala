@@ -5,15 +5,17 @@ import sbtrelease._
 
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
-  val buildVersion      = "0.2.0-SNAPSHOT"
-  val buildScalaVersion = "2.11.8"
+  val buildVersion      = "0.2.0"
+  val buildScalaVersion = "2.12.1"
+  val buildCrossScalaVersions = Seq("2.11.8", "2.12.1")
 
   val buildSettings = Seq (
-    organization := buildOrganization,
-    version      := buildVersion,
-    scalaVersion := buildScalaVersion,
-    publishMavenStyle := true,
-    publishTo := {
+    organization       := buildOrganization,
+    version            := buildVersion,
+    scalaVersion       := buildScalaVersion,
+    crossScalaVersions := buildCrossScalaVersions,
+    publishMavenStyle  := true,
+    publishTo          := {
       val nexus = "https://oss.sonatype.org/"
       if (isSnapshot.value)
         Some("snapshots" at nexus + "content/repositories/snapshots")
@@ -51,13 +53,12 @@ object Resolvers {
 
 object Dependencies {
   val akkaVersion = "2.4.14"
-  val playVersion = "2.5.10"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.0"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
-  val playJson = "com.typesafe.play" %% "play-json" % playVersion
+  val playJson = "com.typesafe.play" %% "play-json" % "2.6.0-M1"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
