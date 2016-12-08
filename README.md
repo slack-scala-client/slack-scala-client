@@ -9,18 +9,12 @@ Installation
 
 Add SBT dependency:
 
-    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.1.8"
-    
-Pre-Release akka-http version:
-
-    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.0-SNAPSHOT"
-    
+    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.0"
 
 Scaladoc
 --------
 
-* [0.2.0-SNAPSHOT](http://doc.bryangilbert.com/slack-scala-client/0.2.0-SNAPSHOT/)
+* [0.2.0](http://doc.bryangilbert.com/slack-scala-client/0.2.0/)
 * [0.1.8](http://doc.bryangilbert.com/slack-scala-client/0.1.8/)
 
 
@@ -175,3 +169,9 @@ Caveat Emptor
 - Responses to RTM messages sent out are not currently checked to verify they were successfully received (Coming Soon!)
 - Investigate a way to ensure all missed messages are received during a disconnection
 - A small number of response types have yet to be fleshed out
+
+
+Changelog
+---------
+
+Changelog can be found [here](CHANGELOG.md)
