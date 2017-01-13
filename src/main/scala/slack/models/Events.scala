@@ -380,3 +380,8 @@ case class AppsUninstalled(
   app_id: String,
   event_ts: String
 ) extends SlackEvent
+
+case class AppsInstalled(
+                        app: App,
+                        event_ts: String
+                      ) extends SlackEvent
