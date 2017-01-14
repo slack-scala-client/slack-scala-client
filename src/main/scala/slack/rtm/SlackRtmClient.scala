@@ -115,6 +115,8 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
               listeners.foreach(_ ! event)
             case Failure(e) => log.error(e, s"[SlackRtmClient] Error reading event: $payload")
           }
+        } else {
+          log.warning(s"invalid slack event : $payload")
         }
       } catch {
         case e: Exception => log.error(e, "[SlackRtmClient] Error parsing text message")
@@ -154,6 +156,7 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
       listeners -= actor
       handleWebSocketDisconnect(actor)
     case _ =>
+      log.warning("doesn't match any case, skip")
   }
 
   def connectWebSocket() {
