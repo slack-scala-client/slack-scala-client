@@ -82,7 +82,6 @@ object SlackApiClient {
   }
 
   private def addSegment(request: HttpRequest, segment: String): HttpRequest = {
-    println(request.uri.path + segment)
     request.withUri(request.uri.withPath(request.uri.path + segment))
   }
 }
