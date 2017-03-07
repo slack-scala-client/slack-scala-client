@@ -380,3 +380,23 @@ case class AppsUninstalled(
   app_id: String,
   event_ts: String
 ) extends SlackEvent
+
+case class AppsInstalled(
+  app: App,
+  event_ts: String
+) extends SlackEvent
+
+case class DesktopNotification(
+  `type`: String,
+  title: String,
+  subtitle: String,
+  msg: String,
+  content: String,
+  channel: String,
+  launchUri: String,
+  avatarImage: String,
+  ssbFilename: String,
+  imageUrl: Option[String],
+  is_shared: Boolean,
+  event_ts: String
+) extends SlackEvent

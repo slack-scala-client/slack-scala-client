@@ -117,6 +117,8 @@ package object models {
   implicit val reconnectUrlFmt = Json.format[ReconnectUrl]
   implicit val appsChangedFmt = Json.format[AppsChanged]
   implicit val appsUninstalledFmt = Json.format[AppsUninstalled]
+  implicit val appsInstalledFmt = Json.format[AppsInstalled]
+  implicit val desktopNotificationFmt = Json.format[DesktopNotification]
 
   // Message sub-types
   import MessageSubtypes._
@@ -213,6 +215,8 @@ package object models {
         case e: ReconnectUrl => Json.toJson(e)
         case e: AppsChanged => Json.toJson(e)
         case e: AppsUninstalled => Json.toJson(e)
+        case e: AppsInstalled => Json.toJson(e)
+        case e: DesktopNotification => Json.toJson(e)
       }
     }
   }
@@ -316,6 +320,8 @@ package object models {
           case "reconnect_url" => JsSuccess(jsValue.as[ReconnectUrl])
           case "apps_changed" => JsSuccess(jsValue.as[AppsChanged])
           case "apps_uninstalled" => JsSuccess(jsValue.as[AppsUninstalled])
+          case "apps_installed" => JsSuccess(jsValue.as[AppsInstalled])
+          case "desktop_notification" => JsSuccess(jsValue.as[DesktopNotification])
           case t: String => JsError(JsonValidationError("Invalid type property: {}", t))
         }
       } else if ((jsValue \ "reply_to").asOpt[Long].isDefined) {
