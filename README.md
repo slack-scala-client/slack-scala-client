@@ -9,7 +9,7 @@ Installation
 
 Add SBT dependency:
 
-    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.0"
+    libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.1"
 
 Scaladoc
 --------
