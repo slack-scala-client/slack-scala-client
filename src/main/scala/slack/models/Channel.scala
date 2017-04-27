@@ -6,7 +6,7 @@ case class Channel (
   id: String,
   name: String,
   created: Long,
-  creator: String,
+  creator: Option[String],
   is_archived: Option[Boolean],
   is_member: Option[Boolean],
   is_general: Option[Boolean],
