@@ -42,11 +42,10 @@ object SlackApiClient {
     res.map(_.as[AccessToken])(system.dispatcher)
   }
 
-
   private def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[JsValue] = {
     implicit val mat = ActorMaterializer()
     implicit val ec = system.dispatcher
-    Http().singleRequest(request).flatMap {
+    Http().singleRequest(request.withEntity(request.entity.withoutSizeLimit())).flatMap {
       case response if response.status.intValue == 200 =>
         response.entity.toStrict(10.seconds).map { entity =>
           val parsed = Json.parse(entity.data.decodeString("UTF-8"))
