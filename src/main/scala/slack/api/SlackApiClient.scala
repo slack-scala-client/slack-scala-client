@@ -1,19 +1,17 @@
 package slack.api
 
 import java.io.File
-import java.nio.charset.StandardCharsets
-import scala.concurrent.duration._
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
 import play.api.libs.json._
 import slack.models._
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Source, Sink }
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ Uri, HttpRequest, HttpResponse, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
-import akka.http.scaladsl.model.headers.RawHeader
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object SlackApiClient {
 
@@ -86,7 +84,7 @@ object SlackApiClient {
   }
 }
 
-import SlackApiClient._
+import slack.api.SlackApiClient._
 
 class SlackApiClient(token: String) {
 
@@ -271,19 +269,15 @@ class SlackApiClient(token: String) {
 
   def uploadFile(file: File, content: Option[String] = None, filetype: Option[String] = None, filename: Option[String] = None,
       title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
-    val params = Seq (
-      "content" -> content,
-      "filetype" -> filetype,
-      "filename" -> filename,
-      "title" -> title,
-      "initial_comment" -> initialComment,
-      "channels" -> channels.map(_.mkString(","))
-    )
-    val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
-    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
-    extract[SlackFile](res, "file")
+    val entity = createEntity(file)
+    uploadFileFromEntity(entity, content, filetype, filename, title, initialComment, channels)
   }
 
+  def uploadFileBytes(bytes: Array[Byte], content: Option[String] = None, filetype: Option[String] = None, filename: Option[String] = None,
+    title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
+    val entity = createEntity(filename.getOrElse("file"), bytes)
+    uploadFileFromEntity(entity, content, filetype, filename, title, initialComment, channels)
+  }
 
   /***************************/
   /****  Group Endpoints  ****/
@@ -569,9 +563,33 @@ class SlackApiClient(token: String) {
   /****  Private Functions  ****/
   /*****************************/
 
+  private def uploadFileFromEntity(entity: MessageEntity, content: Option[String] = None, filetype: Option[String] = None, filename: Option[String] = None,
+    title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
+    val params = Seq (
+      "content" -> content,
+      "filetype" -> filetype,
+      "filename" -> filename,
+      "title" -> title,
+      "initial_comment" -> initialComment,
+      "channels" -> channels.map(_.mkString(","))
+    )
+    val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(entity).withMethod(method = HttpMethods.POST)
+    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
+    extract[SlackFile](res, "file")
+  }
+
   private def makeApiMethodRequest(apiMethod: String, queryParams: (String,Any)*)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
+  }
+
+  private def createEntity(name: String, bytes: Array[Byte]): MessageEntity = {
+    Multipart.FormData(
+      Source.single(
+        Multipart.FormData.BodyPart(
+          "file",
+          HttpEntity(bytes),
+          Map("filename" -> name)))).toEntity
   }
 
   private def createEntity(file: File): MessageEntity = {
