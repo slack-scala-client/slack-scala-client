@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 import akka.actor._
-import akka.util.{ByteString, Timeout}
+import akka.util.Timeout
 import akka.pattern.ask
 import play.api.libs.json._
 import akka.http.scaladsl.model.ws.TextMessage
@@ -25,7 +25,6 @@ object SlackRtmClient {
 
 class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem) {
   private implicit val timeout = new Timeout(duration)
-  private implicit val ec = arf.dispatcher
 
   private val apiClient = BlockingSlackApiClient(token, duration)
   val state = RtmState(apiClient.startRealTimeMessageSession())

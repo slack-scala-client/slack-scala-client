@@ -3,11 +3,10 @@ package slack.rtm
 import java.net.URI
 import scala.collection.mutable.{ Set => MSet }
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import scala.util.{ Try, Success, Failure }
+import scala.util.{ Success, Failure }
 
 import akka.actor.{ Actor, ActorRef, ActorRefFactory, ActorLogging, Props, Terminated }
-import akka.{ Done, NotUsed }
+import akka.Done
 import akka.http.scaladsl.Http
 import akka.stream.{ ActorMaterializer, OverflowStrategy }
 import akka.stream.scaladsl._

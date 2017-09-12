@@ -3,8 +3,6 @@ package slack
 import akka.actor._
 import slack.rtm.SlackRtmClient
 
-import scala.concurrent.duration._
-
 object Main extends App {
   val token = "..."
   implicit val system = ActorSystem("slack")

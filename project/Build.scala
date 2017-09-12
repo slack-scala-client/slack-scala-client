@@ -6,8 +6,8 @@ import sbtrelease._
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
   val buildVersion      = "0.2.1"
-  val buildScalaVersion = "2.12.1"
-  val buildCrossScalaVersions = Seq("2.11.8", "2.12.1")
+  val buildScalaVersion = "2.12.3"
+  val buildCrossScalaVersions = Seq("2.11.11", "2.12.3")
 
   val buildSettings = Seq (
     organization       := buildOrganization,
@@ -52,13 +52,11 @@ object Resolvers {
 }
 
 object Dependencies {
-  val akkaVersion = "2.4.14"
-
-  val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.0"
+  val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.5.4"
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.10"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
-  val playJson = "com.typesafe.play" %% "play-json" % "2.6.0-M1"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.6.3"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 

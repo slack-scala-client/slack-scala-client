@@ -1,19 +1,17 @@
 package slack.api
 
 import java.io.File
-import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 
 import play.api.libs.json._
 import slack.models._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Source, Sink }
+import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ Uri, HttpRequest, HttpResponse, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
-import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 object SlackApiClient {
 
