@@ -413,6 +413,41 @@ class SlackApiClient(token: String) {
     res.map(r => (r \ "channel" \ "id").as[String])(system.dispatcher)
   }
 
+  /**************************/
+  /****  MPIM Endpoints  ****/
+  /**************************/
+
+  def openMpim(userIds: Seq[String])(implicit system: ActorSystem): Future[String] = {
+    val res = makeApiMethodRequest("mpim.open", "users" -> userIds.mkString(","))
+    res.map(r => (r \ "group" \ "id").as[String])(system.dispatcher)
+  }
+
+  def closeMpim(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
+    val res = makeApiMethodRequest("mpim.close", "channel" -> channelId)
+    extract[Boolean](res, "ok")
+  }
+
+  def listMpims()(implicit system: ActorSystem): Future[Seq[Group]] = {
+    val res = makeApiMethodRequest("mpim.list")
+    extract[Seq[Group]](res, "groups")
+  }
+
+  def markMpim(channelId: String, ts: String)(implicit system: ActorSystem): Future[Boolean] = {
+    val res = makeApiMethodRequest("mpim.mark", "channel" -> channelId, "ts" -> ts)
+    extract[Boolean](res, "ok")
+  }
+
+  def getMpimHistory(channelId: String, latest: Option[String] = None, oldest: Option[String] = None,
+                   inclusive: Option[Int] = None, count: Option[Int] = None)(implicit system: ActorSystem): Future[HistoryChunk] = {
+    val res = makeApiMethodRequest (
+      "mpim.history",
+      "channel" -> channelId,
+      "latest" -> latest,
+      "oldest" -> oldest,
+      "inclusive" -> inclusive,
+      "count" -> count)
+    res.map(_.as[HistoryChunk])(system.dispatcher)
+  }
 
   /******************************/
   /****  Reaction Endpoints  ****/
