@@ -150,9 +150,8 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
   }
 
   def uploadFile(file: File)(implicit system: ActorSystem): SlackFile = {
-    resolve(client.uploadFile(file))
+    resolve(client.uploadFile(Left(file)))
   }
-
 
   /***************************/
   /****  Group Endpoints  ****/
