@@ -269,18 +269,24 @@ class SlackApiClient(token: String) {
     res.map(_.as[FilesResponse])(system.dispatcher)
   }
 
-  def uploadFile(file: File, content: Option[String] = None, filetype: Option[String] = None, filename: Option[String] = None,
-      title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
-    val params = Seq (
-      "content" -> content,
+  def uploadFile(content: Either[File, String], filetype: Option[String] = None, filename: Option[String] = None,
+    title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
+    val params = Seq(
       "filetype" -> filetype,
       "filename" -> filename,
       "title" -> title,
       "initial_comment" -> initialComment,
       "channels" -> channels.map(_.mkString(","))
     )
-    val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
-    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
+
+    val res = content match {
+      case Right(str) =>
+        val request = addSegment(apiBaseWithTokenRequest, "files.upload").withMethod(method = HttpMethods.POST)
+        makeApiRequest(addQueryParams(request, cleanParams(params ++ Seq("content" -> str))))
+      case Left(file) =>
+        val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
+        makeApiRequest(addQueryParams(request, cleanParams(params)))
+    }
     extract[SlackFile](res, "file")
   }
 
