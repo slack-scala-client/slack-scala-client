@@ -5,7 +5,7 @@ import sbtrelease._
 
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
-  val buildVersion      = "0.2.1"
+  val buildVersion      = "0.2.2"
   val buildScalaVersion = "2.12.3"
   val buildCrossScalaVersions = Seq("2.11.11", "2.12.3")
 
@@ -60,7 +60,7 @@ object Dependencies {
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
-  val akkaDependencies = Seq(akkaActor, akkaHttp)
+  val akkaDependencies = Seq(akkaHttp)
   val miscDependencies = Seq(playJson, scalaAsync)
   val testDependencies = Seq(scalatest)
 
