@@ -10,6 +10,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
+import akka.parboiled2.CharPredicate
 
 import scala.concurrent.Future
 
@@ -24,6 +25,16 @@ object SlackApiClient {
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
   private val apiBaseRequest = HttpRequest(uri = Uri(s"https://slack.com/api/"))
+
+  /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
+  val charClassesClass = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
+  val charClassesObject = charClassesClass.getField("MODULE$").get(charClassesClass)
+  //  strict-query-char-np
+  val charPredicateField = charClassesObject.getClass.getDeclaredField("strict$minusquery$minuschar$minusnp")
+  charPredicateField.setAccessible(true)
+  val updatedCharPredicate = charPredicateField.get(charClassesObject).asInstanceOf[CharPredicate] -- '?'
+  charPredicateField.set(charClassesObject, updatedCharPredicate)
+  /* END TEMPORARY WORKAROUND */
 
   def apply(token: String): SlackApiClient = {
     new SlackApiClient(token)
