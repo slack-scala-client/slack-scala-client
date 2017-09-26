@@ -99,6 +99,11 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
   val listeners = MSet[ActorRef]()
   val idCounter = new AtomicLong(1L)
 
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1.minute) {
+      case _: Exception => SupervisorStrategy.Stop
+    }
+
   var connectFailures = 0
   var webSocketClient: Option[ActorRef] = None
 
@@ -148,6 +153,7 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
       val delay = Math.pow(2.0, connectFailures.toDouble).toInt
       log.info("[SlackRtmConnectionActor] WebSocket Client failed to connect, retrying in {} seconds", delay)
       connectFailures += 1
+      webSocketClient = None
       context.system.scheduler.scheduleOnce(delay.seconds, self, ReconnectWebSocket)
     case ReconnectWebSocket =>
       connectWebSocket()
@@ -163,7 +169,7 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
     try {
       val initialRtmState = apiClient.startRealTimeMessageSession()
       state.reset(initialRtmState)
-      webSocketClient = Some(WebSocketClientActor(initialRtmState.url, Seq(self)))
+      webSocketClient = Some(WebSocketClientActor(initialRtmState.url)(context))
       webSocketClient.foreach(context.watch)
     } catch {
       case e: Exception =>
@@ -175,6 +181,7 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
   def handleWebSocketDisconnect(actor: ActorRef) {
     if (webSocketClient.isDefined && webSocketClient.get == actor) {
       log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
+      webSocketClient.foreach(context.stop)
       connectWebSocket()
     }
   }

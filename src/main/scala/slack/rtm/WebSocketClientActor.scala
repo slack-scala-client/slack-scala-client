@@ -1,11 +1,10 @@
 package slack.rtm
 
 import java.net.URI
-import scala.collection.mutable.{ Set => MSet }
 import scala.concurrent.Future
 import scala.util.{ Success, Failure }
 
-import akka.actor.{ Actor, ActorRef, ActorRefFactory, ActorLogging, Props, Terminated }
+import akka.actor.{ Actor, ActorRef, ActorRefFactory, ActorLogging, Props }
 import akka.Done
 import akka.http.scaladsl.Http
 import akka.stream.{ ActorMaterializer, OverflowStrategy }
@@ -26,26 +25,25 @@ private[rtm] object WebSocketClientActor {
   case object WebSocketConnectFailure
   case object WebSocketDisconnected
 
-  def apply(url: String, listeners: Seq[ActorRef])(implicit arf: ActorRefFactory): ActorRef = {
-    arf.actorOf(Props(new WebSocketClientActor(url, listeners)))
+  def apply(url: String)(implicit arf: ActorRefFactory): ActorRef = {
+    arf.actorOf(Props(new WebSocketClientActor(url)))
   }
 }
 
 import WebSocketClientActor._
 
-private[rtm] class WebSocketClientActor(url: String, initialListeners: Seq[ActorRef]) extends Actor with ActorLogging {
+private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLogging {
   implicit val ec = context.dispatcher
   implicit val system = context.system
   implicit val materalizer = ActorMaterializer()
 
-  val listeners = MSet[ActorRef](initialListeners: _*)
   val uri = new URI(url)
   var outboundMessageQueue: Option[SourceQueueWithComplete[Message]] = None
 
   override def receive = {
     case m: TextMessage =>
       log.debug("[WebSocketClientActor] Received Text Message: {}", m)
-      sendToListeners(m)
+      context.parent ! m
     case m: Message =>
       log.debug("[WebsocketClientActor] Received Message: {}", m)
     case SendWSMessage(m) =>
@@ -55,25 +53,11 @@ private[rtm] class WebSocketClientActor(url: String, initialListeners: Seq[Actor
     case WebSocketConnectSuccess(queue, closed) =>
       outboundMessageQueue = Some(queue)
       closed.onComplete(_ => self ! WebSocketDisconnected)
-      sendToListeners(WebSocketClientConnected)
-    case WebSocketConnectFailure =>
-      sendToListeners(WebSocketClientConnectFailed)
+      context.parent ! WebSocketClientConnected
     case WebSocketDisconnected =>
       log.info("[WebSocketClientActor] WebSocket disconnected.")
       context.stop(self)
-    case RegisterWebsocketListener(listener) =>
-      log.info("[WebSocketClientActor] Registering listener")
-      listeners += listener
-      context.watch(listener)
-    case DeregisterWebsocketListener(listener) =>
-      listeners -= listener
-    case Terminated(actor) =>
-      listeners -= actor
     case _ =>
-  }
-
-  def sendToListeners(m: Any) {
-    listeners.foreach(_ ! m)
   }
 
   def connectWebSocket() {
@@ -98,10 +82,12 @@ private[rtm] class WebSocketClientActor(url: String, initialListeners: Seq[Actor
         self ! WebSocketConnectSuccess(messageSourceQueue, closed)
       case Success(upgrade) =>
         log.info("[WebSocketClientActor] Web socket connection failed: {}", upgrade.response)
-        self ! WebSocketConnectFailure
+        context.parent ! WebSocketClientConnectFailed
+        context.stop(self)
       case Failure(err) =>
         log.info("[WebSocketClientActor] Web socket connection failed with error: {}", err.getMessage)
-        self ! WebSocketConnectFailure
+        context.parent ! WebSocketClientConnectFailed
+        context.stop(self)
     }
   }
 
@@ -112,7 +98,6 @@ private[rtm] class WebSocketClientActor(url: String, initialListeners: Seq[Actor
 
   override def postStop() {
     outboundMessageQueue.foreach(_.complete)
-    log.info("[WebSocketClientActor] Stopping and notifying listeners.")
-    sendToListeners(WebSocketClientDisconnected)
+    context.parent ! WebSocketClientDisconnected
   }
 }
