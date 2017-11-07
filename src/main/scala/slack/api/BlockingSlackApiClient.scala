@@ -112,8 +112,9 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
   def postChatMessage(channelId: String, text: String, username: Option[String] = None, asUser: Option[Boolean] = None,
       parse: Option[String] = None, linkNames: Option[String] = None, attachments: Option[Seq[Attachment]] = None,
       unfurlLinks: Option[Boolean] = None, unfurlMedia: Option[Boolean] = None, iconUrl: Option[String] = None,
-      iconEmoji: Option[String] = None, replaceOriginal: Option[Boolean]= None, deleteOriginal: Option[Boolean] = None)(implicit system: ActorSystem): String = {
-    resolve(client.postChatMessage(channelId, text, username, asUser, parse, linkNames, attachments, unfurlLinks, unfurlMedia, iconUrl, iconEmoji, replaceOriginal, deleteOriginal))
+      iconEmoji: Option[String] = None, replaceOriginal: Option[Boolean]= None, deleteOriginal: Option[Boolean] = None,
+      threadTs: Option[String] = None)(implicit system: ActorSystem): String = {
+    resolve(client.postChatMessage(channelId, text, username, asUser, parse, linkNames, attachments, unfurlLinks, unfurlMedia, iconUrl, iconEmoji, replaceOriginal, deleteOriginal, threadTs))
   }
 
   def updateChatMessage(channelId: String, ts: String, text: String)(implicit system: ActorSystem): UpdateResponse = {
