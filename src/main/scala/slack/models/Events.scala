@@ -45,7 +45,8 @@ case class BotMessage (
   channel: String,
   text: String,
   bot_id: String,
-  username: Option[String]
+  username: Option[String],
+  attachments: Seq[Attachment]
 ) extends SlackEvent
 
 // TODO: Message Sub-types
