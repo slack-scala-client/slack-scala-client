@@ -89,14 +89,16 @@ case class ReactionAdded (
   reaction: String,
   item: ReactionItem,
   event_ts: String,
-  user: String
+  user: String,
+  item_user: String
 ) extends SlackEvent
 
 case class ReactionRemoved (
   reaction: String,
   item: ReactionItem,
   event_ts: String,
-  user: String
+  user: String,
+  item_user: String
 ) extends SlackEvent
 
 case class UserTyping (
