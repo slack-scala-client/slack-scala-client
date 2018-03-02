@@ -47,6 +47,29 @@ package object models {
       case i:ReactionItemFileComment => Json.toJson(i)
     }
   }
+  implicit val optionElementFmt = Json.format[OptionElement]
+  implicit val selectElementFmt = Json.format[SelectElement]
+  implicit val textElementFmt = Json.format[TextElement]
+  implicit val dialogElementReads = new Reads[DialogElement] {
+    def reads(json: JsValue): JsResult[DialogElement] = {
+      val rType = (json \ "type").asOpt[String]
+      if (rType.isDefined) {
+        rType.get match {
+          case "select" => JsSuccess(json.as[SelectElement])
+          case _ => JsSuccess(json.as[TextElement])
+        }
+      } else {
+        JsError(JsonValidationError("Required property: [type] is missing."))
+      }
+    }
+  }
+  implicit val dialogElementWrites = new Writes[DialogElement] {
+    override def writes(element: DialogElement): JsValue = element match {
+      case e:TextElement => Json.toJson(e)
+      case e:SelectElement => Json.toJson(e)
+    }
+  }
+  implicit val dialogFmt = Json.format[Dialog]
 
   // Event Formats
   implicit val helloFmt = Json.format[Hello]

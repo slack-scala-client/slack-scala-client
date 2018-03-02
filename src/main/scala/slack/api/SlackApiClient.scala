@@ -1,15 +1,17 @@
 package slack.api
 
 import java.io.File
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import play.api.libs.json._
 import slack.models._
 import akka.actor.ActorSystem
+import akka.http.javadsl.model.headers.ContentType
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.parboiled2.CharPredicate
 
 import scala.concurrent.Future
@@ -238,6 +240,16 @@ class SlackApiClient(token: String) {
     val params = Seq("channel" -> channelId, "ts" -> ts, "text" -> text)
     val res = makeApiMethodRequest("chat.update", asUser.map(b => params :+ ("as_user" -> b)).getOrElse(params): _*)
     res.map(_.as[UpdateResponse])(system.dispatcher)
+  }
+
+
+  /****************************/
+  /****  Dialog Endpoints  ****/
+  /****************************/
+
+  def openDialog(triggerId: String, dialog: Dialog)(implicit system: ActorSystem): Future[Boolean] = {
+    val res = makeApiJsonRequest("dialog.open", Json.obj("trigger_id" -> triggerId, "dialog" -> Json.toJson(dialog).toString()))
+    extract[Boolean](res, "ok")
   }
 
 
@@ -622,6 +634,13 @@ class SlackApiClient(token: String) {
   private def makeApiMethodRequest(apiMethod: String, queryParams: (String,Any)*)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
+  }
+
+  private def makeApiJsonRequest(apiMethod: String, json: JsValue)(implicit system: ActorSystem): Future[JsValue] = {
+    val req = addSegment(apiBaseRequest, apiMethod).withMethod(HttpMethods.POST)
+      .withHeaders(ContentType.create(ContentTypes.`application/json`), Authorization(OAuth2BearerToken(token)))
+      .withEntity(json.toString())
+    makeApiRequest(req)
   }
 
   private def createEntity(file: File): MessageEntity = {
