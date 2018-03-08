@@ -1,7 +1,7 @@
 import org.scalatest.FunSuite
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
-import slack.models.{BotMessage, GroupJoined, MessageChanged, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile}
+import slack.models._
 
 /**
  * Created by ptx on 9/5/15.
@@ -212,5 +212,14 @@ class TestJsonMessages extends FunSuite {
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
     assert(ev.equals(ReactionRemoved("thumbsup", ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"), "1360782804.083113", "U024BE7LH", "U0G9QF9C6")))
+  }
+
+  test("user dnd status updated") {
+    val json = Json.parse(
+      """{"type":"dnd_updated_user","user":"U024BE7LH",
+        |"dnd_status":{"dnd_enabled":true,"next_dnd_start_ts":1515016800,"next_dnd_end_ts":1515052800},
+        |"event_ts":"1514991882.000376"}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    assert(ev.equals(DndUpdatedUser("dnd_updated_user", "U024BE7LH", DndStatus(dnd_enabled = true, 1515016800, 1515052800), "1514991882.000376")))
   }
 }

@@ -403,3 +403,15 @@ case class DesktopNotification(
   is_shared: Boolean,
   event_ts: String
 ) extends SlackEvent
+
+case class DndUpdatedUser(
+ `type`: String,
+ user: String,
+ dnd_status: DndStatus,
+ event_ts: String
+) extends SlackEvent
+
+case class DndStatus(dnd_enabled: Boolean,
+ next_dnd_start_ts: Long,
+ next_dnd_end_ts: Long
+)
