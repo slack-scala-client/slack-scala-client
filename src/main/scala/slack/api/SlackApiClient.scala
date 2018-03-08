@@ -2,7 +2,6 @@ package slack.api
 
 import slack.models._
 
-import java.nio.charset.StandardCharsets
 import java.io.File
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -620,8 +619,9 @@ class SlackApiClient(token: String) {
   /****  Private Functions  ****/
   /*****************************/
 
-  private def uploadFileFromEntity(entity: MessageEntity, filetype: Option[String] = None, filename: Option[String] = None,
-    title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
+  private def uploadFileFromEntity(entity: MessageEntity, filetype: Option[String], filename: Option[String],
+                                   title: Option[String], initialComment: Option[String], channels: Option[Seq[String]])
+                                  (implicit system: ActorSystem): Future[SlackFile] = {
     val params = Seq (
       "filetype" -> filetype,
       "filename" -> filename,

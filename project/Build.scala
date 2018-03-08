@@ -5,11 +5,11 @@ import sbtrelease._
 
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
-  val buildVersion      = "0.2.2"
-  val buildScalaVersion = "2.12.3"
-  val buildCrossScalaVersions = Seq("2.11.11", "2.12.3")
+  val buildVersion      = "0.2.3"
+  val buildScalaVersion = "2.12.4"
+  val buildCrossScalaVersions = Seq("2.11.12", "2.12.4")
 
-  val buildSettings = Seq (
+  val settings = Seq (
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
@@ -47,36 +47,18 @@ object BuildSettings {
   )
 }
 
-object Resolvers {
-  val typesafeRepo = "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
-}
-
 object Dependencies {
-  val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.5.4"
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.10"
+  val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.5.11"
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.11"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.7"
-  val playJson = "com.typesafe.play" %% "play-json" % "2.6.3"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.6.9"
 
-  val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+  val scalatest = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
   val akkaDependencies = Seq(akkaHttp)
   val miscDependencies = Seq(playJson, scalaAsync)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
-}
-
-object SlackScalaClient extends Build {
-  import Resolvers._
-  import BuildSettings._
-  import Defaults._
-
-  lazy val slackScalaClient =
-    Project ("slack-scala-client", file("."))
-      .settings ( buildSettings : _* )
-      .settings ( resolvers ++= Seq(typesafeRepo) )
-      .settings ( libraryDependencies ++= Dependencies.allDependencies )
-      .settings ( scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xlint", "-feature") )
-
 }
