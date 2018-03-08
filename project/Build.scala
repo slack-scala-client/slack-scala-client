@@ -55,7 +55,7 @@ object Dependencies {
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.5.4"
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.10"
 
-  val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
+  val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.7"
   val playJson = "com.typesafe.play" %% "play-json" % "2.6.3"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
@@ -77,6 +77,6 @@ object SlackScalaClient extends Build {
       .settings ( buildSettings : _* )
       .settings ( resolvers ++= Seq(typesafeRepo) )
       .settings ( libraryDependencies ++= Dependencies.allDependencies )
-      .settings ( scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xlint", "-Xfatal-warnings", "-feature") )
+      .settings ( scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xlint", "-feature") )
 
 }
