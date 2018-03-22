@@ -167,6 +167,16 @@ class TestJsonMessages extends FunSuite {
     assert(ev.bot_id.equals("B1E2Y493N"))
   }
 
+  test("parse bot message with attachment") {
+    val json = Json.parse(
+      """{"text":"bot message","username":"mybot","bot_id":"B1E2Y493N","type":"message","subtype":"bot_message","team":"T0P3TAZ7Y",
+        |"user_profile":{"avatar_hash":null,"image_72":"https://secure.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0000-72.png",
+        |"first_name":null,"real_name":"","name":null},"channel":"D1632C4LU","ts":"1464985393.000154",
+        |"attachments":[{"text": "Don't get too attached", "fallback": "This is an attachment fallback"}]}""".stripMargin)
+    val ev = json.as[BotMessage]
+    assert(ev.bot_id.equals("B1E2Y493N"))
+  }
+
   test("parse file share message") {
     val json = Json.parse(
       """{"username": "<@U0X6J06MD|super-roger>", "display_as_bot": false,

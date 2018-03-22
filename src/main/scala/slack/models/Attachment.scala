@@ -11,11 +11,11 @@ case class Attachment (
   title: Option[String] = None,
   title_link: Option[String] = None,
   text: Option[String] = None,
-  fields: Seq[AttachmentField] = Seq.empty,
+  fields: Option[Seq[AttachmentField]] = None,
   image_url: Option[String] = None,
   thumb_url: Option[String] = None,
-  actions: Seq[ActionField] = Seq.empty,
-  mrkdwn_in: Seq[String] = Seq.empty
+  actions: Option[Seq[ActionField]] = None,
+  mrkdwn_in: Option[Seq[String]] = None
 )
 
 case class AttachmentField(title: String, value: String, short: Boolean)
