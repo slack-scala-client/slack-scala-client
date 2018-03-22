@@ -1,15 +1,13 @@
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
+import akka.actor.ActorSystem
+import org.scalatest.FunSuite
 import slack.api.SlackApiClient
 import slack.models.Reply
 import slack.rtm.SlackRtmClient
 
-import scala.concurrent.{ Await, Promise }
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-
-import org.scalatest.FunSuite
-import akka.actor.ActorSystem
+import scala.concurrent.{Await, Promise}
 
 class SlackRtmClientTest extends FunSuite {
 

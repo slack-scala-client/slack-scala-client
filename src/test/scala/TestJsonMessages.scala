@@ -11,9 +11,7 @@ class TestJsonMessages extends FunSuite {
   test("user presence change") {
 
     val json = Json.parse( """{"type":"presence_change","user":"U0A2DCEBS","presence":"active"}""")
-    val ev = json.as[SlackEvent]
-
-
+    json.as[SlackEvent]
   }
 
   test("channel created") {
@@ -21,9 +19,7 @@ class TestJsonMessages extends FunSuite {
     val json = Json.parse(
       """{"type":"channel_created","channel":{"id":"C0A76PZC0","is_channel":true,"name":"foos","created":1441461339,"creator":"U0A2DMR7F"},"event_ts":"1441461339.676215"}"""
     )
-    val ev = json.as[SlackEvent]
-
-
+    json.as[SlackEvent]
   }
 
 
@@ -40,7 +36,7 @@ class TestJsonMessages extends FunSuite {
   "ts": "1441463918.000003"
 }""")
 
-    val ev = json.as[SlackEvent]
+    json.as[SlackEvent]
   }
 
   // :
@@ -85,8 +81,7 @@ class TestJsonMessages extends FunSuite {
   }
 } """)
 
-    val ev = json.as[SlackEvent]
-
+    json.as[SlackEvent]
   }
 
   test("group left") {
@@ -94,7 +89,7 @@ class TestJsonMessages extends FunSuite {
       """{
       "type": "group_left", "channel": "G0AAYN0E7"
     }""")
-    val ev = json.as[SlackEvent]
+    json.as[SlackEvent]
   }
 
   test("me message parsed") {
@@ -106,7 +101,7 @@ class TestJsonMessages extends FunSuite {
         |  "text": "Cheers!",
         |  "subtype":"me_message"
         |}""".stripMargin)
-    val ev = json.as[MessageSubtypes.MeMessage]
+    json.as[MessageSubtypes.MeMessage]
   }
 
   test("unhandled message parsed") {
@@ -118,7 +113,7 @@ class TestJsonMessages extends FunSuite {
         |  "text": "An ordinary box for pizza.",
         |  "subtype":"pizza_box"
         |}""".stripMargin)
-    val ev = json.as[MessageSubtypes.UnhandledSubtype]
+    json.as[MessageSubtypes.UnhandledSubtype]
   }
 
   test("message_changed event parsed") {
@@ -147,7 +142,7 @@ class TestJsonMessages extends FunSuite {
         |  "event_ts":"1461159087.697321",
         |  "ts":"1461159087.000006"
         |}""".stripMargin)
-    val ev = json.as[MessageChanged]
+    json.as[MessageChanged]
   }
 
 
