@@ -1,26 +1,45 @@
-slack-scala-client
-==================
+# slack-scala-client
 
 A Scala library for interacting with the Slack API and real time messaging interface
 
 
-Installation
-------------
+## Installation
+
+### SBT
 
 Add SBT dependency:
 
     libraryDependencies += "com.github.gilbertw1" %% "slack-scala-client" % "0.2.3"
 
-Scaladoc
---------
 
+### Maven
+
+Scala 2.12:
+
+        <dependency>
+            <groupId>com.github.gilbertw1</groupId>
+            <artifactId>slack-scala-client_2.12</artifactId>
+            <version>0.2.3</version>
+        </dependency>
+
+Scala 2.11:
+
+        <dependency>
+            <groupId>com.github.gilbertw1</groupId>
+            <artifactId>slack-scala-client_2.11</artifactId>
+            <version>0.2.3</version>
+        </dependency>
+
+
+## Scaladoc
+
+* 0.2.3 - missing
 * [0.2.2](http://doc.bryangilbert.com/slack-scala-client/0.2.2/index.html)
 * [0.2.0](http://doc.bryangilbert.com/slack-scala-client/0.2.0/)
 * [0.1.8](http://doc.bryangilbert.com/slack-scala-client/0.1.8/)
 
 
-API Client Usage
-----------------
+## API Client Usage
 
 There are two different API clients, one exposing an asynchronous interface and the other exposing a synchronous interface. They can be imported from the `slack.api` package:
 
@@ -64,8 +83,7 @@ val channels = client.listChannels()  // => Seq[Channel]
 The API clients implement the full Slack API. A full list of the available endpoints can be found directly on the classes: [SlackApiClient](src/main/scala/slack/api/SlackApiClient.scala#L83-L507) and [BlockingSlackApiClient](src/main/scala/slack/api/BlockingSlackApiClient.scala#L28-L324)
 
 
-RTM Client Usage
-----------------
+## RTM Client Usage
 
 The real time messaging client is implemented using akka and requires having an implicit `ActorSystem` in scope. Either an `ActorSystem` or `ActorContext` will work:
 
@@ -134,8 +152,7 @@ client.close()
 ```
 
 
-Simple Bot Example
-------------------
+## Simple Bot Example
 
 This is a full implementation of a Slack bot that will listen for anyone mentioning it in a message and will respond to that user.
 
@@ -157,14 +174,12 @@ client.onMessage { message =>
 ```
 
 
-WebSocket Re-Connection Behavior
---------------------------------
+## WebSocket Re-Connection Behavior
 
 The WebSocket connection sends a `PingFrame` every second and if it ever goes more than 10 seconds without receiving a `PongFrame`, will terminate the WebSocket connection and attempt to establish a new connection. It will continue to do this using an exponential back-off until it is able to successfully reconnect to the RTM WebSocket API.
 
 
-Caveat Emptor
--------------
+## Caveat Emptor
 
 - The Slack API contains a lot methods and not every implemented API method has been executed (i.e. some may not work; pull requests accepted!)
 - Responses to RTM messages sent out are not currently checked to verify they were successfully received (Coming Soon!)
@@ -172,7 +187,6 @@ Caveat Emptor
 - A small number of response types have yet to be fleshed out
 
 
-Changelog
----------
+## Changelog
 
 Changelog can be found [here](CHANGELOG.md)
