@@ -1,4 +1,4 @@
-import org.scalatest.FunSuite
+import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
 import slack.models._
@@ -6,7 +6,7 @@ import slack.models._
 /**
  * Created by ptx on 9/5/15.
  */
-class TestJsonMessages extends FunSuite {
+class TestJsonMessages extends FunSuite with Matchers {
 
   test("user presence change") {
 
@@ -227,4 +227,15 @@ class TestJsonMessages extends FunSuite {
     val ev = json.as[SlackEvent]
     assert(ev.equals(DndUpdatedUser("dnd_updated_user", "U024BE7LH", DndStatus(dnd_enabled = true, 1515016800, 1515052800), "1514991882.000376")))
   }
+
+  test("member joined channel") {
+    val json = Json.parse(
+      """
+        |{"type":"member_joined_channel","user":"U0G9QF9C6","channel":"C0A76PZC0","channel_type":"C",
+        |"team":"T0P3TAZ7Y","inviter":"U024BE7LH","event_ts":"1521143660.000263",
+        |"ts":"1521143660.000263"}""".stripMargin)
+    val ev = json.as[MemberJoined]
+    ev.inviter should be ("U024BE7LH")
+  }
+
 }
