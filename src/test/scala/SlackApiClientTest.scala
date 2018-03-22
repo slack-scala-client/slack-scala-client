@@ -17,7 +17,7 @@ class SlackApiClientTest extends FunSuite {
     val actionField = Seq(ActionField("accept", "Accept", "button", Some("primary")))
     val attachment = Attachment(text = Some("Do you want to accept?"),
       fallback = Some("backup message: code-123456"),
-      callback_id = Some("code-123456"), actions = actionField)
+      callback_id = Some("code-123456"), actions = Some(actionField))
 
     apiClient.listChannels(1).map{ channels =>
       channels.foreach( channel => println( s"${channel.id}|${channel.name}"))
