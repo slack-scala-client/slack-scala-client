@@ -88,6 +88,10 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.renameChannel(channelId, name))
   }
 
+  def getChannelReplies(channelId: String, thread_ts: String)(implicit system: ActorSystem): RepliesChunk = {
+    resolve(client.getChannelReplies(channelId, thread_ts))
+  }
+
   def setChannelPurpose(channelId: String, purpose: String)(implicit system: ActorSystem): String = {
     resolve(client.setChannelPurpose(channelId, purpose))
   }

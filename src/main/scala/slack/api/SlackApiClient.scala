@@ -21,6 +21,7 @@ object SlackApiClient {
   private[api] implicit val rtmStartStateFmt = Json.format[RtmStartState]
   private[api] implicit val accessTokenFmt = Json.format[AccessToken]
   private[api] implicit val historyChunkFmt = Json.format[HistoryChunk]
+  private[api] implicit val repliesChunkFmt = Json.format[RepliesChunk]
   private[api] implicit val pagingObjectFmt = Json.format[PagingObject]
   private[api] implicit val filesResponseFmt = Json.format[FilesResponse]
   private[api] implicit val fileInfoFmt = Json.format[FileInfo]
@@ -185,6 +186,11 @@ class SlackApiClient(token: String) {
   def renameChannel(channelId: String, name: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("channels.rename", "channel" -> channelId, "name" -> name)
     extract[Boolean](res, "ok")
+  }
+
+  def getChannelReplies(channelId: String, thread_ts: String)(implicit system: ActorSystem): Future[RepliesChunk] = {
+    val res = makeApiMethodRequest ("channels.replies", "channel" -> channelId, "thread_ts" -> thread_ts)
+    res.map(_.as[RepliesChunk])(system.dispatcher)
   }
 
   def setChannelPurpose(channelId: String, purpose: String)(implicit system: ActorSystem): Future[String] = {
@@ -672,6 +678,12 @@ case class HistoryChunk (
   latest: Option[String],
   messages: Seq[JsValue],
   has_more: Boolean
+)
+
+case class RepliesChunk (
+  has_more: Boolean,
+  messages: Seq[JsValue],
+  ok: Boolean
 )
 
 case class FileInfo (
