@@ -361,4 +361,6 @@ package object models {
       }
     }
   }
+  implicit val slackEventStructureFmt = Json.format[SlackEventStructure]
+  implicit val eventServerChallengeFmt = Json.format[EventServerChallenge]
 }
