@@ -1,6 +1,6 @@
 package slack.models
 
-trait ReactionItem
+sealed trait ReactionItem
 
 case class ReactionItemMessage(channel: String, ts: String) extends ReactionItem
 
