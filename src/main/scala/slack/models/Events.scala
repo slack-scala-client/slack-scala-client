@@ -11,7 +11,8 @@ case class SlackEventStructure (
   api_app_id: String,
   event: SlackEvent,
   `type`: String,
-  authed_teams: List[String],
+  authed_teams: Option[List[String]],
+  authed_users: Option[List[String]],
   event_id: String,
   event_time: Long
 )
