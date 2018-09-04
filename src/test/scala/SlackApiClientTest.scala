@@ -11,6 +11,7 @@ class SlackApiClientTest extends FunSuite {
   implicit val system = ActorSystem("slack")
   val channel = system.settings.config.getString("test.channel")
   val token =  system.settings.config.getString("test.apiKey")
+  val user = system.settings.config.getString("test.userId")
   val apiClient = SlackApiClient(token)
 
   test("send attachment with action") {
@@ -23,6 +24,13 @@ class SlackApiClientTest extends FunSuite {
       channels.foreach( channel => println( s"${channel.id}|${channel.name}"))
     }
     val future = apiClient.postChatMessage(channel, "Request", attachments = Some(Seq(attachment)))
+    val result = Await.result(future, 5.seconds)
+
+    println(result)
+  }
+
+  test("send ephemeral with action") {
+    val future = apiClient.postChatEphemeral(channel, "This is an ephemeral", user)
     val result = Await.result(future, 5.seconds)
 
     println(result)
