@@ -75,10 +75,13 @@ package object models {
   implicit val helloFmt = Json.format[Hello]
   implicit val messageFmt = Json.format[Message]
   implicit val messageReply = Json.format[Reply]
+  implicit val replyMarkerFmt = Json.format[ReplyMarker]
   implicit val editMessageFmt = Json.format[EditMessage]
+  implicit val replyMessageFmt = Json.format[ReplyMessage]
   implicit val botMessageFmt = Json.format[BotMessage]
   implicit val messageChangedFmt = Json.format[MessageChanged]
   implicit val messageDeletedFmt = Json.format[MessageDeleted]
+  implicit val messageRepliedFmt = Json.format[MessageReplied]
   implicit val reactionAddedFmt = Json.format[ReactionAdded]
   implicit val reactionRemovedFmt = Json.format[ReactionRemoved]
   implicit val userTypingFmt = Json.format[UserTyping]
@@ -174,6 +177,7 @@ package object models {
         case e: Reply => Json.toJson(e)
         case e: MessageChanged => Json.toJson(e)
         case e: MessageDeleted => Json.toJson(e)
+        case e: MessageReplied => Json.toJson(e)
         case e: BotMessage => Json.toJson(e)
         case e: MessageWithSubtype => Json.toJson(e)
         case e: MeMessage => Json.toJson(e)
@@ -284,6 +288,7 @@ package object models {
           case "hello" => JsSuccess(jsValue.as[Hello])
           case "message" if subtype.contains("message_changed") => JsSuccess(jsValue.as[MessageChanged])
           case "message" if subtype.contains("message_deleted") => JsSuccess(jsValue.as[MessageDeleted])
+          case "message" if subtype.contains("message_replied") => JsSuccess(jsValue.as[MessageReplied])
           case "message" if subtype.contains("bot_message") => JsSuccess(jsValue.as[BotMessage])
           case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
           case "message" => JsSuccess(jsValue.as[Message])

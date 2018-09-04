@@ -25,6 +25,18 @@ case class EditMessage (
   ts:String
 )
 
+case class ReplyMarker (
+  user: String,
+  ts: String)
+
+case class ReplyMessage (
+  user: String,
+  text: String,
+  thread_ts: String,
+  reply_count: Int,
+  replies: Seq[ReplyMarker],
+)
+
 case class MessageChanged (
   message: EditMessage,
   previous_message: EditMessage,
@@ -38,6 +50,13 @@ case class MessageDeleted (
   deleted_ts: String,
   event_ts: String,
   channel: String
+) extends SlackEvent
+
+case class MessageReplied (
+  ts: String,
+  event_ts: String,
+  channel: String,
+  message: ReplyMessage
 ) extends SlackEvent
 
 case class BotMessage (
