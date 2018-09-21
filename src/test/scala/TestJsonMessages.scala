@@ -198,7 +198,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"item":{"type":"message","channel":"C0G9QF9GZ","ts":"1360782400.498405"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemMessage("C0G9QF9GZ", "1360782400.498405"), "1360782804.083113", "U024BE7LH", "U0G9QF9C6")))
+    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemMessage("C0G9QF9GZ", "1360782400.498405"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))))
   }
 
   test("parse reaction added to file") {
@@ -207,7 +207,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"item":{"type":"file","file":"F0HS27V1Z"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemFile("F0HS27V1Z"), "1360782804.083113", "U024BE7LH", "U0G9QF9C6")))
+    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemFile("F0HS27V1Z"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))))
   }
 
   test("parse reaction removed from file comment") {
@@ -216,7 +216,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"item":{"type":"file_comment","file":"F0HS27V1Z","file_comment": "FC0HS2KBEZ"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(ReactionRemoved("thumbsup", ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"), "1360782804.083113", "U024BE7LH", "U0G9QF9C6")))
+    assert(ev.equals(ReactionRemoved("thumbsup", ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))))
   }
 
   test("user dnd status updated") {
@@ -235,7 +235,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"team":"T0P3TAZ7Y","inviter":"U024BE7LH","event_ts":"1521143660.000263",
         |"ts":"1521143660.000263"}""".stripMargin)
     val ev = json.as[MemberJoined]
-    ev.inviter should be ("U024BE7LH")
+    ev.inviter.get should be ("U024BE7LH")
   }
 
 }
