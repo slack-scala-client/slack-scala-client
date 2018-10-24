@@ -233,7 +233,7 @@ class SlackApiClient(token: String) {
       "link_names" -> linkNames,
       "attachments" -> attachments.map(a => Json.stringify(Json.toJson(a)))
     )
-    extract[String](res, "ts")
+    extract[String](res, "message_ts")
   }
 
   def postChatMessage(channelId: String, text: String, username: Option[String] = None, asUser: Option[Boolean] = None,
