@@ -34,7 +34,7 @@ case class ReplyMessage (
   text: String,
   thread_ts: String,
   reply_count: Int,
-  replies: Seq[ReplyMarker],
+  replies: Seq[ReplyMarker]
 )
 
 case class MessageChanged (
@@ -442,3 +442,7 @@ case class MemberJoined(
  channel: String,
  inviter: Option[String]
 ) extends SlackEvent
+
+case class Pong(
+ `type`: String,
+ reply_to: Long) extends SlackEvent
