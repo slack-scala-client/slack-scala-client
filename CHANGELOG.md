@@ -1,3 +1,11 @@
+0.2.4 (2018-11-05)
+------------------
+* Fixes/amendments in te mapping of Slack API events
+* Non-mandatory fields marked as `Option()`
+* Support post.ephemeral
+* Implemented ping/pong to sustain websocket connection
+
+
 0.2.3 (2018-03-08)
 ------------------
 * Fixes/amendments in the mapping of Slack API events
