@@ -76,6 +76,7 @@ private[rtm] object SlackRtmConnectionActor {
   implicit val sendMessageFmt = Json.format[MessageSend]
   implicit val botEditMessageFmt = Json.format[BotEditMessage]
   implicit val typingMessageFmt = Json.format[MessageTyping]
+  implicit val pingMessageFmt = Json.format[Ping]
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
@@ -85,6 +86,7 @@ private[rtm] object SlackRtmConnectionActor {
   case class StateRequest()
   case class StateResponse(state: RtmState)
   case object ReconnectWebSocket
+  case class SendPing()
 
   def apply(token: String, state: RtmState, duration: FiniteDuration)(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new SlackRtmConnectionActor(token, state, duration)))
@@ -106,6 +108,8 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
 
   var connectFailures = 0
   var webSocketClient: Option[ActorRef] = None
+
+  context.system.scheduler.schedule(1.minute, 1.minute, self, SendPing)
 
   def receive = {
     case message: TextMessage =>
@@ -160,6 +164,10 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
     case Terminated(actor) =>
       listeners -= actor
       handleWebSocketDisconnect(actor)
+    case SendPing =>
+      val nextId = idCounter.getAndIncrement
+      val payload = Json.stringify(Json.toJson(Ping(nextId)))
+      webSocketClient.get ! SendWSMessage(TextMessage(payload))
     case _ =>
       log.warning("doesn't match any case, skip")
   }
@@ -197,3 +205,4 @@ private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, durat
 
 private[rtm] case class MessageSend(id: Long, channel: String, text: String, thread_ts: Option[String] = None, `type`: String = "message")
 private[rtm] case class MessageTyping(id: Long, channel: String, `type`: String = "typing")
+private[rtm] case class Ping(id: Long, `type`: String = "ping")
