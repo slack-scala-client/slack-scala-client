@@ -15,6 +15,7 @@ object BuildSettings {
     scalaVersion       := buildScalaVersion,
     crossScalaVersions := buildCrossScalaVersions,
     publishMavenStyle  := true,
+    credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     publishTo          := {
       val nexus = "https://oss.sonatype.org/"
       if (isSnapshot.value)
