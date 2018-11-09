@@ -4,7 +4,7 @@ import com.typesafe.sbt.SbtPgp.autoImport._
 import sbtrelease._
 
 object BuildSettings {
-  val buildOrganization = "com.github.gilbertw1"
+  val buildOrganization = "com.github.slack-scala-client"
   val buildVersion      = "0.2.4"
   val buildScalaVersion = "2.12.7"
   val buildCrossScalaVersions = Seq("2.11.12", "2.12.7")
@@ -25,7 +25,7 @@ object BuildSettings {
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
     pomExtra := (
-      <url>https://github.com/gilbertw1/slack-scala-client</url>
+      <url>https://github.com/slack-scala-client/slack-scala-client</url>
       <licenses>
         <license>
           <name>MIT</name>
@@ -34,8 +34,8 @@ object BuildSettings {
         </license>
       </licenses>
       <scm>
-        <url>git@github.com:gilbertw1/slack-scala-client.git</url>
-        <connection>scm:git:git@github.com:gilbertw1/slack-scala-client.git</connection>
+        <url>git@github.com:slack-scala-client/slack-scala-client.git</url>
+        <connection>scm:git:git@github.com:slack-scala-client/slack-scala-client.git</connection>
       </scm>
       <developers>
         <developer>
