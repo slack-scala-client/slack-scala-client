@@ -5,6 +5,8 @@ A Scala library for interacting with the Slack API and real time messaging inter
 
 ## Installation
 
+⚠️ Starting from version 0.2.4 (released on Nov 9 2018) there's a new Maven group id - update your build file configurations (`pom.xml` etc.). Also the project homepage has been moved to a new Github organization - thus is available at a new URL (as you can see).
+
 ### SBT
 
 Add SBT dependency:
