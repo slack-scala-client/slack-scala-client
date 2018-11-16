@@ -71,8 +71,8 @@ class BlockingSlackApiClient(token: String, duration: FiniteDuration = 5.seconds
     resolve(client.kickFromChannel(channelId, userId))
   }
 
-  def listChannels(excludeArchived: Int = 0)(implicit system: ActorSystem): Seq[Channel] = {
-    resolve(client.listChannels(excludeArchived))
+  def listChannels(excludeArchived: Int = 0, excludeMembers: Int = 0)(implicit system: ActorSystem): Seq[Channel] = {
+    resolve(client.listChannels(excludeArchived, excludeMembers))
   }
 
   def leaveChannel(channelId: String)(implicit system: ActorSystem): Boolean = {
