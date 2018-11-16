@@ -1,3 +1,5 @@
+package slack
+
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage

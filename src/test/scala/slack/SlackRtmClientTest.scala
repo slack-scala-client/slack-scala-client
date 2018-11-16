@@ -1,6 +1,7 @@
+package slack
+
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-import akka.actor.ActorSystem
 import org.scalatest.{FunSuite, Matchers}
 import slack.api.SlackApiClient
 import slack.models.Reply
@@ -9,12 +10,10 @@ import slack.rtm.SlackRtmClient
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 
-class SlackRtmClientTest extends FunSuite with Matchers {
-
-  implicit val system = ActorSystem("slack")
+class SlackRtmClientTest extends FunSuite with Matchers with Credentials {
 
   val channel = system.settings.config.getString("test.channel")
-  val rtmToken =  system.settings.config.getString("test.apiKey")
+  val rtmToken = system.settings.config.getString("test.apiKey")
 
   lazy val rtmClient = {
     val rtm = SlackRtmClient(rtmToken)

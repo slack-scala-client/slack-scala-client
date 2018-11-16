@@ -1,4 +1,5 @@
-import akka.actor.ActorSystem
+package slack
+
 import org.scalatest.FunSuite
 import slack.api.SlackApiClient
 import slack.models.{ActionField, Attachment}
@@ -7,12 +8,10 @@ import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class SlackApiClientTest extends FunSuite {
-  implicit val system = ActorSystem("slack")
-  val channel = system.settings.config.getString("test.channel")
-  val token =  system.settings.config.getString("test.apiKey")
-  val user = system.settings.config.getString("test.userId")
+class SlackApiClientTest extends FunSuite with Credentials {
+
   val apiClient = SlackApiClient(token)
+  val channel = system.settings.config.getString("test.channel")
 
   test("send attachment with action") {
     val actionField = Seq(ActionField("accept", "Accept", "button", Some("primary")))
