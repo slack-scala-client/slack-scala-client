@@ -57,8 +57,10 @@ object Dependencies {
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
+  val jodaConvert = "org.joda" % "joda-convert" % "1.8.1" // https://stackoverflow.com/a/13856382/118587
+
   val akkaDependencies = Seq(akkaHttp)
-  val miscDependencies = Seq(playJson, scalaAsync)
+  val miscDependencies = Seq(playJson, scalaAsync, jodaConvert)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
