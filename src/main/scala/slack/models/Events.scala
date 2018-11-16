@@ -5,6 +5,24 @@ import play.api.libs.json._
 // TODO: Revisit all event objects (some are partial? - specifically channel)
 sealed trait SlackEvent
 
+case class SlackEventStructure (
+  token: String,
+  team_id: String,
+  api_app_id: String,
+  event: SlackEvent,
+  `type`: String,
+  authed_teams: Option[List[String]],
+  authed_users: Option[List[String]],
+  event_id: String,
+  event_time: Long
+)
+
+case class EventServerChallenge (
+  token: String,
+  challenge: String,
+  `type`: String
+)
+
 case class Hello (
   `type`: String
 ) extends SlackEvent
