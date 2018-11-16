@@ -3,3 +3,8 @@ scala:
    - 2.11.7
 jdk:
    - oraclejdk8
+branches:
+  only:
+  - mccartney-configuring-travis
+  - master
+  
