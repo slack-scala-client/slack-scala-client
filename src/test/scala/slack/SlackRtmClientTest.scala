@@ -13,7 +13,6 @@ import scala.concurrent.{Await, Promise}
 class SlackRtmClientTest extends FunSuite with Matchers with Credentials {
 
   val channel = system.settings.config.getString("test.channel")
-  val rtmToken = system.settings.config.getString("test.apiKey")
 
   lazy val rtmClient = {
     val rtm = SlackRtmClient(rtmToken)
