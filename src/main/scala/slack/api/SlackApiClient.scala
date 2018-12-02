@@ -27,7 +27,7 @@ object SlackApiClient {
   private[api] implicit val fileInfoFmt = Json.format[FileInfo]
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
-  private val apiBaseRequest = HttpRequest(uri = Uri(s"https://slack.com/api/"))
+  val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
 
   /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
   val charClassesClass = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
@@ -39,18 +39,18 @@ object SlackApiClient {
   charPredicateField.set(charClassesObject, updatedCharPredicate)
   /* END TEMPORARY WORKAROUND */
 
-  def apply(token: String): SlackApiClient = {
-    new SlackApiClient(token)
+  def apply(token: String, slackApiBaseUri:Uri = defaultSlackApiBaseUri): SlackApiClient = {
+    new SlackApiClient(token, slackApiBaseUri)
   }
 
-  def exchangeOauthForToken(clientId: String, clientSecret: String, code: String, redirectUri: Option[String] = None)(implicit system: ActorSystem): Future[AccessToken] = {
+  def exchangeOauthForToken(clientId: String, clientSecret: String, code: String, redirectUri: Option[String] = None, slackApiBaseUri:Uri = defaultSlackApiBaseUri)(implicit system: ActorSystem): Future[AccessToken] = {
     val params = Seq (
       "client_id" -> clientId,
       "client_secret" -> clientSecret,
       "code" -> code,
       "redirect_uri" -> redirectUri
     )
-    val res = makeApiRequest(addQueryParams(addSegment(apiBaseRequest, "oauth.access"), cleanParams(params)))
+    val res = makeApiRequest(addQueryParams(addSegment(HttpRequest(uri = slackApiBaseUri), "oauth.access"), cleanParams(params)))
     res.map(_.as[AccessToken])(system.dispatcher)
   }
 
@@ -100,7 +100,9 @@ object SlackApiClient {
 
 import slack.api.SlackApiClient._
 
-class SlackApiClient(token: String) {
+class SlackApiClient private(token: String, slackApiBaseUri:Uri) {
+
+  private val apiBaseRequest = HttpRequest(uri = slackApiBaseUri)
 
   private val apiBaseWithTokenRequest = apiBaseRequest.withUri(apiBaseRequest.uri.withQuery(
                                                           Uri.Query((apiBaseRequest.uri.query() :+ ("token" -> token)): _*)))

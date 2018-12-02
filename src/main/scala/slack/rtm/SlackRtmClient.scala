@@ -4,31 +4,31 @@ import slack.api._
 import slack.models._
 import slack.rtm.SlackRtmConnectionActor._
 import slack.rtm.WebSocketClientActor._
-
 import java.util.concurrent.atomic.AtomicLong
+
 import scala.collection.mutable.{Set => MSet}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-
 import akka.actor._
+import akka.http.scaladsl.model.Uri
 import akka.util.Timeout
 import akka.pattern.ask
 import play.api.libs.json._
 import akka.http.scaladsl.model.ws.TextMessage
 
 object SlackRtmClient {
-  def apply(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem): SlackRtmClient = {
-    new SlackRtmClient(token, duration)
+  def apply(token: String, slackApiBaseUri:Uri = SlackApiClient.defaultSlackApiBaseUri, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem): SlackRtmClient = {
+    new SlackRtmClient(token, slackApiBaseUri, duration)
   }
 }
 
-class SlackRtmClient(token: String, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem) {
+class SlackRtmClient private(token: String, slackApiBaseUri:Uri, duration: FiniteDuration)(implicit arf: ActorSystem) {
   private implicit val timeout = new Timeout(duration)
 
-  private val apiClient = BlockingSlackApiClient(token, duration)
+  val apiClient = BlockingSlackApiClient(token, slackApiBaseUri, duration)
   val state = RtmState(apiClient.startRealTimeMessageSession())
-  private val actor = SlackRtmConnectionActor(token, state, duration)
+  private val actor = SlackRtmConnectionActor(apiClient, state)
 
   def onEvent(f: (SlackEvent) => Unit): ActorRef = {
     val handler = EventHandlerActor(f)
@@ -88,16 +88,15 @@ private[rtm] object SlackRtmConnectionActor {
   case object ReconnectWebSocket
   case class SendPing()
 
-  def apply(token: String, state: RtmState, duration: FiniteDuration)(implicit arf: ActorRefFactory): ActorRef = {
-    arf.actorOf(Props(new SlackRtmConnectionActor(token, state, duration)))
+  def apply(apiClient: BlockingSlackApiClient, state: RtmState)(implicit arf: ActorRefFactory): ActorRef = {
+    arf.actorOf(Props(new SlackRtmConnectionActor(apiClient, state)))
   }
 }
 
-private[rtm] class SlackRtmConnectionActor(token: String, state: RtmState, duration: FiniteDuration) extends Actor with ActorLogging {
+private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState) extends Actor with ActorLogging {
 
   implicit val ec = context.dispatcher
   implicit val system = context.system
-  val apiClient = BlockingSlackApiClient(token, duration)
   val listeners = MSet[ActorRef]()
   val idCounter = new AtomicLong(1L)
 
