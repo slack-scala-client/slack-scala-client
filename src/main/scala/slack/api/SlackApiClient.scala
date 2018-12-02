@@ -27,7 +27,7 @@ object SlackApiClient {
   private[api] implicit val fileInfoFmt = Json.format[FileInfo]
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
-  val defaultSlackApiBaseUri = Uri(s"https://slack.com/api/")
+  val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
 
   /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
   val charClassesClass = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
