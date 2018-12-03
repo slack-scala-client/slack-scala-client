@@ -20,9 +20,9 @@ case class Message (
 ) extends SlackEvent
 
 case class EditMessage (
-  user: String,
+  user: Option[String],
   text: String,
-  ts:String
+  ts: String
 )
 
 case class ReplyMarker (
