@@ -1,10 +1,6 @@
 package slack.models
 
-case class Dialog(
-                   callback_id: String,
-                   title: String,
-                   submit_label: String,
-                   elements: Seq[DialogElement])
+case class Dialog(callback_id: String, title: String, submit_label: String, elements: Seq[DialogElement])
 
 trait DialogElement {
   val `type`: String
@@ -24,7 +20,8 @@ case class TextElement(label: String,
                        subtype: Option[String] = None,
                        placeholder: Option[String] = None,
                        value: Option[String] = None,
-                       `type`: String = "text") extends DialogElement
+                       `type`: String = "text")
+    extends DialogElement
 
 case class SelectElement(label: String,
                          name: String,
@@ -32,6 +29,7 @@ case class SelectElement(label: String,
                          optional: Boolean = false,
                          placeholder: Option[String] = None,
                          value: Option[String] = None,
-                         `type`: String = "select") extends DialogElement
+                         `type`: String = "select")
+    extends DialogElement
 
 case class OptionElement(label: String, value: String)

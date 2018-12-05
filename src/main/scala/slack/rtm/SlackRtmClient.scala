@@ -18,12 +18,16 @@ import play.api.libs.json._
 import akka.http.scaladsl.model.ws.TextMessage
 
 object SlackRtmClient {
-  def apply(token: String, slackApiBaseUri:Uri = SlackApiClient.defaultSlackApiBaseUri, duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem): SlackRtmClient = {
+  def apply(token: String,
+            slackApiBaseUri: Uri = SlackApiClient.defaultSlackApiBaseUri,
+            duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem): SlackRtmClient = {
     new SlackRtmClient(token, slackApiBaseUri, duration)
   }
 }
 
-class SlackRtmClient private(token: String, slackApiBaseUri:Uri, duration: FiniteDuration)(implicit arf: ActorSystem) {
+class SlackRtmClient private (token: String, slackApiBaseUri: Uri, duration: FiniteDuration)(
+  implicit arf: ActorSystem
+) {
   private implicit val timeout = new Timeout(duration)
 
   val apiClient = BlockingSlackApiClient(token, slackApiBaseUri, duration)
@@ -81,7 +85,11 @@ private[rtm] object SlackRtmConnectionActor {
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
   case class SendMessage(channelId: String, text: String, ts_thread: Option[String] = None)
-  case class BotEditMessage(channelId: String, ts: String, text: String, as_user: Boolean = true, `type`:String = "chat.update")
+  case class BotEditMessage(channelId: String,
+                            ts: String,
+                            text: String,
+                            as_user: Boolean = true,
+                            `type`: String = "chat.update")
   case class TypingMessage(channelId: String)
   case class StateRequest()
   case class StateResponse(state: RtmState)
@@ -93,7 +101,9 @@ private[rtm] object SlackRtmConnectionActor {
   }
 }
 
-private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState) extends Actor with ActorLogging {
+private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState)
+    extends Actor
+    with ActorLogging {
 
   implicit val ec = context.dispatcher
   implicit val system = context.system
@@ -202,6 +212,10 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
   }
 }
 
-private[rtm] case class MessageSend(id: Long, channel: String, text: String, thread_ts: Option[String] = None, `type`: String = "message")
+private[rtm] case class MessageSend(id: Long,
+                                    channel: String,
+                                    text: String,
+                                    thread_ts: Option[String] = None,
+                                    `type`: String = "message")
 private[rtm] case class MessageTyping(id: Long, channel: String, `type`: String = "typing")
 private[rtm] case class Ping(id: Long, `type`: String = "ping")

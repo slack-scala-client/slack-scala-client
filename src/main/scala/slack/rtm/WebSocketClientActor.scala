@@ -2,15 +2,15 @@ package slack.rtm
 
 import java.net.URI
 import scala.concurrent.Future
-import scala.util.{ Success, Failure }
+import scala.util.{Success, Failure}
 
-import akka.actor.{ Actor, ActorRef, ActorRefFactory, ActorLogging, Props }
+import akka.actor.{Actor, ActorRef, ActorRefFactory, ActorLogging, Props}
 import akka.Done
 import akka.http.scaladsl.Http
-import akka.stream.{ ActorMaterializer, OverflowStrategy }
+import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl._
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.ws.{ Message, TextMessage, WebSocketRequest }
+import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
 
 private[rtm] object WebSocketClientActor {
   case class SendWSMessage(message: Message)

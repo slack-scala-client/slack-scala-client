@@ -1,6 +1,3 @@
 package slack.models
 
-case class App(
-  id: String,
-  name: String
-)
+case class App(id: String, name: String)
