@@ -240,4 +240,15 @@ class TestJsonMessages extends FunSuite with Matchers {
     ev.inviter.get should be ("U024BE7LH")
   }
 
+  test("channel renamed") {
+    val json = Json.parse(
+      """
+        |{"type":"channel_rename","channel":{"id":"CEA504436","is_channel":true,
+        |"name":"newname","name_normalized":"newname","created":1542210850},
+        |"event_ts":"1542211100.033200"}
+      """.stripMargin)
+    val ev = json.as[ChannelRename]
+    ev.channel.name should be ("newname")
+  }
+
 }
