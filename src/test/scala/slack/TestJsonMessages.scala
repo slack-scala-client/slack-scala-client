@@ -262,4 +262,20 @@ class TestJsonMessages extends FunSuite with Matchers {
     ev.channel.name should be ("newname")
   }
 
+  test("message replied") {
+    val json = Json.parse(
+      """
+        |{"type":"message","message":{"type":"message","user":"U1ABCDE92",
+        |"text":"<@U8P8P8PAG> Let me know when you are ready",
+        |"client_msg_id":"11111111-2222-4444-aaaa-020202020202","thread_ts":"1543236821.311700",
+        |"reply_count":3,"replies":[{"user":"U8P8P8PAG","ts":"1543236934.312100"},
+        |{"user":"U935935EC","ts":"1543240626.312400"},{"user":"U1ABCDE92","ts":"1543240645.312600"}],
+        |"unread_count":3,"ts":"1543236821.311700"},"subtype":"message_replied",
+        |"hidden":true,"channel":"CYPCYPCYP","event_ts":"1543240646.312700","ts":"1543240646.312700"}
+      """.stripMargin
+    )
+    val ev = json.as[MessageReplied]
+    ev.message.text should be ("<@U8P8P8PAG> Let me know when you are ready")
+  }
+
 }
