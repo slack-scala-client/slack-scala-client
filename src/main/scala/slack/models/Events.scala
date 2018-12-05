@@ -461,6 +461,8 @@ case class MemberJoined(
  inviter: Option[String]
 ) extends SlackEvent
 
+case class MemberLeft(user: String, channel: String) extends SlackEvent
+
 case class Pong(
  `type`: String,
  reply_to: Long) extends SlackEvent

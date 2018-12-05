@@ -148,6 +148,7 @@ package object models {
   implicit val dndStatusFmt = Json.format[DndStatus]
   implicit val dndUpdateUserFmt = Json.format[DndUpdatedUser]
   implicit val memberJoined = Json.format[MemberJoined]
+  implicit val memberLeft = Json.format[MemberLeft]
   implicit val pong = Json.format[Pong]
 
   // Message sub-types
@@ -250,6 +251,7 @@ package object models {
         case e: DesktopNotification => Json.toJson(e)
         case e: DndUpdatedUser => Json.toJson(e)
         case e: MemberJoined => Json.toJson(e)
+        case e: MemberLeft => Json.toJson(e)
         case e: Pong => Json.toJson(e)
       }
     }
@@ -359,6 +361,7 @@ package object models {
           case "desktop_notification" => JsSuccess(jsValue.as[DesktopNotification])
           case "dnd_updated_user" => JsSuccess(jsValue.as[DndUpdatedUser])
           case "member_joined_channel" => JsSuccess(jsValue.as[MemberJoined])
+          case "member_left_channel" => JsSuccess(jsValue.as[MemberLeft])
           case "pong" => JsSuccess(jsValue.as[Pong])
           case t: String => JsError(JsonValidationError("Invalid type property: {}", t))
         }
