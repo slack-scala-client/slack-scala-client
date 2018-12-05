@@ -26,8 +26,8 @@ class SlackRtmClientTest extends FunSuite with Matchers with Credentials {
   test("team domain") {
     val domain = rtmClient.state.team.domain
     val name = rtmClient.state.team.name
-    domain should be (system.settings.config.getString("test.team.domain"))
-    name should be (system.settings.config.getString("test.team.name"))
+    domain should be(system.settings.config.getString("test.team.domain"))
+    name should be(system.settings.config.getString("test.team.name"))
   }
 
   test("send message and parse reply") {
@@ -50,6 +50,5 @@ class SlackRtmClientTest extends FunSuite with Matchers with Credentials {
     val result = Await.result(future, 5.seconds)
     assert(result.ok.equals(true))
   }
-
 
 }

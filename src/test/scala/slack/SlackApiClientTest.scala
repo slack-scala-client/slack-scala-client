@@ -15,12 +15,15 @@ class SlackApiClientTest extends FunSuite with Credentials {
 
   test("send attachment with action") {
     val actionField = Seq(ActionField("accept", "Accept", "button", Some("primary")))
-    val attachment = Attachment(text = Some("Do you want to accept?"),
+    val attachment = Attachment(
+      text = Some("Do you want to accept?"),
       fallback = Some("backup message: code-123456"),
-      callback_id = Some("code-123456"), actions = Some(actionField))
+      callback_id = Some("code-123456"),
+      actions = Some(actionField)
+    )
 
-    apiClient.listChannels(1).map{ channels =>
-      channels.foreach( channel => println( s"${channel.id}|${channel.name}"))
+    apiClient.listChannels(1).map { channels =>
+      channels.foreach(channel => println(s"${channel.id}|${channel.name}"))
     }
     val future = apiClient.postChatMessage(channel, "Request", attachments = Some(Seq(attachment)))
     val result = Await.result(future, 5.seconds)

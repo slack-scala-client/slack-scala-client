@@ -42,9 +42,9 @@ package object models {
   }
   implicit val reactionItemWrites = new Writes[ReactionItem] {
     override def writes(item: ReactionItem): JsValue = item match {
-      case i:ReactionItemMessage => Json.toJson(i)
-      case i:ReactionItemFile => Json.toJson(i)
-      case i:ReactionItemFileComment => Json.toJson(i)
+      case i: ReactionItemMessage => Json.toJson(i)
+      case i: ReactionItemFile => Json.toJson(i)
+      case i: ReactionItemFileComment => Json.toJson(i)
     }
   }
   implicit val optionElementFmt = Json.format[OptionElement]
@@ -65,8 +65,8 @@ package object models {
   }
   implicit val dialogElementWrites = new Writes[DialogElement] {
     override def writes(element: DialogElement): JsValue = element match {
-      case e:TextElement => Json.toJson(e)
-      case e:SelectElement => Json.toJson(e)
+      case e: TextElement => Json.toJson(e)
+      case e: SelectElement => Json.toJson(e)
     }
   }
   implicit val dialogFmt = Json.format[Dialog]
@@ -167,7 +167,9 @@ package object models {
         (JsPath \ "text").write[String] and
         (JsPath \ "is_starred").write[Option[Boolean]] and
         (JsPath \ "subtype").write[String]
-      ) ((msg: MessageWithSubtype) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.messageSubType.subtype))
+    )(
+      (msg: MessageWithSubtype) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.messageSubType.subtype)
+    )
   }
 
   // Event Reads/Writes
