@@ -1,8 +1,8 @@
 0.2.5 (2018-12-05)
 ------------------
-* Support for Events API (#76)
-* Support for customizing the base URI for requests (e.g. for mocking the server) (#67)
-* A few amendments to event mappings (#83)
+* Support for Events API #76
+* Support for customizing the base URI for requests (e.g. for mocking the server) #67
+* A few amendments to event mappings #83
 
 Also, we started to run Travis CI checks for the project.
 
