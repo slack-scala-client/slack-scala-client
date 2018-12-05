@@ -155,9 +155,9 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"created": 1461761466, "is_group": true, "members": ["U0T2SJ99Q", "U12NQNABX"], "unread_count": 0, "is_open": true,
         |"purpose": {"last_set": 0, "value": "", "creator": ""}, "unread_count_display": 0, "id": "G145D40VC"}}""".stripMargin)
     val ev = json.as[GroupJoined]
-    assert(ev.channel.is_mpim.contains(false))
-    assert(ev.channel.is_group.contains(true))
-    assert(ev.channel.is_channel.isEmpty)
+    ev.channel.is_mpim should be (Some(false))
+    ev.channel.is_group should be (Some(true))
+    ev.channel.is_channel.isEmpty should be (true)
   }
 
   test("parse bot message") {
@@ -166,7 +166,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"user_profile":{"avatar_hash":null,"image_72":"https://secure.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0000-72.png",
         |"first_name":null,"real_name":"","name":null},"channel":"D1632C4LU","ts":"1464985393.000154"}""".stripMargin)
     val ev = json.as[BotMessage]
-    assert(ev.bot_id.equals("B1E2Y493N"))
+    ev.bot_id should be ("B1E2Y493N")
   }
 
   test("parse bot message with attachment") {
@@ -176,7 +176,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"first_name":null,"real_name":"","name":null},"channel":"D1632C4LU","ts":"1464985393.000154",
         |"attachments":[{"text": "Don't get too attached", "fallback": "This is an attachment fallback"}]}""".stripMargin)
     val ev = json.as[BotMessage]
-    assert(ev.bot_id.equals("B1E2Y493N"))
+    ev.bot_id should be ("B1E2Y493N")
   }
 
   test("parse file share message") {
@@ -189,9 +189,9 @@ class TestJsonMessages extends FunSuite with Matchers {
         |   "editable":false,"is_external":false, "external_type":"etype", "size":2000}, "team": "T0W6887JS",
         |         "type": "message", "channel": "G172PTNSH"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.asInstanceOf[MessageWithSubtype].messageSubType.equals(FileShareMessage(SlackFile("F1FVBN542",
+    ev.asInstanceOf[MessageWithSubtype].messageSubType should be (FileShareMessage(SlackFile("F1FVBN542",
       1465567656, 1465569974, Some("test-file"), "test-title", "image/png", "image/png",
-      "test", "U1234", "test-mode", editable = false, is_external = false, "etype", 2000, None, None, None, None, None))))
+      "test", "U1234", "test-mode", editable = false, is_external = false, "etype", 2000, None, None, None, None, None)))
   }
 
   test("parse reaction added to message") {
@@ -200,7 +200,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"item":{"type":"message","channel":"C0G9QF9GZ","ts":"1360782400.498405"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemMessage("C0G9QF9GZ", "1360782400.498405"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))))
+    ev should be (ReactionAdded("thumbsup", ReactionItemMessage("C0G9QF9GZ", "1360782400.498405"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6")))
   }
 
   test("parse reaction added to file") {
@@ -209,7 +209,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"item":{"type":"file","file":"F0HS27V1Z"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(ReactionAdded("thumbsup", ReactionItemFile("F0HS27V1Z"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))))
+    ev should be (ReactionAdded("thumbsup", ReactionItemFile("F0HS27V1Z"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6")))
   }
 
   test("parse reaction removed from file comment") {
@@ -218,7 +218,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"item":{"type":"file_comment","file":"F0HS27V1Z","file_comment": "FC0HS2KBEZ"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(ReactionRemoved("thumbsup", ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))))
+    ev should be (ReactionRemoved("thumbsup", ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6")))
   }
 
   test("user dnd status updated") {
@@ -227,7 +227,7 @@ class TestJsonMessages extends FunSuite with Matchers {
         |"dnd_status":{"dnd_enabled":true,"next_dnd_start_ts":1515016800,"next_dnd_end_ts":1515052800},
         |"event_ts":"1514991882.000376"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    assert(ev.equals(DndUpdatedUser("dnd_updated_user", "U024BE7LH", DndStatus(dnd_enabled = true, 1515016800, 1515052800), "1514991882.000376")))
+    ev should be (DndUpdatedUser("dnd_updated_user", "U024BE7LH", DndStatus(dnd_enabled = true, 1515016800, 1515052800), "1514991882.000376"))
   }
 
   test("member joined channel") {
