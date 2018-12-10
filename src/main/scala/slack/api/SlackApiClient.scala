@@ -58,6 +58,31 @@ object SlackApiClient {
     res.map(_.as[AccessToken])(system.dispatcher)
   }
 
+
+  def respondToSlashCommand(
+    text: String,
+    responseUrl: String,
+    responseType: String = "ephemeral",
+    attachments: Option[Seq[Attachment]] = None,
+    )(implicit system: ActorSystem): Future[String] = {
+    val jsonOb = Json.obj("response_type" -> Json.toJson(responseType),
+      "text" -> Json.toJson(text),
+      "attachments" -> attachments.map(a => Json.stringify(Json.toJson(a))))
+
+    val res = makeJsonRequest(responseUrl, jsonOb)
+    res.map(_.as[String])(system.dispatcher)
+  }
+
+
+  private def makeJsonRequest(requestUrl: String, json: JsValue)(implicit system: ActorSystem): Future[JsValue] = {
+    val req = HttpRequest(uri = requestUrl)
+      .withMethod(HttpMethods.POST)
+      .withHeaders(ContentType.create(ContentTypes.`application/json`))
+      .withEntity(json.toString())
+    makeApiRequest(req)
+  }
+
+
   private def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[JsValue] = {
     implicit val mat = ActorMaterializer()
     implicit val ec = system.dispatcher
@@ -104,7 +129,7 @@ object SlackApiClient {
 
 import slack.api.SlackApiClient._
 
-class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
+class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
 
   private val apiBaseRequest = HttpRequest(uri = slackApiBaseUri)
 
@@ -112,9 +137,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     apiBaseRequest.uri.withQuery(Uri.Query((apiBaseRequest.uri.query() :+ ("token" -> token)): _*))
   )
 
-  /**************************/
-  /***   Test Endpoints   ***/
-  /**************************/
+  /** ************************/
+  /** *   Test Endpoints   ***/
+  /** ************************/
   def test()(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("api.test")
     extract[Boolean](res, "ok")
@@ -125,9 +150,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     res.map(_.as[AuthIdentity])(system.dispatcher)
   }
 
-  /***************************/
-  /***  Channel Endpoints  ***/
-  /***************************/
+  /** *************************/
+  /** *  Channel Endpoints  ***/
+  /** *************************/
   def archiveChannel(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("channels.archive", "channel" -> channelId)
     extract[Boolean](res, "ok")
@@ -215,9 +240,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
-  /**************************/
-  /****  Chat Endpoints  ****/
-  /**************************/
+  /** ************************/
+  /** **  Chat Endpoints  ****/
+  /** ************************/
   def deleteChat(channelId: String, ts: String, asUser: Option[Boolean] = None)(
     implicit system: ActorSystem
   ): Future[Boolean] = {
@@ -288,26 +313,26 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     res.map(_.as[UpdateResponse])(system.dispatcher)
   }
 
-  /****************************/
-  /****  Dialog Endpoints  ****/
-  /****************************/
+  /** **************************/
+  /** **  Dialog Endpoints  ****/
+  /** **************************/
   def openDialog(triggerId: String, dialog: Dialog)(implicit system: ActorSystem): Future[Boolean] = {
     val res =
       makeApiJsonRequest("dialog.open", Json.obj("trigger_id" -> triggerId, "dialog" -> Json.toJson(dialog).toString()))
     extract[Boolean](res, "ok")
   }
 
-  /***************************/
-  /****  Emoji Endpoints  ****/
-  /***************************/
+  /** *************************/
+  /** **  Emoji Endpoints  ****/
+  /** *************************/
   def listEmojis()(implicit system: ActorSystem): Future[Map[String, String]] = {
     val res = makeApiMethodRequest("emoji.list")
     extract[Map[String, String]](res, "emoji")
   }
 
-  /**************************/
-  /****  File Endpoints  ****/
-  /**************************/
+  /** ************************/
+  /** **  File Endpoints  ****/
+  /** ************************/
   def deleteFile(fileId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("files.delete", "file" -> fileId)
     extract[Boolean](res, "ok")
@@ -352,9 +377,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     uploadFileFromEntity(entity, filetype, filename, title, initialComment, channels, thread_ts)
   }
 
-  /***************************/
-  /****  Group Endpoints  ****/
-  /***************************/
+  /** *************************/
+  /** **  Group Endpoints  ****/
+  /** *************************/
   def archiveGroup(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("groups.archive", "channel" -> channelId)
     extract[Boolean](res, "ok")
@@ -447,9 +472,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
-  /************************/
-  /****  IM Endpoints  ****/
-  /************************/
+  /** **********************/
+  /** **  IM Endpoints  ****/
+  /** **********************/
   def closeIm(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("im.close", "channel" -> channelId)
     extract[Boolean](res, "ok")
@@ -486,9 +511,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     res.map(r => (r \ "channel" \ "id").as[String])(system.dispatcher)
   }
 
-  /**************************/
-  /****  MPIM Endpoints  ****/
-  /**************************/
+  /** ************************/
+  /** **  MPIM Endpoints  ****/
+  /** ************************/
   def openMpim(userIds: Seq[String])(implicit system: ActorSystem): Future[String] = {
     val res = makeApiMethodRequest("mpim.open", "users" -> userIds.mkString(","))
     res.map(r => (r \ "group" \ "id").as[String])(system.dispatcher)
@@ -525,9 +550,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     res.map(_.as[HistoryChunk])(system.dispatcher)
   }
 
-  /******************************/
-  /****  Reaction Endpoints  ****/
-  /******************************/
+  /** ****************************/
+  /** **  Reaction Endpoints  ****/
+  /** ****************************/
   def addReaction(emojiName: String,
                   file: Option[String] = None,
                   fileComment: Option[String] = None,
@@ -602,17 +627,17 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     removeReaction(emojiName = emojiName, channelId = Some(channelId), timestamp = Some(timestamp))
   }
 
-  /*************************/
-  /****  RTM Endpoints  ****/
-  /*************************/
+  /** ***********************/
+  /** **  RTM Endpoints  ****/
+  /** ***********************/
   def startRealTimeMessageSession()(implicit system: ActorSystem): Future[RtmStartState] = {
     val res = makeApiMethodRequest("rtm.start")
     res.map(_.as[RtmStartState])(system.dispatcher)
   }
 
-  /****************************/
-  /****  Search Endpoints  ****/
-  /****************************/
+  /** **************************/
+  /** **  Search Endpoints  ****/
+  /** **************************/
   // TODO: Return proper search results (not JsValue)
   def searchAll(query: String,
                 sort: Option[String] = None,
@@ -667,9 +692,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     )
   }
 
-  /***************************/
-  /****  Stars Endpoints  ****/
-  /***************************/
+  /** *************************/
+  /** **  Stars Endpoints  ****/
+  /** *************************/
   // TODO: Return proper star items (not JsValue)
   def listStars(userId: Option[String] = None, count: Option[Int] = None, page: Option[Int] = None)(
     implicit system: ActorSystem
@@ -677,9 +702,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     makeApiMethodRequest("start.list", "user" -> userId, "count" -> count, "page" -> page)
   }
 
-  /**************************/
-  /****  Team Endpoints  ****/
-  /**************************/
+  /** ************************/
+  /** **  Team Endpoints  ****/
+  /** ************************/
   // TODO: Parse actual result type: https://api.slack.com/methods/team.accessLogs
   def getTeamAccessLogs(count: Option[Int], page: Option[Int])(implicit system: ActorSystem): Future[JsValue] = {
     makeApiMethodRequest("team.accessLogs", "count" -> count, "page" -> page)
@@ -690,9 +715,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     makeApiMethodRequest("team.info")
   }
 
-  /**************************/
-  /****  User Endpoints  ****/
-  /**************************/
+  /** ************************/
+  /** **  User Endpoints  ****/
+  /** ************************/
   // TODO: Full payload for authed user: https://api.slack.com/methods/users.getPresence
   def getUserPresence(userId: String)(implicit system: ActorSystem): Future[String] = {
     val res = makeApiMethodRequest("users.getPresence", "user" -> userId)
@@ -719,9 +744,9 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
-  /*****************************/
-  /****  Private Functions  ****/
-  /*****************************/
+  /** ***************************/
+  /** **  Private Functions  ****/
+  /** ***************************/
   private def uploadFileFromEntity(entity: MessageEntity,
                                    filetype: Option[String],
                                    filename: Option[String],
@@ -779,6 +804,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
 }
 
 case class InvalidResponseError(status: Int, body: String) extends Exception(s"Bad status code from Slack: ${status}")
+
 case class ApiError(code: String) extends Exception(code)
 
 case class HistoryChunk(latest: Option[String], messages: Seq[JsValue], has_more: Boolean)
