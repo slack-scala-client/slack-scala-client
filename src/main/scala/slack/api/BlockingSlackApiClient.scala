@@ -427,6 +427,10 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
     resolve(client.setUserPresence(presence))
   }
 
+  def lookupUserByEmail(emailId: String)(implicit system: ActorSystem): User = {
+    resolve(client.lookupUserByEmail(emailId))
+  }
+
   private def resolve[T](res: Future[T]): T = {
     Await.result(res, duration)
   }
