@@ -719,6 +719,11 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
+  def lookupUserByEmail(emailId: String)(implicit system: ActorSystem): Future[User] = {
+    val res = makeApiMethodRequest("users.lookupByEmail", "email" -> emailId)
+    extract[User](res, "user")
+  }
+
   /*****************************/
   /****  Private Functions  ****/
   /*****************************/
