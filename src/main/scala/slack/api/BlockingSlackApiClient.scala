@@ -1,16 +1,15 @@
 package slack.api
 
-import slack.models._
-
 import java.io.File
-
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
 import play.api.libs.json._
 import slack.api.SlackApiClient.defaultSlackApiBaseUri
+import slack.models._
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 object BlockingSlackApiClient {
 
@@ -131,6 +130,7 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
                       parse: Option[String] = None,
                       linkNames: Option[String] = None,
                       attachments: Option[Seq[Attachment]] = None,
+                      blocks: Option[Seq[Block]] = None,
                       unfurlLinks: Option[Boolean] = None,
                       unfurlMedia: Option[Boolean] = None,
                       iconUrl: Option[String] = None,
@@ -147,6 +147,7 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
         parse,
         linkNames,
         attachments,
+        blocks,
         unfurlLinks,
         unfurlMedia,
         iconUrl,
@@ -158,8 +159,15 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
     )
   }
 
-  def updateChatMessage(channelId: String, ts: String, text: String)(implicit system: ActorSystem): UpdateResponse = {
-    resolve(client.updateChatMessage(channelId, ts, text))
+  def updateChatMessage(channelId: String, ts: String, text: String,
+                        attachments: Option[Seq[Attachment]] = None,
+                        blocks: Option[Seq[Block]] = None,
+                        parse: Option[String] = None,
+                        linkNames: Option[String] = None,
+                        asUser: Option[Boolean] = None,
+                        threadTs: Option[String] = None)(implicit system: ActorSystem): UpdateResponse = {
+    resolve(client.updateChatMessage(channelId, ts, text, attachments, blocks, parse, linkNames, asUser, threadTs))
+
   }
 
   /***************************/

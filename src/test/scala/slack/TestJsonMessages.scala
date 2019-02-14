@@ -5,6 +5,8 @@ import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
 import slack.models._
 
+import scala.io.Source
+
 /**
   * Created by ptx on 9/5/15.
   */
@@ -310,6 +312,13 @@ class TestJsonMessages extends FunSuite with Matchers {
       """.stripMargin)
     val ev = json.as[MessageReplied]
     ev.message.text should be("<@U8P8P8PAG> Let me know when you are ready")
+  }
+
+  test("message blocks") {
+
+    val json = Json.parse(Source.fromFile("src/test/resources/blocks.json").mkString)
+    val ev = json.as[Seq[Block]]
+    Json.toJson(ev) shouldBe json
   }
 
 }

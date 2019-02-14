@@ -2,7 +2,32 @@ package slack
 
 import play.api.libs.json._
 
+import scala.util.{Failure, Success, Try}
+
 package object models {
+
+  def eitherObjectFormat[A, B](leftKey: String, rightKey: String)(implicit aFormat: Format[A], bFormat: Format[B]): Format[Either[A, B]] =
+    Format(new Reads[Either[A, B]] {
+      override def reads(json: JsValue): JsResult[Either[A, B]] = {
+        Try {
+          val left = (json \ leftKey).asOpt[String]
+          left match {
+            case Some(_) => Left(json.as[A])
+            case None => Right(json.as[B])
+          }
+        } match {
+          case Success(e) => JsSuccess(e)
+          case Failure(e) => JsError(e.getMessage)
+      }
+      }
+    }, new Writes[Either[A, B]] {
+      override def writes(o: Either[A, B]): JsValue =
+        o match {
+          case Left(a) => Json.toJson(a)
+          case Right(b) => Json.toJson(b)
+        }
+    })
+
   implicit val confirmFieldFmt = Json.format[ConfirmField]
   implicit val actionFieldFmt = Json.format[ActionField]
   implicit val attachmentFieldFmt = Json.format[AttachmentField]
