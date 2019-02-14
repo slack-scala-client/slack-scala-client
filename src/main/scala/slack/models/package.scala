@@ -3,6 +3,17 @@ package slack
 import play.api.libs.json._
 
 package object models {
+
+  def eitherObjectFormat[A: Format, B: Format](leftKey: String, rightKey: String): Format[Either[A, B]] =
+    OFormat(
+      (__ \ rightKey).read[B].map(b => Right(b): Either[A, B]) orElse
+        (__ \ leftKey).read[A].map(a => Left(a): Either[A, B]),
+      OWrites[Either[A, B]] {
+        case Right(rightValue) => Json.obj(rightKey -> Json.toJson(rightValue))
+        case Left(leftValue)   => Json.obj(leftKey  -> Json.toJson(leftValue))
+      }
+    )
+
   implicit val confirmFieldFmt = Json.format[ConfirmField]
   implicit val actionFieldFmt = Json.format[ActionField]
   implicit val attachmentFieldFmt = Json.format[AttachmentField]
@@ -71,6 +82,73 @@ package object models {
   }
   implicit val dialogFmt = Json.format[Dialog]
 
+  implicit val TextObjFmt = Json.format[TextObject]
+  implicit val optionObjFmt = Json.format[OptionObject]
+  implicit val optionGrpObjFmt = Json.format[OptionGroupObject]
+  implicit val confirmObjFmt = Json.format[ConfirmationObject]
+  implicit val eitherOptFmt = eitherObjectFormat[OptionObject, OptionGroupObject]("text", "label")
+  implicit val buttonElementFmt = Json.format[ButtonElement]
+  implicit val imageElementFmt = Json.format[ImageElement]
+  implicit val menuElementFmt = Json.format[MenuElement]
+  implicit val overflowElementFmt = Json.format[OverflowElement]
+  implicit val datePickerElementFmt = Json.format[DatePickerElement]
+  implicit val blockElementFmt = Format(
+    new Reads[BlockElement] {
+      def reads(jsValue: JsValue): JsResult[BlockElement] = {
+        val value = (jsValue \ "type").as[String]
+        value match {
+          case "button" => jsValue.validate[ButtonElement]
+          case "image" => jsValue.validate[ImageElement]
+          case "menu" => jsValue.validate[MenuElement]
+          case "overflow" => jsValue.validate[OverflowElement]
+          case "datepicker" => jsValue.validate[DatePickerElement]
+          case other => JsError(s"Invalid element type: $other")
+        }
+      }
+    }, new Writes[BlockElement] {
+      def writes(element: BlockElement): JsValue = {
+        element match {
+          case elem: ButtonElement => Json.toJson(elem)
+          case elem: ImageElement => Json.toJson(elem)
+          case elem: MenuElement => Json.toJson(elem)
+          case elem: OverflowElement => Json.toJson(elem)
+          case elem: DatePickerElement => Json.toJson(elem)
+        }
+      }
+    }
+  )
+  implicit val eitherContextFmt = eitherObjectFormat[ImageElement, TextObject]("image_url", "text")
+  implicit val dividerFmt = Json.format[Divider]
+  implicit val imageBlockFmt = Json.format[ImageBlock]
+  implicit val actionBlockFmt = Json.format[ActionsBlock]
+  implicit val contextBlockFmt = Json.format[ContextBlock]
+  implicit val sectionFmt = Json.format[Section]
+  implicit val blockFmt = Format(
+    new Reads[Block] {
+      def reads(jsValue: JsValue): JsResult[Block] = {
+        val value = (jsValue \ "type").as[String]
+        value match {
+          case "divider" => jsValue.validate[Divider]
+          case "image" => jsValue.validate[ImageBlock]
+          case "actions" => jsValue.validate[ActionsBlock]
+          case "context" => jsValue.validate[ContextBlock]
+          case "sections" => jsValue.validate[Section]
+          case other => JsError(s"Invalid block type: $other")
+        }
+      }
+    },
+    new Writes[Block] {
+      def writes(block: Block) = {
+        block match {
+          case b: Divider => Json.toJson(b)
+          case b: Section => Json.toJson(b)
+          case b: ImageBlock => Json.toJson(b)
+          case b: ActionsBlock => Json.toJson(b)
+          case b: ContextBlock => Json.toJson(b)
+        }
+      }
+    }
+  )
   // Event Formats
   implicit val helloFmt = Json.format[Hello]
   implicit val messageFmt = Json.format[Message]
