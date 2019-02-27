@@ -34,17 +34,6 @@ Scala 2.11:
             <version>0.2.5</version>
         </dependency>
 
-
-## Scaladoc
-
-* 0.2.5 - missing
-* 0.2.4 - missing
-* 0.2.3 - missing
-* [0.2.2](http://doc.bryangilbert.com/slack-scala-client/0.2.2/index.html)
-* [0.2.0](http://doc.bryangilbert.com/slack-scala-client/0.2.0/)
-* [0.1.8](http://doc.bryangilbert.com/slack-scala-client/0.1.8/)
-
-
 ## API Client Usage
 
 There are two different API clients, one exposing an asynchronous interface and the other exposing a synchronous interface. They can be imported from the `slack.api` package:
