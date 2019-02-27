@@ -179,26 +179,10 @@ client.onMessage { message =>
 }
 ```
 
-
-## WebSocket Re-Connection Behavior
-
-Since `0.2.4` the library sends a ping message to Slack every minute. Pong
-message is received (but not checked upon). That is to sustain a Slack
-websocket connection even if idle - see [Slack doc for ping and pong](https://api.slack.com/rtm#ping_and_pong).
-
-Previously the library caused the client to reconnect every 1 or 2 minute
-with the following messages:
-```
-[WebSocketClientActor] WebSocket disconnected.
-[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting
-[SlackRtmConnectionActor] Starting web socket client
-```
-
-
 ## Caveat Emptor
 
 - The Slack API contains a lot methods and not every implemented API method has been executed (i.e. some may not work; pull requests accepted!)
-- Responses to RTM messages sent out are not currently checked to verify they were successfully received (Coming Soon!)
+- Responses to RTM messages sent out are not currently checked to verify they were successfully received
 - Investigate a way to ensure all missed messages are received during a disconnection
 - A small number of response types have yet to be fleshed out
 
