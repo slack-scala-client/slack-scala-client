@@ -36,7 +36,7 @@ with the following messages:
 0.2.2 (2017-08-15)
 ------------------
 
-_missing_
+[Scaladoc for 0.2.2](http://doc.bryangilbert.com/slack-scala-client/0.2.2/index.html)
 
 0.2.1 (2017-03-07)
 ------------------
@@ -52,3 +52,10 @@ _missing_
     * Api clients now require an implicit ```ActorSystem``` instead of an ```ExecutionContext```
 * Added cross build for Scala 2.12
 * Cleaned up library API by properly scoping internal variables and implementation details
+
+[Scaladoc for 0.2.0](http://doc.bryangilbert.com/slack-scala-client/0.2.0/)
+
+0.1.8 (unknown)
+---------------
+
+[Scaladoc for 0.1.8](http://doc.bryangilbert.com/slack-scala-client/0.1.8/)
