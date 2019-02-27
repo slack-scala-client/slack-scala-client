@@ -1,3 +1,9 @@
+0.2.6 (2019-02-27)
+------------------
+* Support for lookupByEmail
+* Minor changes to event mappings
+* 3rd party dependencies upgraded: Akka, Play
+
 0.2.5 (2018-12-05)
 ------------------
 * Support for Events API (https://github.com/slack-scala-client/slack-scala-client/pull/76)
