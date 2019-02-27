@@ -49,8 +49,9 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.5.11"
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.11"
+  val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.5.19"
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.1.7"
+  val akkaStream = "com.typesafe.akka" %% "akka-stream" % "2.5.21"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.7"
   val playJson = "com.typesafe.play" %% "play-json" % "2.7.1"
@@ -59,7 +60,7 @@ object Dependencies {
 
   val jodaConvert = "org.joda" % "joda-convert" % "1.8.1" // https://stackoverflow.com/a/13856382/118587
 
-  val akkaDependencies = Seq(akkaHttp)
+  val akkaDependencies = Seq(akkaHttp, akkaActor, akkaStream)
   val miscDependencies = Seq(playJson, scalaAsync, jodaConvert)
   val testDependencies = Seq(scalatest)
 
