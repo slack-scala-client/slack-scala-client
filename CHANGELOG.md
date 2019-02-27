@@ -13,6 +13,19 @@ Also, we started to run Travis CI checks for the project.
 * Support post.ephemeral
 * Implemented ping/pong to sustain websocket connection
 
+Since `0.2.4` the library sends a ping message to Slack every minute. Pong
+message is received (but not checked upon). That is to sustain a Slack
+websocket connection even if idle - see [Slack doc for ping and pong](https://api.slack.com/rtm#ping_and_pong).
+
+Previously the library caused the client to reconnect every 1 or 2 minute
+with the following messages:
+```
+[WebSocketClientActor] WebSocket disconnected.
+[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting
+[SlackRtmConnectionActor] Starting web socket client
+```
+
+
 
 0.2.3 (2018-03-08)
 ------------------
