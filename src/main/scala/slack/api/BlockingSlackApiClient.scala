@@ -137,7 +137,8 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
                       iconEmoji: Option[String] = None,
                       replaceOriginal: Option[Boolean] = None,
                       deleteOriginal: Option[Boolean] = None,
-                      threadTs: Option[String] = None)(implicit system: ActorSystem): String = {
+                      threadTs: Option[String] = None,
+                      replyBroadcast: Option[Boolean] = None)(implicit system: ActorSystem): String = {
     resolve(
       client.postChatMessage(
         channelId,
@@ -154,7 +155,8 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
         iconEmoji,
         replaceOriginal,
         deleteOriginal,
-        threadTs
+        threadTs,
+        replyBroadcast
       )
     )
   }

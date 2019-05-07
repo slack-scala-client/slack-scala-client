@@ -263,7 +263,8 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
                       iconEmoji: Option[String] = None,
                       replaceOriginal: Option[Boolean] = None,
                       deleteOriginal: Option[Boolean] = None,
-                      threadTs: Option[String] = None)(implicit system: ActorSystem): Future[String] = {
+                      threadTs: Option[String] = None,
+                      replyBroadcast: Option[Boolean] = None)(implicit system: ActorSystem): Future[String] = {
     val json = Json.obj(
       "channel" -> channelId,
       "text" -> text) ++
@@ -280,7 +281,8 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
         iconEmoji.map("icon_emoji" -> Json.toJson(_)),
         replaceOriginal.map("replace_original" -> Json.toJson(_)),
         deleteOriginal.map("delete_original" -> Json.toJson(_)),
-        threadTs.map("thread_ts" -> Json.toJson(_))
+        threadTs.map("thread_ts" -> Json.toJson(_)),
+        replyBroadcast.map("reply_broadcast" -> Json.toJson(_))
       ).flatten)
     val res = makeApiJsonRequest("chat.postMessage", json)
     extract[String](res, "ts")
