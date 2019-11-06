@@ -1,11 +1,19 @@
 language: scala
 scala:
 - 2.11.12
+- 2.12.10
+- 2.13.1
 jdk:
-- oraclejdk8
+- openjdk8
 env:
   global:
     secure: z5d4fmsxgnmgfJIRHrtajZnLdzyQ/8EOGQU40Pm/E5MknsR8OfYJIoBq5aPqYQ9jKua2VUhf+tbmHjcp5uyyxsCdmvRojDEF3UwhKETLUEGWtChZyz/+I4qNN66I/FSbX2y4AHNPRpKb95ddVVZvk+LpNYGCHFBi4xxcO0ZQSvHKoi6d1weJ8CWA4fMLV6sKn6TrNFAS+AqEVoGktT7V6GsjiIYI9yfGt3ELeFy077Tzb//y/vd6TtGCcLOuijvfx2CxVIKXFnKDKqLS9eFtduBiAU1EZXwGySiRI5nCf5cqN5s4C8KYJ1s+zS37nty0q/tCTi6bN6MSeAQToThJdcZ/vggx+Vp4Av8uddNGMgnnNnvkIhsqjrXRMNG97D6tMXvY4Yq4fyMhpELCQJ+X0rZ0/Wo8JkqHPCxwfpFSfouQQ+5Xlvp9+/7SaIzHE65wZ3avES/7TGto55oAVEvlsBnblL5FprD3PPiMdciUFK91+1AcQHX5OhLBepj6U0o0AfPAOZhiHZlz9pSD8RHu7oBxrHegKLP59M4r9RkHT7EBwVsV577YdSwK9IDlJ8j60GhUvLV4YeliQiNBnfIicrpDT4dlbC2kslZfcIobOc0PNbrnMnA+miswfAlrl9AEbp7xDMaSNVV/tWFlhASD4A2lgcf/sxNB7diY2ZB+nQw=
 script:
 # The Gigahorse option is because of https://github.com/sbt/sbt/issues/3585
 - sbt ++$TRAVIS_SCALA_VERSION -Dconfig.resource=travis.application.conf -Dsbt.gigahorse=false test
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
+    - $HOME/.coursier
