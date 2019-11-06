@@ -111,8 +111,8 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
   val idCounter = new AtomicLong(1L)
 
   override val supervisorStrategy =
-    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1.minute) {
-      case _: Exception => SupervisorStrategy.Stop
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1.minute, loggingEnabled = true) {
+      case _: Exception => SupervisorStrategy.Restart
     }
 
   var connectFailures = 0
