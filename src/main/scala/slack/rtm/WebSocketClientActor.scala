@@ -60,7 +60,7 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
     case _ =>
   }
 
-  def connectWebSocket() {
+  def connectWebSocket(): Unit = {
     val messageSink: Sink[Message, Future[Done]] = {
       Sink.foreach {
         case message => self ! message
@@ -91,12 +91,12 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
     }
   }
 
-  override def preStart() {
+  override def preStart(): Unit = {
     log.info("WebSocketClientActor] Connecting to RTM: {}", url)
     connectWebSocket()
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     outboundMessageQueue.foreach(_.complete)
     context.parent ! WebSocketClientDisconnected
   }
