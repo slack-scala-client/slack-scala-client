@@ -40,7 +40,7 @@ class RtmState(start: RtmStartState) {
   }
 
   // TODO: Add remaining update events
-  private[rtm] def update(event: SlackEvent) {
+  private[rtm] def update(event: SlackEvent): Unit = {
     event match {
       case e: ChannelCreated =>
         addReplaceChannel(e.channel)
@@ -60,7 +60,7 @@ class RtmState(start: RtmStartState) {
     }
   }
 
-  private[rtm] def reset(start: RtmStartState) {
+  private[rtm] def reset(start: RtmStartState): Unit = {
     _self = start.self
     _team = start.team
     _users = start.users
@@ -70,30 +70,30 @@ class RtmState(start: RtmStartState) {
     _bots = start.bots
   }
 
-  private def addReplaceChannel(chan: Channel) {
+  private def addReplaceChannel(chan: Channel): Unit = {
     removeChannel(chan.id)
     _channels :+= chan
   }
 
-  private def removeChannel(chanId: String) {
+  private def removeChannel(chanId: String): Unit = {
     _channels = _channels.filterNot(_.id == chanId)
   }
 
-  private def addReplaceIm(im: Im) {
+  private def addReplaceIm(im: Im): Unit = {
     removeIm(im.id)
     _ims :+= im
   }
 
-  private def removeIm(imId: String) {
+  private def removeIm(imId: String): Unit = {
     _ims = _ims.filterNot(_.id == imId)
   }
 
-  private def addReplaceUser(user: User) {
+  private def addReplaceUser(user: User): Unit = {
     removeUser(user.id)
     _users :+= user
   }
 
-  private def removeUser(userId: String) {
+  private def removeUser(userId: String): Unit = {
     _users = _users.filterNot(_.id == userId)
   }
 }

@@ -50,19 +50,19 @@ class SlackRtmClient private (token: String, slackApiBaseUri: Uri, duration: Fin
     (actor ? SendMessage(channelId, text, thread_ts)).mapTo[Long]
   }
 
-  def editMessage(channelId: String, ts: String, text: String) {
+  def editMessage(channelId: String, ts: String, text: String): Unit = {
     actor ! BotEditMessage(channelId, ts, text)
   }
 
-  def indicateTyping(channel: String) {
+  def indicateTyping(channel: String): Unit = {
     actor ! TypingMessage(channel)
   }
 
-  def addEventListener(listener: ActorRef) {
+  def addEventListener(listener: ActorRef): Unit = {
     actor ! AddEventListener(listener)
   }
 
-  def removeEventListener(listener: ActorRef) {
+  def removeEventListener(listener: ActorRef): Unit = {
     actor ! RemoveEventListener(listener)
   }
 
@@ -70,7 +70,7 @@ class SlackRtmClient private (token: String, slackApiBaseUri: Uri, duration: Fin
     state
   }
 
-  def close() {
+  def close(): Unit = {
     arf.stop(actor)
   }
 }
@@ -181,7 +181,7 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
       log.warning("doesn't match any case, skip")
   }
 
-  def connectWebSocket() {
+  def connectWebSocket(): Unit = {
     log.info("[SlackRtmConnectionActor] Starting web socket client")
     try {
       val initialRtmState = apiClient.startRealTimeMessageSession()
@@ -195,7 +195,7 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     }
   }
 
-  def handleWebSocketDisconnect(actor: ActorRef) {
+  def handleWebSocketDisconnect(actor: ActorRef): Unit = {
     if (webSocketClient.isDefined && webSocketClient.get == actor) {
       log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
       webSocketClient.foreach(context.stop)
@@ -203,11 +203,11 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     }
   }
 
-  override def preStart() {
+  override def preStart(): Unit = {
     connectWebSocket()
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     webSocketClient.foreach(context.stop)
   }
 }
