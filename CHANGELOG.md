@@ -1,3 +1,11 @@
+0.2.7 (2019-11-06)
+------------------
+* Scala 2.13 build
+* Dependencies bumped
+* Minor changes to event mappings
+* Failures handling improved
+* Message Block support
+
 0.2.6 (2019-02-27)
 ------------------
 * Support for lookupByEmail
