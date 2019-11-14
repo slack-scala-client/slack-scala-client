@@ -1,8 +1,10 @@
 package slack
 
+import java.util.concurrent.CountDownLatch
+
 import org.scalatest.FunSuite
 import slack.api.SlackApiClient
-import slack.models.{ActionField, Attachment}
+import slack.models.{ActionField, Attachment, PublicChannel}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -12,6 +14,16 @@ class SlackApiClientTest extends FunSuite with Credentials {
 
   val apiClient = SlackApiClient(token)
   val channel = system.settings.config.getString("test.channel")
+
+  test("list channels using conversations.list") {
+    val latch = new CountDownLatch(1)
+    apiClient.listConversations(Seq(PublicChannel)).map { channels =>
+        println(s"Total: ${channels.size} channels")
+        channels.foreach(channel => println(s"${channel.id}|${channel.name}|${channel.is_private}|${channel.is_member}"))
+        latch.countDown()
+    }
+    latch.await()
+  }
 
   test("send attachment with action") {
     val actionField = Seq(ActionField("accept", "Accept", "button", Some("primary")))

@@ -1,20 +1,20 @@
 package slack.api
 
-import slack.models._
-
 import java.io.File
-import scala.concurrent.duration._
-import scala.concurrent.Future
 
 import akka.actor.ActorSystem
-import akka.http.javadsl.model.headers.ContentType
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.parboiled2.CharPredicate
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.stream.scaladsl.{RestartSource, Sink, Source}
+import akka.util.ByteString
 import play.api.libs.json._
+import slack.models._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object SlackApiClient {
 
@@ -178,6 +178,15 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     val res = makeApiMethodRequest("channels.list", "exclude_archived" -> excludeArchived.toString)
     extract[Seq[Channel]](res, "channels")
   }
+
+  def listConversations(channelTypes: Seq[ConversationType] = Seq(PublicChannel), excludeArchived: Int = 0)(implicit system: ActorSystem): Future[Seq[Channel]] = {
+    val params = Seq(
+      "exclude_archived" -> excludeArchived.toString,
+      "types" -> channelTypes.map(_.`type`).mkString(",")
+    )
+    paginateCollection[Channel](apiMethod = "conversations.list", queryParams = params,field = "channels")
+  }
+
 
   def leaveChannel(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("channels.leave", "channel" -> channelId)
@@ -775,6 +784,38 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
   }
 
+  private def paginateCollection[T](apiMethod: String,
+                                    queryParams: Seq[(String, Any)],
+                                    field: String,
+                                    retries: Int = 5,
+                                    maxBackoff: FiniteDuration = 30.seconds,
+                                    initialResults: Seq[T] = Seq.empty[T])(implicit system: ActorSystem, fmt: Format[Seq[T]]): Future[Seq[T]] = {
+    implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
+
+    RestartSource.onFailuresWithBackoff(5.seconds, maxBackoff, 0.2, retries)(() => {
+      Source.fromFuture(
+        makeApiMethodRequest(apiMethod, queryParams:_*)
+      ).delay(scala.util.Random.nextFloat().second)
+    }).runWith(Sink.head).flatMap { res =>
+      val nextResults = (res \ field).as[Seq[T]] ++ initialResults
+      (res \ "response_metadata").asOpt[ResponseMetadata].flatMap { metadata =>
+        metadata.next_cursor.filter(_.nonEmpty)
+      } match {
+        case Some(nextCursor) =>
+          val newParams = queryParams.toMap + ("cursor" -> nextCursor)
+          paginateCollection(
+            apiMethod = apiMethod,
+            queryParams = newParams.toSeq,
+            field = field,
+            retries = retries,
+            maxBackoff = maxBackoff,
+            initialResults = nextResults)
+        case None =>
+          Future.successful(nextResults)
+      }
+    }(system.dispatcher)
+  }
+
   private def createEntity(name: String, bytes: Array[Byte]): MessageEntity = {
     Multipart
       .FormData(Source.single(Multipart.FormData.BodyPart("file", HttpEntity(bytes), Map("filename" -> name))))
@@ -798,8 +839,8 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   private def makeApiJsonRequest(apiMethod: String, json: JsValue)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseRequest, apiMethod)
       .withMethod(HttpMethods.POST)
-      .withHeaders(ContentType.create(ContentTypes.`application/json`), Authorization(OAuth2BearerToken(token)))
-      .withEntity(json.toString())
+      .withHeaders(Authorization(OAuth2BearerToken(token)))
+      .withEntity(HttpEntity(MediaTypes.`application/json`, ByteString(json.toString())))
     makeApiRequest(req)
   }
 }
