@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
-import akka.http.javadsl.model.headers.ContentType
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
@@ -884,8 +883,8 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   private def makeApiJsonRequest(apiMethod: String, json: JsValue)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseRequest, apiMethod)
       .withMethod(HttpMethods.POST)
-      .withHeaders(ContentType.create(ContentTypes.`application/json`), Authorization(OAuth2BearerToken(token)))
-      .withEntity(json.toString())
+      .withHeaders(Authorization(OAuth2BearerToken(token)))
+      .withEntity(ContentTypes.`application/json`, json.toString())
     makeApiRequest(req)
   }
 }
