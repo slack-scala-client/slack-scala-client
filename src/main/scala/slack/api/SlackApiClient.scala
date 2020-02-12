@@ -44,12 +44,12 @@ object SlackApiClient {
   }
 
   def exchangeOauthForToken(
-    clientId: String,
-    clientSecret: String,
-    code: String,
-    redirectUri: Option[String] = None,
-    slackApiBaseUri: Uri = defaultSlackApiBaseUri
-  )(implicit system: ActorSystem): Future[AccessToken] = {
+                             clientId: String,
+                             clientSecret: String,
+                             code: String,
+                             redirectUri: Option[String] = None,
+                             slackApiBaseUri: Uri = defaultSlackApiBaseUri
+                           )(implicit system: ActorSystem): Future[AccessToken] = {
     val params =
       Seq("client_id" -> clientId, "client_secret" -> clientSecret, "code" -> code, "redirect_uri" -> redirectUri)
     val res = makeApiRequest(
@@ -99,6 +99,84 @@ object SlackApiClient {
 
   private def addSegment(request: HttpRequest, segment: String): HttpRequest = {
     request.withUri(request.uri.withPath(request.uri.path + segment))
+  }
+
+  case class SlackFileMetaData(id: Option[String],
+                               created: Option[Long],
+                               timestamp: Option[Long],
+                               name: Option[String],
+                               mimeType: Option[String],
+                               fileType: Option[String],
+                               user: Option[String],
+                               editable: Option[Boolean],
+                               size: Option[Int],
+                               mode: Option[String],
+                               isExternal: Option[Boolean],
+                               externalType: Option[String],
+                               isPublic: Option[Boolean],
+                               publicUrlShared: Option[Boolean],
+                               displayAsBot: Option[Boolean],
+                               urlPrivate: Option[String],
+                               urlPrivateDownload: Option[String],
+                               permalink: Option[String],
+                               permalinkPublic: Option[String],
+                               preview: Option[String],
+                               previewHighlight: Option[String],
+                               lines: Option[Int],
+                               commentsCount: Option[Int],
+                               isStarred: Option[Boolean],
+                               channels: Option[Seq[String]],
+                               ims: Option[Seq[String]],
+                               hasRichPreview: Option[Boolean])
+  case class DetailedFileInfo(ok: Option[Boolean],
+                              file: SlackFileMetaData,
+                              content: Option[String],
+                              isTruncated: Option[Boolean],
+                              comments: Option[Seq[String]])
+
+  implicit val SlackFileMetaDataReader: Reads[SlackFileMetaData] = new Reads[SlackFileMetaData] {
+    override def reads(json: JsValue): JsResult[SlackFileMetaData] = {
+      for {
+        id               <- (json \ "id"               ).validateOpt[String]
+        created          <- (json \ "created"          ).validateOpt[Long]
+        timestamp        <- (json \ "timestamp"        ).validateOpt[Long]
+        name             <- (json \ "name"             ).validateOpt[String]
+        mimeType         <- (json \ "mimetype"         ).validateOpt[String]
+        fileType         <- (json \ "filetype"         ).validateOpt[String]
+        user             <- (json \ "user"             ).validateOpt[String]
+        editable         <- (json \ "editable"         ).validateOpt[Boolean]
+        size             <- (json \ "size"             ).validateOpt[Int]
+        mode             <- (json \ "mode"             ).validateOpt[String]
+        isExternal       <- (json \ "is_external"      ).validateOpt[Boolean]
+        externalType     <- (json \ "external_type"    ).validateOpt[String]
+        isPublic         <- (json \ "is_public"        ).validateOpt[Boolean]
+        publicUrlShared  <- (json \ "public_url_shared").validateOpt[Boolean]
+        displayAsBot     <- (json \ "display_as_bot"   ).validateOpt[Boolean]
+        username         <- (json \ "username"         ).validateOpt[String]
+        urlPrivate       <- (json \ "url_private"      ).validateOpt[String]
+        permalink        <- (json \ "permalink"        ).validateOpt[String]
+        permalinkPublic  <- (json \ "permalink_public" ).validateOpt[String]
+        preview          <- (json \ "preview"          ).validateOpt[String]
+        previewHighlight <- (json \ "preview_highlight").validateOpt[String]
+        lines            <- (json \ "lines"            ).validateOpt[Int]
+        commentsCount    <- (json \ "comments_count"   ).validateOpt[Int]
+        isStarred        <- (json \ "is_starred"       ).validateOpt[Boolean]
+        channels         <- (json \ "channels"         ).validateOpt[Seq[String]]
+        ims              <- (json \ "ims"              ).validateOpt[Seq[String]]
+        hasRichPreview   <- (json \ "has_rich_preview" ).validateOpt[Boolean]
+      } yield SlackFileMetaData(id, created, timestamp, name, mimeType, fileType, user, editable, size, mode, isExternal, externalType, isPublic, publicUrlShared, displayAsBot, username, urlPrivate, permalink, permalinkPublic, preview, previewHighlight, lines, commentsCount, isStarred, channels, ims, hasRichPreview)
+    }
+  }
+  private implicit val DetailedFileInfoReader: Reads[DetailedFileInfo] = new Reads[DetailedFileInfo] {
+    override def reads(json: JsValue): JsResult[DetailedFileInfo] = {
+      for {
+        ok           <- (json \ "ok"          ).validateOpt[Boolean]
+        fileMetaData <- (json \ "file"        ).validate[SlackFileMetaData]
+        content      <- (json \ "content"     ).validateOpt[String]
+        isTruncated  <- (json \ "is_truncated").validateOpt[Boolean]
+        comments     <- (json \ "comments"    ).validateOpt[Seq[String]]
+      } yield DetailedFileInfo(ok, fileMetaData, content, isTruncated, comments)
+    }
   }
 }
 
@@ -339,6 +417,14 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   ): Future[FileInfo] = {
     val res = makeApiMethodRequest("files.info", "file" -> fileId, "count" -> count, "page" -> page)
     res.map(_.as[FileInfo])(system.dispatcher)
+  }
+
+  def getDetailedFileInfo(file_id: String,
+                          count: Option[Int] = None,
+                          page: Option[Int] = None)(
+                           implicit system: ActorSystem): Future[DetailedFileInfo] = {
+    makeApiMethodRequest("files.info", "file" -> file_id, "count" -> count, "page" -> page)
+      .map(_.validate[DetailedFileInfo].get)(system.dispatcher)
   }
 
   def listFiles(userId: Option[String] = None,
