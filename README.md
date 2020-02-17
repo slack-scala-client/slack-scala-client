@@ -11,7 +11,7 @@ A Scala library for interacting with the Slack API and real time messaging inter
 
 Add SBT dependency:
 
-    libraryDependencies += "com.github.slack-scala-client" %% "slack-scala-client" % "0.2.7"
+    libraryDependencies += "com.github.slack-scala-client" %% "slack-scala-client" % "0.2.8"
 
 
 ### Maven
@@ -21,7 +21,7 @@ Scala 2.13:
         <dependency>
             <groupId>com.github.slack-scala-client</groupId>
             <artifactId>slack-scala-client_2.13</artifactId>
-            <version>0.2.7</version>
+            <version>0.2.8</version>
         </dependency>
 
 Scala 2.12:
@@ -29,7 +29,7 @@ Scala 2.12:
         <dependency>
             <groupId>com.github.slack-scala-client</groupId>
             <artifactId>slack-scala-client_2.12</artifactId>
-            <version>0.2.7</version>
+            <version>0.2.8</version>
         </dependency>
 
 Scala 2.11:
@@ -37,7 +37,7 @@ Scala 2.11:
         <dependency>
             <groupId>com.github.slack-scala-client</groupId>
             <artifactId>slack-scala-client_2.11</artifactId>
-            <version>0.2.7</version>
+            <version>0.2.8</version>
         </dependency>
 
 ## API Client Usage

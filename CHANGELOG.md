@@ -1,3 +1,8 @@
+0.2.8 (2020-02-17)
+------------------
+* Content-type fix (#110)
+* getDetailedFileInfo/getFileInfo support (#111)
+
 0.2.7 (2019-11-06)
 ------------------
 * Scala 2.13 build
