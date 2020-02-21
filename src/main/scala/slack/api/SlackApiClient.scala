@@ -1,36 +1,40 @@
 package slack.api
 
-import slack.models._
-
 import java.io.File
-import scala.concurrent.duration._
-import scala.concurrent.Future
+import java.net.InetSocketAddress
+import java.util
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
+import akka.http.scaladsl.{ClientTransport, Http}
 import akka.parboiled2.CharPredicate
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
+import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
+import slack.models._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object SlackApiClient {
 
-  private[api] implicit val rtmStartStateFmt = Json.format[RtmStartState]
-  private[api] implicit val accessTokenFmt = Json.format[AccessToken]
-  private[api] implicit val historyChunkFmt = Json.format[HistoryChunk]
-  private[api] implicit val repliesChunkFmt = Json.format[RepliesChunk]
-  private[api] implicit val pagingObjectFmt = Json.format[PagingObject]
-  private[api] implicit val filesResponseFmt = Json.format[FilesResponse]
-  private[api] implicit val fileInfoFmt = Json.format[FileInfo]
+  private[api] implicit val rtmStartStateFmt     = Json.format[RtmStartState]
+  private[api] implicit val accessTokenFmt       = Json.format[AccessToken]
+  private[api] implicit val historyChunkFmt      = Json.format[HistoryChunk]
+  private[api] implicit val repliesChunkFmt      = Json.format[RepliesChunk]
+  private[api] implicit val pagingObjectFmt      = Json.format[PagingObject]
+  private[api] implicit val filesResponseFmt     = Json.format[FilesResponse]
+  private[api] implicit val fileInfoFmt          = Json.format[FileInfo]
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
   val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
 
   /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
-  val charClassesClass = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
-  val charClassesObject = charClassesClass.getField("MODULE$").get(charClassesClass)
+  val charClassesClass   = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
+  val charClassesObject  = charClassesClass.getField("MODULE$").get(charClassesClass)
   //  strict-query-char-np
   val charPredicateField = charClassesObject.getClass.getDeclaredField("strict$minusquery$minuschar$minusnp")
   charPredicateField.setAccessible(true)
@@ -38,8 +42,8 @@ object SlackApiClient {
   charPredicateField.set(charClassesObject, updatedCharPredicate)
   /* END TEMPORARY WORKAROUND */
 
-  def apply(token: String, slackApiBaseUri: Uri = defaultSlackApiBaseUri): SlackApiClient = {
-    new SlackApiClient(token, slackApiBaseUri)
+  def apply(token: String, slackApiBaseUri: Uri = defaultSlackApiBaseUri)(implicit system: ActorSystem): SlackApiClient = {
+    new SlackApiClient(token, slackApiBaseUri)(system)
   }
 
   def exchangeOauthForToken(
@@ -47,20 +51,22 @@ object SlackApiClient {
                              clientSecret: String,
                              code: String,
                              redirectUri: Option[String] = None,
-                             slackApiBaseUri: Uri = defaultSlackApiBaseUri
+                             slackApiBaseUri: Uri = defaultSlackApiBaseUri,
+                             maybeSettings: Option[ConnectionPoolSettings] = None
                            )(implicit system: ActorSystem): Future[AccessToken] = {
     val params =
       Seq("client_id" -> clientId, "client_secret" -> clientSecret, "code" -> code, "redirect_uri" -> redirectUri)
-    val res = makeApiRequest(
-      addQueryParams(addSegment(HttpRequest(uri = slackApiBaseUri), "oauth.access"), cleanParams(params))
+    val res    = makeApiRequest(
+      addQueryParams(addSegment(HttpRequest(uri = slackApiBaseUri), "oauth.access"), cleanParams(params)),
+      maybeSettings
     )
     res.map(_.as[AccessToken])(system.dispatcher)
   }
 
-  private def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[JsValue] = {
+  private def makeApiRequest(request: HttpRequest, maybeSettings: Option[ConnectionPoolSettings])(implicit system: ActorSystem): Future[JsValue] = {
     implicit val mat = ActorMaterializer()
-    implicit val ec = system.dispatcher
-    Http().singleRequest(request).flatMap {
+    implicit val ec  = system.dispatcher
+    Http().singleRequest(request, settings = maybeSettings.getOrElse(ConnectionPoolSettings(system))).flatMap {
       case response if response.status.intValue == 200 =>
         response.entity.toStrict(10.seconds).map { entity =>
           val parsed = Json.parse(entity.data.decodeString("UTF-8"))
@@ -70,7 +76,7 @@ object SlackApiClient {
             throw ApiError((parsed \ "error").as[String])
           }
         }
-      case response =>
+      case response                                    =>
         response.entity.toStrict(10.seconds).map { entity =>
           throw InvalidResponseError(response.status.intValue, entity.data.decodeString("UTF-8"))
         }
@@ -90,8 +96,8 @@ object SlackApiClient {
     var paramList = Seq[(String, String)]()
     params.foreach {
       case (k, Some(v)) => paramList :+= (k -> v.toString)
-      case (k, None) => // Nothing - Filter out none
-      case (k, v) => paramList :+= (k -> v.toString)
+      case (k, None)    => // Nothing - Filter out none
+      case (k, v)       => paramList :+= (k -> v.toString)
     }
     paramList
   }
@@ -181,7 +187,28 @@ object SlackApiClient {
 
 import slack.api.SlackApiClient._
 
-class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
+class SlackApiClient private(token: String, slackApiBaseUri: Uri)(implicit system: ActorSystem) {
+
+  private val defaultConfigMap: java.util.Map[String, String] = new util.HashMap[String, String]()
+  defaultConfigMap.put("akka.http.client.useproxy", "false")
+  defaultConfigMap.put("akka.http.client.proxyHost", "localhost")
+  defaultConfigMap.put("akka.http.client.proxyPort", "8888")
+  private val fallbackConfig = ConfigFactory.parseMap(defaultConfigMap)
+  private val config         = system.settings.config.withFallback(fallbackConfig)
+  private val useProxy       = config.getString("akka.http.client.useproxy").toBoolean
+  
+  val maybeSettings: Option[ConnectionPoolSettings] = if (useProxy) {
+    val proxyHost = config.getString("akka.http.client.proxyHost")
+    val proxyPort = config.getString("akka.http.client.proxyPort").toInt
+
+    val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
+    Some(ConnectionPoolSettings(system)
+      .withConnectionSettings(ClientConnectionSettings(system)
+        .withTransport(httpsProxyTransport)))
+  } else {
+    None
+  }
+
 
   private val apiBaseRequest = HttpRequest(uri = slackApiBaseUri)
 
@@ -850,14 +877,14 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     )
     val request =
       addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(entity).withMethod(method = HttpMethods.POST)
-    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
+    val res     = makeApiRequest(addQueryParams(request, cleanParams(params)), maybeSettings)
     extract[SlackFile](res, "file")
   }
 
   private def makeApiMethodRequest(apiMethod: String,
                                    queryParams: (String, Any)*)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
-    makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
+    makeApiRequest(addQueryParams(req, cleanParams(queryParams)), maybeSettings)
   }
 
   private def createEntity(name: String, bytes: Array[Byte]): MessageEntity = {
@@ -885,7 +912,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
       .withMethod(HttpMethods.POST)
       .withHeaders(Authorization(OAuth2BearerToken(token)))
       .withEntity(ContentTypes.`application/json`, json.toString())
-    makeApiRequest(req)
+    makeApiRequest(req, maybeSettings)
   }
 }
 
