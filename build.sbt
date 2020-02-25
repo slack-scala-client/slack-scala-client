@@ -5,3 +5,5 @@ lazy val slackScalaClient =
     .settings ( scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xfatal-warnings", "-Xlint", "-feature") )
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.key
+
+scapegoatVersion in ThisBuild := "1.4.1"
