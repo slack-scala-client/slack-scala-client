@@ -32,7 +32,7 @@ class SlackApiClientTest extends FunSuite with Credentials {
   }
 
   test("send ephemeral with action") {
-    val future = apiClient.postChatEphemeral(channel, "This is an ephemeral", user)
+    val future = apiClient.postChatEphemeral(channel, "This is an ephemeral. How are you?", user)
     val result = Await.result(future, 5.seconds)
 
     println(result)

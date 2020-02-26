@@ -12,7 +12,6 @@ import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.parboiled2.CharPredicate
 import play.api.libs.json._
 
 object SlackApiClient {
@@ -27,16 +26,6 @@ object SlackApiClient {
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
   val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
-
-  /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
-  val charClassesClass = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
-  val charClassesObject = charClassesClass.getField("MODULE$").get(charClassesClass)
-  //  strict-query-char-np
-  val charPredicateField = charClassesObject.getClass.getDeclaredField("strict$minusquery$minuschar$minusnp")
-  charPredicateField.setAccessible(true)
-  val updatedCharPredicate = charPredicateField.get(charClassesObject).asInstanceOf[CharPredicate] -- '?'
-  charPredicateField.set(charClassesObject, updatedCharPredicate)
-  /* END TEMPORARY WORKAROUND */
 
   def apply(token: String, slackApiBaseUri: Uri = defaultSlackApiBaseUri): SlackApiClient = {
     new SlackApiClient(token, slackApiBaseUri)
