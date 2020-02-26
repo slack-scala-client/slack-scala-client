@@ -669,7 +669,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
       "timestamp" -> timestamp,
       "full" -> full
     )
-    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq.empty[Reaction])(system.dispatcher)
+    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq.empty[Reaction]))(system.dispatcher)
   }
 
   def getReactionsForMessage(channelId: String, timestamp: String, full: Option[Boolean] = None)(
