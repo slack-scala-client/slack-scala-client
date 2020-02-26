@@ -173,7 +173,7 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     case Terminated(actor) =>
       listeners -= actor
       handleWebSocketDisconnect(actor)
-    case SendPing =>
+    case SendPing() =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(Ping(nextId)))
       webSocketClient.get ! SendWSMessage(TextMessage(payload))

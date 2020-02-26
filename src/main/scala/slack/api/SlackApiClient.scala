@@ -76,7 +76,7 @@ object SlackApiClient {
   }
 
   private def cleanParams(params: Seq[(String, Any)]): Seq[(String, String)] = {
-    var paramList = Seq[(String, String)]()
+    var paramList = Seq.empty[(String, String)]
     params.foreach {
       case (k, Some(v)) => paramList :+= (k -> v.toString)
       case (k, None) => // Nothing - Filter out none
@@ -658,7 +658,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
       "timestamp" -> timestamp,
       "full" -> full
     )
-    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq[Reaction]()))(system.dispatcher)
+    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq.empty[Reaction]))(system.dispatcher)
   }
 
   def getReactionsForMessage(channelId: String, timestamp: String, full: Option[Boolean] = None)(
