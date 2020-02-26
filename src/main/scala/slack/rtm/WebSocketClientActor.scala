@@ -29,11 +29,11 @@ private[rtm] object WebSocketClientActor {
   case object WebSocketDisconnected
 
   private[this] val config   = ConfigFactory.load()
-  private[this] val useProxy = Try(config.getString("akka.http.client.useproxy")).fold(_ => false, _.toBoolean)
+  private[this] val useProxy = Try(config.getString("slack-scala-client.http.useproxy")).fold(_ => false, _.toBoolean)
 
   private[WebSocketClientActor] val maybeSettings: Option[ClientConnectionSettings] = if (useProxy) {
-    val proxyHost = config.getString("akka.http.client.proxyHost")
-    val proxyPort = config.getString("akka.http.client.proxyPort").toInt
+    val proxyHost = config.getString("slack-scala-client.http.proxyHost")
+    val proxyPort = config.getString("slack-scala-client.http.proxyPort").toInt
 
     val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
 

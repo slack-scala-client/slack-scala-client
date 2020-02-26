@@ -1,7 +1,6 @@
 package slack.api
 
 import java.io.File
-import java.lang.reflect.{Field, Modifier}
 import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
@@ -19,17 +18,17 @@ import slack.models._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 
 object SlackApiClient extends StrictLogging {
 
   private[this] val config   = ConfigFactory.load()
-  private[this] val useProxy = Try(config.getString("akka.http.client.useproxy")).fold(_ => false, _.toBoolean)
+  private[this] val useProxy = Try(config.getString("slack-scala-client.http.useproxy")).fold(_ => false, _.toBoolean)
 
   private[this] val maybeSettings: Option[ConnectionPoolSettings] = if (useProxy) {
-    val proxyHost = config.getString("akka.http.client.proxyHost")
-    val proxyPort = config.getString("akka.http.client.proxyPort").toInt
+    val proxyHost = config.getString("slack-scala-client.http.proxyHost")
+    val proxyPort = config.getString("slack-scala-client.http.proxyPort").toInt
 
     val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
 
