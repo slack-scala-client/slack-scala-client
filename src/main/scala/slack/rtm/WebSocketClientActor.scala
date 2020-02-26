@@ -1,7 +1,6 @@
 package slack.rtm
 
 import java.net.{InetSocketAddress, URI}
-import java.util
 
 import akka.Done
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, Props}
@@ -14,7 +13,7 @@ import akka.stream.{ActorMaterializer, OverflowStrategy}
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 private[rtm] object WebSocketClientActor {
   case class SendWSMessage(message: Message)
@@ -28,6 +27,21 @@ private[rtm] object WebSocketClientActor {
   case class WebSocketConnectSuccess(queue: SourceQueueWithComplete[Message], closed: Future[Done])
   case object WebSocketConnectFailure
   case object WebSocketDisconnected
+
+  private[this] val config   = ConfigFactory.load()
+  private[this] val useProxy = Try(config.getString("akka.http.client.useproxy")).fold(_ => false, _.toBoolean)
+
+  private[WebSocketClientActor] val maybeSettings: Option[ClientConnectionSettings] = if (useProxy) {
+    val proxyHost = config.getString("akka.http.client.proxyHost")
+    val proxyPort = config.getString("akka.http.client.proxyPort").toInt
+
+    val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
+
+    Some(ClientConnectionSettings(config)
+        .withTransport(httpsProxyTransport))
+  } else {
+    None
+  }
 
   def apply(url: String)(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new WebSocketClientActor(url)))
@@ -79,29 +93,10 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
     val flow: Flow[Message, Message, (Future[Done], SourceQueueWithComplete[Message])] =
       Flow.fromSinkAndSourceMat(messageSink, queueSource)(Keep.both)
 
-
-    val defaultConfigMap: java.util.Map[String, String] = new util.HashMap[String, String]()
-    defaultConfigMap.put("akka.http.client.useproxy", "false")
-    defaultConfigMap.put("akka.http.client.proxyHost", "localhost")
-    defaultConfigMap.put("akka.http.client.proxyPort", "8888")
-    val fallbackConfig                     = ConfigFactory.parseMap(defaultConfigMap)
-    val config                             = system.settings.config.withFallback(fallbackConfig)
-    val useProxy                           = config.getString("akka.http.client.useproxy").toBoolean
-
-    val settings: ClientConnectionSettings = if (useProxy) {
-      val proxyHost = config.getString("akka.http.client.proxyHost")
-      val proxyPort = config.getString("akka.http.client.proxyPort").toInt
-
-      val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
-      ClientConnectionSettings(system).withTransport(httpsProxyTransport)
-    } else {
-      ClientConnectionSettings(system)
-    }
-
     val (upgradeResponse, (closed, messageSourceQueue)) =
       Http().singleWebSocketRequest(request = WebSocketRequest(url),
         clientFlow = flow,
-        settings = settings)
+        settings = maybeSettings.getOrElse(ClientConnectionSettings(system)))
 
     upgradeResponse.onComplete {
       case Success(upgrade) if upgrade.response.status == StatusCodes.SwitchingProtocols =>

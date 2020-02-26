@@ -4,7 +4,6 @@ import java.io.File
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.settings.ConnectionPoolSettings
 import play.api.libs.json._
 import slack.api.SlackApiClient.defaultSlackApiBaseUri
 import slack.models._
@@ -16,7 +15,7 @@ object BlockingSlackApiClient {
 
   def apply(token: String,
             slackApiBaseUri: Uri = SlackApiClient.defaultSlackApiBaseUri,
-            duration: FiniteDuration = 5.seconds)(implicit system: ActorSystem): BlockingSlackApiClient = {
+            duration: FiniteDuration = 5.seconds): BlockingSlackApiClient = {
     new BlockingSlackApiClient(token, slackApiBaseUri, duration)
   }
 
@@ -26,17 +25,16 @@ object BlockingSlackApiClient {
     code: String,
     redirectUri: Option[String] = None,
     duration: FiniteDuration = 5.seconds,
-    slackApiBaseUri: Uri = defaultSlackApiBaseUri,
-    maybeSettings: Option[ConnectionPoolSettings] = None
+    slackApiBaseUri: Uri = defaultSlackApiBaseUri
   )(implicit system: ActorSystem): AccessToken = {
     Await.result(
-      SlackApiClient.exchangeOauthForToken(clientId, clientSecret, code, redirectUri, slackApiBaseUri, maybeSettings),
+      SlackApiClient.exchangeOauthForToken(clientId, clientSecret, code, redirectUri, slackApiBaseUri),
       duration
     )
   }
 }
 
-class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, duration: FiniteDuration)(implicit system: ActorSystem) {
+class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, duration: FiniteDuration) {
   val client = SlackApiClient(token, slackApiBaseUri)
 
   /**************************/
