@@ -47,9 +47,7 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
     case m: Message =>
       log.debug("[WebsocketClientActor] Received Message: {}", m)
     case SendWSMessage(m) =>
-      if (outboundMessageQueue.isDefined) {
-        outboundMessageQueue.get.offer(m)
-      }
+      outboundMessageQueue.map(_.offer(m))
     case WebSocketConnectSuccess(queue, closed) =>
       outboundMessageQueue = Some(queue)
       closed.onComplete(_ => self ! WebSocketDisconnected)
