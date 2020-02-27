@@ -1,28 +1,51 @@
 package slack.api
 
-import slack.models._
-
 import java.io.File
-import scala.concurrent.duration._
-import scala.concurrent.Future
+import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
+import akka.http.scaladsl.{ClientTransport, Http}
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Source
+import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
+import slack.models._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.util.Try
+
 
 object SlackApiClient {
 
-  private[api] implicit val rtmStartStateFmt = Json.format[RtmStartState]
-  private[api] implicit val accessTokenFmt = Json.format[AccessToken]
-  private[api] implicit val historyChunkFmt = Json.format[HistoryChunk]
-  private[api] implicit val repliesChunkFmt = Json.format[RepliesChunk]
-  private[api] implicit val pagingObjectFmt = Json.format[PagingObject]
-  private[api] implicit val filesResponseFmt = Json.format[FilesResponse]
-  private[api] implicit val fileInfoFmt = Json.format[FileInfo]
+  private[this] val config   = ConfigFactory.load()
+  private[this] val useProxy: Boolean = Try(config.getString("slack-scala-client.http.useproxy"))
+    .map(_.toBoolean)
+    .recover{case _:Exception => false}.get
+
+  private[this] val maybeSettings: Option[ConnectionPoolSettings] = if (useProxy) {
+    val proxyHost = config.getString("slack-scala-client.http.proxyHost")
+    val proxyPort = config.getString("slack-scala-client.http.proxyPort").toInt
+
+    val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
+
+    Some(ConnectionPoolSettings(config)
+      .withConnectionSettings(ClientConnectionSettings(config)
+        .withTransport(httpsProxyTransport)))
+  } else {
+    None
+  }
+
+  private[api] implicit val rtmStartStateFmt     = Json.format[RtmStartState]
+  private[api] implicit val accessTokenFmt       = Json.format[AccessToken]
+  private[api] implicit val historyChunkFmt      = Json.format[HistoryChunk]
+  private[api] implicit val repliesChunkFmt      = Json.format[RepliesChunk]
+  private[api] implicit val pagingObjectFmt      = Json.format[PagingObject]
+  private[api] implicit val filesResponseFmt     = Json.format[FilesResponse]
+  private[api] implicit val fileInfoFmt          = Json.format[FileInfo]
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
   val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
@@ -48,8 +71,9 @@ object SlackApiClient {
 
   private def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[JsValue] = {
     implicit val mat = ActorMaterializer()
-    implicit val ec = system.dispatcher
-    Http().singleRequest(request).flatMap {
+    implicit val ec  = system.dispatcher
+    val connectionPoolSettings: ConnectionPoolSettings = maybeSettings.getOrElse(ConnectionPoolSettings(system))
+    Http().singleRequest(request, settings = connectionPoolSettings).flatMap {
       case response if response.status.intValue == 200 =>
         response.entity.toStrict(10.seconds).map { entity =>
           val parsed = Json.parse(entity.data.decodeString("UTF-8"))
@@ -79,8 +103,8 @@ object SlackApiClient {
     var paramList = Seq.empty[(String, String)]
     params.foreach {
       case (k, Some(v)) => paramList :+= (k -> v.toString)
-      case (k, None) => // Nothing - Filter out none
-      case (k, v) => paramList :+= (k -> v.toString)
+      case (k, None)    => // Nothing - Filter out none
+      case (k, v)       => paramList :+= (k -> v.toString)
     }
     paramList
   }
@@ -122,7 +146,7 @@ object SlackApiClient {
                               isTruncated: Option[Boolean],
                               comments: Option[Seq[String]])
 
-  implicit val SlackFileMetaDataReader: Reads[SlackFileMetaData] = new Reads[SlackFileMetaData] {
+  implicit         val SlackFileMetaDataReader: Reads[SlackFileMetaData] = new Reads[SlackFileMetaData] {
     override def reads(json: JsValue): JsResult[SlackFileMetaData] = {
       for {
         id               <- (json \ "id"               ).validateOpt[String]

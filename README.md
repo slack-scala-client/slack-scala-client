@@ -1,7 +1,6 @@
 # slack-scala-client
 
 [![Build Status](https://travis-ci.com/slack-scala-client/slack-scala-client.svg?branch=master)](https://travis-ci.com/slack-scala-client/slack-scala-client)
-[<img src="https://img.shields.io/badge/Latest%20Release-0.2.8-yellowgreen.svg"/>](https://search.maven.org/search?q=g:com.github.slack-scala-client)
 
 A Scala library for interacting with the Slack API and real time messaging interface
 
