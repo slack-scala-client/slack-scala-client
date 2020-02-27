@@ -8,11 +8,9 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.http.scaladsl.{ClientTransport, Http}
-import akka.parboiled2.CharPredicate
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.typesafe.config.ConfigFactory
-import com.typesafe.scalalogging.StrictLogging
 import play.api.libs.json._
 import slack.models._
 
@@ -21,7 +19,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 
-object SlackApiClient extends StrictLogging {
+object SlackApiClient {
 
   private[this] val config   = ConfigFactory.load()
   private[this] val useProxy = Try(config.getString("slack-scala-client.http.useproxy")).fold(_ => false, _.toBoolean)
@@ -50,16 +48,6 @@ object SlackApiClient extends StrictLogging {
 
   val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
 
-  /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
-  val charClassesClass   = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
-  val charClassesObject  = charClassesClass.getField("MODULE$").get(charClassesClass)
-  //  strict-query-char-np
-  val charPredicateField = charClassesObject.getClass.getDeclaredField("strict$minusquery$minuschar$minusnp")
-  charPredicateField.setAccessible(true)
-  val updatedCharPredicate = charPredicateField.get(charClassesObject).asInstanceOf[CharPredicate] -- '?'
-  charPredicateField.set(charClassesObject, updatedCharPredicate)
-  /* END TEMPORARY WORKAROUND */
-
   def apply(token: String, slackApiBaseUri: Uri = defaultSlackApiBaseUri): SlackApiClient = {
     new SlackApiClient(token, slackApiBaseUri)
   }
@@ -73,7 +61,7 @@ object SlackApiClient extends StrictLogging {
                            )(implicit system: ActorSystem): Future[AccessToken] = {
     val params =
       Seq("client_id" -> clientId, "client_secret" -> clientSecret, "code" -> code, "redirect_uri" -> redirectUri)
-    val res    = makeApiRequest(
+    val res = makeApiRequest(
       addQueryParams(addSegment(HttpRequest(uri = slackApiBaseUri), "oauth.access"), cleanParams(params))
     )
     res.map(_.as[AccessToken])(system.dispatcher)
@@ -93,7 +81,7 @@ object SlackApiClient extends StrictLogging {
             throw ApiError((parsed \ "error").as[String])
           }
         }
-      case response                                    =>
+      case response =>
         response.entity.toStrict(10.seconds).map { entity =>
           throw InvalidResponseError(response.status.intValue, entity.data.decodeString("UTF-8"))
         }
@@ -110,7 +98,7 @@ object SlackApiClient extends StrictLogging {
   }
 
   private def cleanParams(params: Seq[(String, Any)]): Seq[(String, String)] = {
-    var paramList = Seq[(String, String)]()
+    var paramList = Seq.empty[(String, String)]
     params.foreach {
       case (k, Some(v)) => paramList :+= (k -> v.toString)
       case (k, None)    => // Nothing - Filter out none
@@ -159,44 +147,44 @@ object SlackApiClient extends StrictLogging {
   implicit         val SlackFileMetaDataReader: Reads[SlackFileMetaData] = new Reads[SlackFileMetaData] {
     override def reads(json: JsValue): JsResult[SlackFileMetaData] = {
       for {
-        id <- (json \ "id").validateOpt[String]
-        created <- (json \ "created").validateOpt[Long]
-        timestamp <- (json \ "timestamp").validateOpt[Long]
-        name <- (json \ "name").validateOpt[String]
-        mimeType <- (json \ "mimetype").validateOpt[String]
-        fileType <- (json \ "filetype").validateOpt[String]
-        user <- (json \ "user").validateOpt[String]
-        editable <- (json \ "editable").validateOpt[Boolean]
-        size <- (json \ "size").validateOpt[Int]
-        mode <- (json \ "mode").validateOpt[String]
-        isExternal <- (json \ "is_external").validateOpt[Boolean]
-        externalType <- (json \ "external_type").validateOpt[String]
-        isPublic <- (json \ "is_public").validateOpt[Boolean]
-        publicUrlShared <- (json \ "public_url_shared").validateOpt[Boolean]
-        displayAsBot <- (json \ "display_as_bot").validateOpt[Boolean]
-        username <- (json \ "username").validateOpt[String]
-        urlPrivate <- (json \ "url_private").validateOpt[String]
-        permalink <- (json \ "permalink").validateOpt[String]
-        permalinkPublic <- (json \ "permalink_public").validateOpt[String]
-        preview <- (json \ "preview").validateOpt[String]
+        id               <- (json \ "id"               ).validateOpt[String]
+        created          <- (json \ "created"          ).validateOpt[Long]
+        timestamp        <- (json \ "timestamp"        ).validateOpt[Long]
+        name             <- (json \ "name"             ).validateOpt[String]
+        mimeType         <- (json \ "mimetype"         ).validateOpt[String]
+        fileType         <- (json \ "filetype"         ).validateOpt[String]
+        user             <- (json \ "user"             ).validateOpt[String]
+        editable         <- (json \ "editable"         ).validateOpt[Boolean]
+        size             <- (json \ "size"             ).validateOpt[Int]
+        mode             <- (json \ "mode"             ).validateOpt[String]
+        isExternal       <- (json \ "is_external"      ).validateOpt[Boolean]
+        externalType     <- (json \ "external_type"    ).validateOpt[String]
+        isPublic         <- (json \ "is_public"        ).validateOpt[Boolean]
+        publicUrlShared  <- (json \ "public_url_shared").validateOpt[Boolean]
+        displayAsBot     <- (json \ "display_as_bot"   ).validateOpt[Boolean]
+        username         <- (json \ "username"         ).validateOpt[String]
+        urlPrivate       <- (json \ "url_private"      ).validateOpt[String]
+        permalink        <- (json \ "permalink"        ).validateOpt[String]
+        permalinkPublic  <- (json \ "permalink_public" ).validateOpt[String]
+        preview          <- (json \ "preview"          ).validateOpt[String]
         previewHighlight <- (json \ "preview_highlight").validateOpt[String]
-        lines <- (json \ "lines").validateOpt[Int]
-        commentsCount <- (json \ "comments_count").validateOpt[Int]
-        isStarred <- (json \ "is_starred").validateOpt[Boolean]
-        channels <- (json \ "channels").validateOpt[Seq[String]]
-        ims <- (json \ "ims").validateOpt[Seq[String]]
-        hasRichPreview <- (json \ "has_rich_preview").validateOpt[Boolean]
+        lines            <- (json \ "lines"            ).validateOpt[Int]
+        commentsCount    <- (json \ "comments_count"   ).validateOpt[Int]
+        isStarred        <- (json \ "is_starred"       ).validateOpt[Boolean]
+        channels         <- (json \ "channels"         ).validateOpt[Seq[String]]
+        ims              <- (json \ "ims"              ).validateOpt[Seq[String]]
+        hasRichPreview   <- (json \ "has_rich_preview" ).validateOpt[Boolean]
       } yield SlackFileMetaData(id, created, timestamp, name, mimeType, fileType, user, editable, size, mode, isExternal, externalType, isPublic, publicUrlShared, displayAsBot, username, urlPrivate, permalink, permalinkPublic, preview, previewHighlight, lines, commentsCount, isStarred, channels, ims, hasRichPreview)
     }
   }
-  private implicit val DetailedFileInfoReader : Reads[DetailedFileInfo]  = new Reads[DetailedFileInfo] {
+  private implicit val DetailedFileInfoReader: Reads[DetailedFileInfo] = new Reads[DetailedFileInfo] {
     override def reads(json: JsValue): JsResult[DetailedFileInfo] = {
       for {
-        ok <- (json \ "ok").validateOpt[Boolean]
-        fileMetaData <- (json \ "file").validate[SlackFileMetaData]
-        content <- (json \ "content").validateOpt[String]
-        isTruncated <- (json \ "is_truncated").validateOpt[Boolean]
-        comments <- (json \ "comments").validateOpt[Seq[String]]
+        ok           <- (json \ "ok"          ).validateOpt[Boolean]
+        fileMetaData <- (json \ "file"        ).validate[SlackFileMetaData]
+        content      <- (json \ "content"     ).validateOpt[String]
+        isTruncated  <- (json \ "is_truncated").validateOpt[Boolean]
+        comments     <- (json \ "comments"    ).validateOpt[Seq[String]]
       } yield DetailedFileInfo(ok, fileMetaData, content, isTruncated, comments)
     }
   }
@@ -204,7 +192,7 @@ object SlackApiClient extends StrictLogging {
 
 import slack.api.SlackApiClient._
 
-class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
+class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
 
   private val apiBaseRequest = HttpRequest(uri = slackApiBaseUri)
 
@@ -212,9 +200,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     apiBaseRequest.uri.withQuery(Uri.Query((apiBaseRequest.uri.query() :+ ("token" -> token)): _*))
   )
 
-  /** ************************/
-  /** *   Test Endpoints   ***/
-  /** ************************/
+  /**************************/
+  /***   Test Endpoints   ***/
+  /**************************/
   def test()(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("api.test")
     extract[Boolean](res, "ok")
@@ -225,9 +213,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     res.map(_.as[AuthIdentity])(system.dispatcher)
   }
 
-  /** *************************/
-  /** *  Channel Endpoints  ***/
-  /** *************************/
+  /***************************/
+  /***  Channel Endpoints  ***/
+  /***************************/
   def archiveChannel(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("channels.archive", "channel" -> channelId)
     extract[Boolean](res, "ok")
@@ -315,14 +303,14 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
-  /** ************************/
-  /** **  Chat Endpoints  ****/
-  /** ************************/
+  /**************************/
+  /****  Chat Endpoints  ****/
+  /**************************/
   def deleteChat(channelId: String, ts: String, asUser: Option[Boolean] = None)(
     implicit system: ActorSystem
   ): Future[Boolean] = {
     val params = Seq("channel" -> channelId, "ts" -> ts)
-    val res    = makeApiMethodRequest("chat.delete", asUser.map(b => params :+ ("as_user" -> b)).getOrElse(params): _*)
+    val res = makeApiMethodRequest("chat.delete", asUser.map(b => params :+ ("as_user" -> b)).getOrElse(params): _*)
     extract[Boolean](res, "ok")
   }
 
@@ -345,7 +333,7 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
         attachments.map("attachments" -> Json.toJson(_)),
         blocks.map("blocks" -> Json.toJson(_))
       ).flatten)
-    val res  = makeApiJsonRequest("chat.postEphemeral", json)
+    val res = makeApiJsonRequest("chat.postEphemeral", json)
     extract[String](res, "message_ts")
   }
 
@@ -384,7 +372,7 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
         threadTs.map("thread_ts" -> Json.toJson(_)),
         replyBroadcast.map("reply_broadcast" -> Json.toJson(_))
       ).flatten)
-    val res  = makeApiJsonRequest("chat.postMessage", json)
+    val res = makeApiJsonRequest("chat.postMessage", json)
     extract[String](res, "ts")
   }
 
@@ -405,30 +393,30 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
         asUser.map("as_user" -> Json.toJson(_)),
         threadTs.map("thread_ts" -> Json.toJson(_))
       ).flatten)
-    val res  = makeApiJsonRequest("chat.update", json)
+    val res = makeApiJsonRequest("chat.update", json)
     res.map(_.as[UpdateResponse])(system.dispatcher)
   }
 
-  /** **************************/
-  /** **  Dialog Endpoints  ****/
-  /** **************************/
+  /****************************/
+  /****  Dialog Endpoints  ****/
+  /****************************/
   def openDialog(triggerId: String, dialog: Dialog)(implicit system: ActorSystem): Future[Boolean] = {
     val res =
       makeApiJsonRequest("dialog.open", Json.obj("trigger_id" -> triggerId, "dialog" -> Json.toJson(dialog).toString()))
     extract[Boolean](res, "ok")
   }
 
-  /** *************************/
-  /** **  Emoji Endpoints  ****/
-  /** *************************/
+  /***************************/
+  /****  Emoji Endpoints  ****/
+  /***************************/
   def listEmojis()(implicit system: ActorSystem): Future[Map[String, String]] = {
     val res = makeApiMethodRequest("emoji.list")
     extract[Map[String, String]](res, "emoji")
   }
 
-  /** ************************/
-  /** **  File Endpoints  ****/
-  /** ************************/
+  /**************************/
+  /****  File Endpoints  ****/
+  /**************************/
   def deleteFile(fileId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("files.delete", "file" -> fileId)
     extract[Boolean](res, "ok")
@@ -476,14 +464,14 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
                  thread_ts: Option[String] = None)(implicit system: ActorSystem): Future[SlackFile] = {
     val entity = content match {
       case Right(bytes) => createEntity(filename.getOrElse("file"), bytes)
-      case Left(file)   => createEntity(file)
+      case Left(file) => createEntity(file)
     }
     uploadFileFromEntity(entity, filetype, filename, title, initialComment, channels, thread_ts)
   }
 
-  /** *************************/
-  /** **  Group Endpoints  ****/
-  /** *************************/
+  /***************************/
+  /****  Group Endpoints  ****/
+  /***************************/
   def archiveGroup(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("groups.archive", "channel" -> channelId)
     extract[Boolean](res, "ok")
@@ -576,9 +564,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
-  /** **********************/
-  /** **  IM Endpoints  ****/
-  /** **********************/
+  /************************/
+  /****  IM Endpoints  ****/
+  /************************/
   def closeIm(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("im.close", "channel" -> channelId)
     extract[Boolean](res, "ok")
@@ -615,9 +603,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     res.map(r => (r \ "channel" \ "id").as[String])(system.dispatcher)
   }
 
-  /** ************************/
-  /** **  MPIM Endpoints  ****/
-  /** ************************/
+  /**************************/
+  /****  MPIM Endpoints  ****/
+  /**************************/
   def openMpim(userIds: Seq[String])(implicit system: ActorSystem): Future[String] = {
     val res = makeApiMethodRequest("mpim.open", "users" -> userIds.mkString(","))
     res.map(r => (r \ "group" \ "id").as[String])(system.dispatcher)
@@ -654,9 +642,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     res.map(_.as[HistoryChunk])(system.dispatcher)
   }
 
-  /** ****************************/
-  /** **  Reaction Endpoints  ****/
-  /** ****************************/
+  /******************************/
+  /****  Reaction Endpoints  ****/
+  /******************************/
   def addReaction(emojiName: String,
                   file: Option[String] = None,
                   fileComment: Option[String] = None,
@@ -692,7 +680,7 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
       "timestamp" -> timestamp,
       "full" -> full
     )
-    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq[Reaction]()))(system.dispatcher)
+    res.map(r => (r \\ "reactions").headOption.map(_.as[Seq[Reaction]]).getOrElse(Seq.empty[Reaction]))(system.dispatcher)
   }
 
   def getReactionsForMessage(channelId: String, timestamp: String, full: Option[Boolean] = None)(
@@ -731,17 +719,17 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     removeReaction(emojiName = emojiName, channelId = Some(channelId), timestamp = Some(timestamp))
   }
 
-  /** ***********************/
-  /** **  RTM Endpoints  ****/
-  /** ***********************/
+  /*************************/
+  /****  RTM Endpoints  ****/
+  /*************************/
   def startRealTimeMessageSession()(implicit system: ActorSystem): Future[RtmStartState] = {
     val res = makeApiMethodRequest("rtm.start")
     res.map(_.as[RtmStartState])(system.dispatcher)
   }
 
-  /** **************************/
-  /** **  Search Endpoints  ****/
-  /** **************************/
+  /****************************/
+  /****  Search Endpoints  ****/
+  /****************************/
   // TODO: Return proper search results (not JsValue)
   def searchAll(query: String,
                 sort: Option[String] = None,
@@ -796,9 +784,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     )
   }
 
-  /** *************************/
-  /** **  Stars Endpoints  ****/
-  /** *************************/
+  /***************************/
+  /****  Stars Endpoints  ****/
+  /***************************/
   // TODO: Return proper star items (not JsValue)
   def listStars(userId: Option[String] = None, count: Option[Int] = None, page: Option[Int] = None)(
     implicit system: ActorSystem
@@ -806,9 +794,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     makeApiMethodRequest("start.list", "user" -> userId, "count" -> count, "page" -> page)
   }
 
-  /** ************************/
-  /** **  Team Endpoints  ****/
-  /** ************************/
+  /**************************/
+  /****  Team Endpoints  ****/
+  /**************************/
   // TODO: Parse actual result type: https://api.slack.com/methods/team.accessLogs
   def getTeamAccessLogs(count: Option[Int], page: Option[Int])(implicit system: ActorSystem): Future[JsValue] = {
     makeApiMethodRequest("team.accessLogs", "count" -> count, "page" -> page)
@@ -819,9 +807,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     makeApiMethodRequest("team.info")
   }
 
-  /** ************************/
-  /** **  User Endpoints  ****/
-  /** ************************/
+  /**************************/
+  /****  User Endpoints  ****/
+  /**************************/
   // TODO: Full payload for authed user: https://api.slack.com/methods/users.getPresence
   def getUserPresence(userId: String)(implicit system: ActorSystem): Future[String] = {
     val res = makeApiMethodRequest("users.getPresence", "user" -> userId)
@@ -853,9 +841,9 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     extract[User](res, "user")
   }
 
-  /** ***************************/
-  /** **  Private Functions  ****/
-  /** ***************************/
+  /*****************************/
+  /****  Private Functions  ****/
+  /*****************************/
   private def uploadFileFromEntity(entity: MessageEntity,
                                    filetype: Option[String],
                                    filename: Option[String],
@@ -863,7 +851,7 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
                                    initialComment: Option[String],
                                    channels: Option[Seq[String]],
                                    thread_ts: Option[String])(implicit system: ActorSystem): Future[SlackFile] = {
-    val params  = Seq(
+    val params = Seq(
       "filetype" -> filetype,
       "filename" -> filename,
       "title" -> title,
@@ -873,7 +861,7 @@ class SlackApiClient private(token: String, slackApiBaseUri: Uri) {
     )
     val request =
       addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(entity).withMethod(method = HttpMethods.POST)
-    val res     = makeApiRequest(addQueryParams(request, cleanParams(params)))
+    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
     extract[SlackFile](res, "file")
   }
 

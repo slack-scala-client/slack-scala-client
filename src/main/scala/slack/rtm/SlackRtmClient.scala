@@ -141,15 +141,15 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     case TypingMessage(channelId) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
-      webSocketClient.get ! SendWSMessage(TextMessage(payload))
+      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
     case SendMessage(channelId, text, ts_thread) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text, ts_thread)))
-      webSocketClient.get ! SendWSMessage(TextMessage(payload))
+      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
       sender ! nextId
     case bm: BotEditMessage =>
       val payload = Json.stringify(Json.toJson(bm))
-      webSocketClient.get ! SendWSMessage(TextMessage(payload))
+      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
     case StateRequest() =>
       sender ! StateResponse(state)
     case AddEventListener(listener) =>
@@ -173,10 +173,10 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     case Terminated(actor) =>
       listeners -= actor
       handleWebSocketDisconnect(actor)
-    case SendPing =>
+    case SendPing() =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(Ping(nextId)))
-      webSocketClient.get ! SendWSMessage(TextMessage(payload))
+      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
     case _ =>
       log.warning("doesn't match any case, skip")
   }

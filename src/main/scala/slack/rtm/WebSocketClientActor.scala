@@ -51,32 +51,29 @@ private[rtm] object WebSocketClientActor {
 import slack.rtm.WebSocketClientActor._
 
 private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLogging {
-
-  implicit val ec          = context.dispatcher
-  implicit val system      = context.system
+  implicit val ec = context.dispatcher
+  implicit val system = context.system
   implicit val materalizer = ActorMaterializer()
 
-  val uri                                                            = new URI(url)
+  val uri = new URI(url)
   var outboundMessageQueue: Option[SourceQueueWithComplete[Message]] = None
 
   override def receive = {
-    case m: TextMessage                         =>
+    case m: TextMessage =>
       log.debug("[WebSocketClientActor] Received Text Message: {}", m)
       context.parent ! m
-    case m: Message                             =>
+    case m: Message =>
       log.debug("[WebsocketClientActor] Received Message: {}", m)
-    case SendWSMessage(m)                       =>
-      if (outboundMessageQueue.isDefined) {
-        outboundMessageQueue.get.offer(m)
-      }
+    case SendWSMessage(m) =>
+      outboundMessageQueue.map(_.offer(m))
     case WebSocketConnectSuccess(queue, closed) =>
       outboundMessageQueue = Some(queue)
       closed.onComplete(_ => self ! WebSocketDisconnected)
       context.parent ! WebSocketClientConnected
-    case WebSocketDisconnected                  =>
+    case WebSocketDisconnected =>
       log.info("[WebSocketClientActor] WebSocket disconnected.")
       context.stop(self)
-    case _                                      =>
+    case _ =>
   }
 
   def connectWebSocket(): Unit = {
@@ -102,11 +99,11 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
       case Success(upgrade) if upgrade.response.status == StatusCodes.SwitchingProtocols =>
         log.info("[WebSocketClientActor] Web socket connection success")
         self ! WebSocketConnectSuccess(messageSourceQueue, closed)
-      case Success(upgrade)                                                              =>
+      case Success(upgrade) =>
         log.info("[WebSocketClientActor] Web socket connection failed: {}", upgrade.response)
         context.parent ! WebSocketClientConnectFailed
         context.stop(self)
-      case Failure(err)                                                                  =>
+      case Failure(err) =>
         log.info("[WebSocketClientActor] Web socket connection failed with error: {}", err.getMessage)
         context.parent ! WebSocketClientConnectFailed
         context.stop(self)
