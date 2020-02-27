@@ -11,7 +11,7 @@ import akka.http.scaladsl.{ClientTransport, Http}
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import com.typesafe.config.ConfigFactory
-
+import slack.rtm.WebSocketClientActor._
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
@@ -49,8 +49,6 @@ private[rtm] object WebSocketClientActor {
     arf.actorOf(Props(new WebSocketClientActor(url)))
   }
 }
-
-import slack.rtm.WebSocketClientActor._
 
 private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLogging {
   implicit val ec = context.dispatcher
