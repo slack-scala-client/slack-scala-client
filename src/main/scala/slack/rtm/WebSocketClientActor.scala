@@ -29,7 +29,9 @@ private[rtm] object WebSocketClientActor {
   case object WebSocketDisconnected
 
   private[this] val config   = ConfigFactory.load()
-  private[this] val useProxy = Try(config.getString("slack-scala-client.http.useproxy")).fold(_ => false, _.toBoolean)
+  private[this] val useProxy: Boolean = Try(config.getString("slack-scala-client.http.useproxy"))
+    .map(_.toBoolean)
+    .recover{case _:Exception => false}.get
 
   private[WebSocketClientActor] val maybeSettings: Option[ClientConnectionSettings] = if (useProxy) {
     val proxyHost = config.getString("slack-scala-client.http.proxyHost")
