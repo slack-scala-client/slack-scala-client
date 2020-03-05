@@ -39,6 +39,8 @@ object SlackApiClient {
     None
   }
 
+  private[this] val toStrictTimeout = config.getInt("api.tostrict.timeout").seconds
+
   private[api] implicit val rtmStartStateFmt     = Json.format[RtmStartState]
   private[api] implicit val accessTokenFmt       = Json.format[AccessToken]
   private[api] implicit val historyChunkFmt      = Json.format[HistoryChunk]
@@ -75,7 +77,7 @@ object SlackApiClient {
     val connectionPoolSettings: ConnectionPoolSettings = maybeSettings.getOrElse(ConnectionPoolSettings(system))
     Http().singleRequest(request, settings = connectionPoolSettings).flatMap {
       case response if response.status.intValue == 200 =>
-        response.entity.toStrict(10.seconds).map { entity =>
+        response.entity.toStrict(toStrictTimeout).map { entity =>
           val parsed = Json.parse(entity.data.decodeString("UTF-8"))
           if ((parsed \ "ok").as[Boolean]) {
             parsed
@@ -84,7 +86,7 @@ object SlackApiClient {
           }
         }
       case response =>
-        response.entity.toStrict(10.seconds).map { entity =>
+        response.entity.toStrict(toStrictTimeout).map { entity =>
           throw InvalidResponseError(response.status.intValue, entity.data.decodeString("UTF-8"))
         }
     }
