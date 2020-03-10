@@ -2,15 +2,16 @@ package slack
 
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-import org.scalatest.{FunSuite, Matchers}
 import slack.api.SlackApiClient
 import slack.models.Reply
 import slack.rtm.SlackRtmClient
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
-class SlackRtmClientTest extends FunSuite with Matchers with Credentials {
+class SlackRtmClientTest extends AnyFunSuite with Matchers with Credentials {
 
   rtmToken match {
     case Some(slackToken) =>
