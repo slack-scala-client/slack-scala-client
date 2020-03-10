@@ -1,14 +1,14 @@
 package slack
 
-import org.scalatest.FunSuite
 import slack.api.SlackApiClient
 import slack.models.{ActionField, Attachment}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.scalatest.funsuite.AnyFunSuite
 
-class SlackApiClientTest extends FunSuite with Credentials {
+class SlackApiClientTest extends AnyFunSuite with Credentials {
 
   (user, token) match {
     case (Some(slackUser), Some(slackToken)) =>

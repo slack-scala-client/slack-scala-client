@@ -1,16 +1,17 @@
 package slack
 
-import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
 import slack.models._
 
 import scala.io.Source
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created by ptx on 9/5/15.
   */
-class TestJsonMessages extends FunSuite with Matchers {
+class TestJsonMessages extends AnyFunSuite with Matchers {
 
   test("user presence change") {
 
