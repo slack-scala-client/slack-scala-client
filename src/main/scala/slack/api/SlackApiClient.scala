@@ -8,8 +8,8 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.http.scaladsl.{ClientTransport, Http}
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.stream.scaladsl.{RestartSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import slack.models._
@@ -269,6 +269,19 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   def listChannels(excludeArchived: Int = 0)(implicit system: ActorSystem): Future[Seq[Channel]] = {
     val res = makeApiMethodRequest("channels.list", "exclude_archived" -> excludeArchived.toString)
     extract[Seq[Channel]](res, "channels")
+  }
+
+  def listConversations(channelTypes: Seq[ConversationType] = Seq(PublicChannel), excludeArchived: Int = 0)(implicit system: ActorSystem): Future[Seq[Channel]] = {
+    val params = Seq(
+      "exclude_archived" -> excludeArchived.toString,
+      "types" -> channelTypes.map(_.conversationType).mkString(",")
+    )
+    paginateCollection[Channel](apiMethod = "conversations.list", queryParams = params,field = "channels")
+  }
+
+  def getConversationInfo(channelId: String, includeLocale: Boolean = true, includeNumMembers: Boolean = false)(implicit system: ActorSystem): Future[Channel] = {
+    val res = makeApiMethodRequest("conversations.info", "channel" -> channelId, "include_locale" -> includeLocale.toString, "include_num_members" -> includeNumMembers.toString)
+    extract[Channel](res, "channel")
   }
 
   def leaveChannel(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
@@ -826,8 +839,8 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   }
 
   def listUsers()(implicit system: ActorSystem): Future[Seq[User]] = {
-    val res = makeApiMethodRequest("users.list")
-    extract[Seq[User]](res, "members")
+    val params = Seq("limit" -> 100)
+    paginateCollection[User](apiMethod = "users.list", queryParams = params,field = "members")
   }
 
   def setUserActive(userId: String)(implicit system: ActorSystem): Future[Boolean] = {
@@ -873,6 +886,38 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
                                    queryParams: (String, Any)*)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
+  }
+
+  private def paginateCollection[T](apiMethod: String,
+                                    queryParams: Seq[(String, Any)],
+                                    field: String,
+                                    retries: Int = 5,
+                                    maxBackoff: FiniteDuration = 30.seconds,
+                                    initialResults: Seq[T] = Seq.empty[T])(implicit system: ActorSystem, fmt: Format[Seq[T]]): Future[Seq[T]] = {
+    implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
+
+    RestartSource.onFailuresWithBackoff(5.seconds, maxBackoff, 0.2, retries)(() => {
+      Source.fromFuture(
+        makeApiMethodRequest(apiMethod, queryParams:_*)
+      ).delay(scala.util.Random.nextFloat().second)
+    }).runWith(Sink.head).flatMap { res =>
+      val nextResults = (res \ field).as[Seq[T]] ++ initialResults
+      (res \ "response_metadata").asOpt[ResponseMetadata].flatMap { metadata =>
+        metadata.next_cursor.filter(_.nonEmpty)
+      } match {
+        case Some(nextCursor) =>
+          val newParams = queryParams.toMap + ("cursor" -> nextCursor)
+          paginateCollection(
+            apiMethod = apiMethod,
+            queryParams = newParams.toSeq,
+            field = field,
+            retries = retries,
+            maxBackoff = maxBackoff,
+            initialResults = nextResults)
+        case None =>
+          Future.successful(nextResults)
+      }
+    }(system.dispatcher)
   }
 
   private def createEntity(name: String, bytes: Array[Byte]): MessageEntity = {

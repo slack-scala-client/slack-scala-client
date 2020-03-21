@@ -27,21 +27,21 @@ case class ChannelValue(value: String, creator: String, last_set: Long)
 
 
 case object PublicChannel extends ConversationType {
-  override def `type`: String = "public_channel"
+  override def conversationType: String = "public_channel"
 }
 
 case object PrivateChannel extends ConversationType {
-  override def `type`: String = "private_channel"
+  override def conversationType: String = "private_channel"
 }
 
 case object IMConversation extends ConversationType {
-  override def `type`: String = "im"
+  override def conversationType: String = "im"
 }
 
 case object MultiPartyIMConversation extends ConversationType {
-  override def `type`: String = "mpim"
+  override def conversationType: String = "mpim"
 }
 
 sealed trait ConversationType {
-  def `type`: String
+  def conversationType: String
 }
