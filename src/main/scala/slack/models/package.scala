@@ -52,16 +52,12 @@ package object models {
   implicit val reactionFileCommentFmt = Json.format[ReactionItemFileComment]
   implicit val reactionItemReads = new Reads[ReactionItem] {
     def reads(json: JsValue): JsResult[ReactionItem] = {
-      val rType = (json \ "type").asOpt[String]
-      if (rType.isDefined) {
-        rType.get match {
-          case "message" => JsSuccess(json.as[ReactionItemMessage])
-          case "file" => JsSuccess(json.as[ReactionItemFile])
-          case "file_comment" => JsSuccess(json.as[ReactionItemFileComment])
-          case t: String => JsError(JsonValidationError("Invalid type property: {}", t))
-        }
-      } else {
-        JsError(JsonValidationError("Required (string) event type property is missing."))
+     (json \ "type").asOpt[String] match {
+        case Some("message") => JsSuccess(json.as[ReactionItemMessage])
+        case Some("file") => JsSuccess(json.as[ReactionItemFile])
+        case Some("file_comment") => JsSuccess(json.as[ReactionItemFileComment])
+        case Some(t: String) => JsError(JsonValidationError("Invalid type property: {}", t))
+        case None => JsError(JsonValidationError("Required (string) event type property is missing."))
       }
     }
   }
@@ -77,14 +73,10 @@ package object models {
   implicit val textElementFmt = Json.format[TextElement]
   implicit val dialogElementReads = new Reads[DialogElement] {
     def reads(json: JsValue): JsResult[DialogElement] = {
-      val rType = (json \ "type").asOpt[String]
-      if (rType.isDefined) {
-        rType.get match {
-          case "select" => JsSuccess(json.as[SelectElement])
-          case _ => JsSuccess(json.as[TextElement])
-        }
-      } else {
-        JsError(JsonValidationError("Required property: [type] is missing."))
+      (json \ "type").asOpt[String] match {
+        case Some("select") => JsSuccess(json.as[SelectElement])
+        case Some(_) => JsSuccess(json.as[TextElement])
+        case None => JsError(JsonValidationError("Required property: [type] is missing."))
       }
     }
   }

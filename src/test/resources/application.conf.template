@@ -1,3 +1,6 @@
+slack-scala-client.http.useproxy = false
+slack-scala-client.http.proxyHost = proxyhost
+slack-scala-client.http.proxyPort = 8080
 test {
   channel="<your channel id here>"
   apiKey="<your API Key here>"

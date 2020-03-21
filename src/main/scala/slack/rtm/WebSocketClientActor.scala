@@ -1,16 +1,19 @@
 package slack.rtm
 
-import java.net.URI
-import scala.concurrent.Future
-import scala.util.{Success, Failure}
+import java.net.{InetSocketAddress, URI}
 
-import akka.actor.{Actor, ActorRef, ActorRefFactory, ActorLogging, Props}
 import akka.Done
-import akka.http.scaladsl.Http
-import akka.stream.{ActorMaterializer, OverflowStrategy}
-import akka.stream.scaladsl._
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, Props}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
+import akka.http.scaladsl.settings.ClientConnectionSettings
+import akka.http.scaladsl.{ClientTransport, Http}
+import akka.stream.scaladsl._
+import akka.stream.{ActorMaterializer, OverflowStrategy}
+import com.typesafe.config.ConfigFactory
+import slack.rtm.WebSocketClientActor._
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 private[rtm] object WebSocketClientActor {
   case class SendWSMessage(message: Message)
@@ -25,12 +28,27 @@ private[rtm] object WebSocketClientActor {
   case object WebSocketConnectFailure
   case object WebSocketDisconnected
 
+  private[this] val config   = ConfigFactory.load()
+  private[this] val useProxy: Boolean = Try(config.getString("slack-scala-client.http.useproxy"))
+    .map(_.toBoolean)
+    .recover{case _:Exception => false}.get
+
+  private[WebSocketClientActor] val maybeSettings: Option[ClientConnectionSettings] = if (useProxy) {
+    val proxyHost = config.getString("slack-scala-client.http.proxyHost")
+    val proxyPort = config.getString("slack-scala-client.http.proxyPort").toInt
+
+    val httpsProxyTransport = ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort))
+
+    Some(ClientConnectionSettings(config)
+        .withTransport(httpsProxyTransport))
+  } else {
+    None
+  }
+
   def apply(url: String)(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new WebSocketClientActor(url)))
   }
 }
-
-import WebSocketClientActor._
 
 private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLogging {
   implicit val ec = context.dispatcher
@@ -47,9 +65,7 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
     case m: Message =>
       log.debug("[WebsocketClientActor] Received Message: {}", m)
     case SendWSMessage(m) =>
-      if (outboundMessageQueue.isDefined) {
-        outboundMessageQueue.get.offer(m)
-      }
+      outboundMessageQueue.map(_.offer(m))
     case WebSocketConnectSuccess(queue, closed) =>
       outboundMessageQueue = Some(queue)
       closed.onComplete(_ => self ! WebSocketDisconnected)
@@ -74,7 +90,10 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
     val flow: Flow[Message, Message, (Future[Done], SourceQueueWithComplete[Message])] =
       Flow.fromSinkAndSourceMat(messageSink, queueSource)(Keep.both)
 
-    val (upgradeResponse, (closed, messageSourceQueue)) = Http().singleWebSocketRequest(WebSocketRequest(url), flow)
+    val (upgradeResponse, (closed, messageSourceQueue)) =
+      Http().singleWebSocketRequest(request = WebSocketRequest(url),
+        clientFlow = flow,
+        settings = maybeSettings.getOrElse(ClientConnectionSettings(system)))
 
     upgradeResponse.onComplete {
       case Success(upgrade) if upgrade.response.status == StatusCodes.SwitchingProtocols =>
