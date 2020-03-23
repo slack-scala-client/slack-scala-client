@@ -83,7 +83,7 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
     resolve(client.kickFromChannel(channelId, userId))
   }
 
-  def listChannels(excludeArchived: Int = 0)(implicit system: ActorSystem): Seq[Channel] = {
+  def listChannels(excludeArchived: Boolean = false)(implicit system: ActorSystem): Seq[Channel] = {
     resolve(client.listChannels(excludeArchived))
   }
 

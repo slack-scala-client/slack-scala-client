@@ -277,7 +277,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     extract[Boolean](res, "ok")
   }
 
-  def listChannels(excludeArchived: Int = 0)(implicit system: ActorSystem): Future[Seq[Channel]] = {
+  def listChannels(excludeArchived: Boolean = false)(implicit system: ActorSystem): Future[Seq[Channel]] = {
     val res = makeApiMethodRequest("channels.list", "exclude_archived" -> excludeArchived.toString)
     extract[Seq[Channel]](res, "channels")
   }
