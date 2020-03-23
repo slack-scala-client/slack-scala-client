@@ -27,7 +27,7 @@ class SlackApiClientTest extends AnyFunSuite with Credentials {
           actions = Some(actionField)
         )
 
-        apiClient.listChannels(1).map { channels =>
+        apiClient.listChannels().map { channels =>
           channels.foreach(channel => println(s"${channel.id}|${channel.name}"))
         }
         val future = apiClient.postChatMessage(channel, "Request", attachments = Some(Seq(attachment)))
