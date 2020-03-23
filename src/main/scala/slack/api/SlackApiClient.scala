@@ -14,7 +14,7 @@ import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import slack.models._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -41,6 +41,9 @@ object SlackApiClient {
 
   private[this] val toStrictTimeout = config.getInt("api.tostrict.timeout").seconds
 
+  private[api] val retries    = config.getInt("api.retries")
+  private[api] val maxBackoff = config.getInt("api.maxBackoff").seconds
+
   private[api] implicit val rtmStartStateFmt     = Json.format[RtmStartState]
   private[api] implicit val accessTokenFmt       = Json.format[AccessToken]
   private[api] implicit val historyChunkFmt      = Json.format[HistoryChunk]
@@ -65,13 +68,17 @@ object SlackApiClient {
                            )(implicit system: ActorSystem): Future[AccessToken] = {
     val params =
       Seq("client_id" -> clientId, "client_secret" -> clientSecret, "code" -> code, "redirect_uri" -> redirectUri)
-    val res = makeApiRequest(
+    makeApiRequest(
       addQueryParams(addSegment(HttpRequest(uri = slackApiBaseUri), "oauth.access"), cleanParams(params))
-    )
-    res.map(_.as[AccessToken])(system.dispatcher)
+    ).map {
+      case Right(jsValue) =>
+        jsValue.as[AccessToken]
+      case Left(retryAfter) =>
+        throw retryAfter.invalidResponseError
+    }(system.dispatcher)
   }
 
-  private def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[JsValue] = {
+  private def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
     implicit val mat = ActorMaterializer()
     implicit val ec  = system.dispatcher
     val connectionPoolSettings: ConnectionPoolSettings = maybeSettings.getOrElse(ConnectionPoolSettings(system))
@@ -80,11 +87,15 @@ object SlackApiClient {
         response.entity.toStrict(toStrictTimeout).map { entity =>
           val parsed = Json.parse(entity.data.decodeString("UTF-8"))
           if ((parsed \ "ok").as[Boolean]) {
-            parsed
+            Right(parsed)
           } else {
             throw ApiError((parsed \ "error").as[String])
           }
         }
+      case response if response.status.intValue == 429 =>
+        response.entity.discardBytes()
+        val retryAfter = RetryAfter.responseToInt(response)
+        Future.successful(Left(RetryAfter(retryAfter)))
       case response =>
         response.entity.toStrict(toStrictTimeout).map { entity =>
           throw InvalidResponseError(response.status.intValue, entity.data.decodeString("UTF-8"))
@@ -878,12 +889,27 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     )
     val request =
       addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(entity).withMethod(method = HttpMethods.POST)
-    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
-    extract[SlackFile](res, "file")
+    makeApiRequest(addQueryParams(request, cleanParams(params))).flatMap {
+      case Right(res) =>
+        extract[SlackFile](Future.successful(res), "file")
+      case Left(retryAfter) =>
+        throw retryAfter.invalidResponseError
+    }(system.dispatcher)
   }
 
   private def makeApiMethodRequest(apiMethod: String,
                                    queryParams: (String, Any)*)(implicit system: ActorSystem): Future[JsValue] = {
+    val req = addSegment(apiBaseWithTokenRequest, apiMethod)
+    makeApiRequest(addQueryParams(req, cleanParams(queryParams))).map {
+      case Right(jsValue) =>
+        jsValue
+      case Left(retryAfter) =>
+        throw retryAfter.invalidResponseError
+    }(system.dispatcher)
+  }
+
+  private def makeApiMethodRequestWithRetryAfter(apiMethod: String,
+                                   queryParams: (String, Any)*)(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
   }
@@ -891,15 +917,21 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   private def paginateCollection[T](apiMethod: String,
                                     queryParams: Seq[(String, Any)],
                                     field: String,
-                                    retries: Int = 5,
-                                    maxBackoff: FiniteDuration = 30.seconds,
                                     initialResults: Seq[T] = Seq.empty[T])(implicit system: ActorSystem, fmt: Format[Seq[T]]): Future[Seq[T]] = {
     implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
+    implicit val ec: ExecutionContext = system.dispatcher
 
-    RestartSource.onFailuresWithBackoff(5.seconds, maxBackoff, 0.2, retries)(() => {
+    RestartSource.onFailuresWithBackoff(2.seconds, maxBackoff, 0.2, retries)(() => {
       Source.fromFuture(
-        makeApiMethodRequest(apiMethod, queryParams:_*)
-      ).delay(scala.util.Random.nextFloat().second)
+        makeApiMethodRequestWithRetryAfter(apiMethod, queryParams:_*).flatMap {
+          case Right(jsValue) =>
+            Future.successful(jsValue)
+          case Left(retryAfter) =>
+            akka.pattern.after(retryAfter.finiteDuration, system.scheduler) {
+              Future.failed(retryAfter.invalidResponseError)
+            }
+        }
+      )
     }).runWith(Sink.head).flatMap { res =>
       val nextResults = (res \ field).as[Seq[T]] ++ initialResults
       (res \ "response_metadata").asOpt[ResponseMetadata].flatMap { metadata =>
@@ -911,13 +943,11 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
             apiMethod = apiMethod,
             queryParams = newParams.toSeq,
             field = field,
-            retries = retries,
-            maxBackoff = maxBackoff,
             initialResults = nextResults)
         case None =>
           Future.successful(nextResults)
       }
-    }(system.dispatcher)
+    }
   }
 
   private def createEntity(name: String, bytes: Array[Byte]): MessageEntity = {
@@ -945,7 +975,12 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
       .withMethod(HttpMethods.POST)
       .withHeaders(Authorization(OAuth2BearerToken(token)))
       .withEntity(ContentTypes.`application/json`, json.toString())
-    makeApiRequest(req)
+    makeApiRequest(req).map {
+      case Right(jsValue) =>
+        jsValue
+      case Left(retryAfter) =>
+        throw retryAfter.invalidResponseError
+    }(system.dispatcher)
   }
 }
 
