@@ -141,15 +141,15 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     case TypingMessage(channelId) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
-      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
+      webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
     case SendMessage(channelId, text, ts_thread) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text, ts_thread)))
-      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
+      webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
       sender ! nextId
     case bm: BotEditMessage =>
       val payload = Json.stringify(Json.toJson(bm))
-      webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
+      webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
     case StateRequest() =>
       sender ! StateResponse(state)
     case AddEventListener(listener) =>
@@ -196,7 +196,7 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
   }
 
   def handleWebSocketDisconnect(actor: ActorRef): Unit = {
-    if (webSocketClient.isDefined && webSocketClient.get == actor) {
+    if (webSocketClient.contains(actor)) {
       log.info("[SlackRtmConnectionActor] WebSocket Client disconnected, reconnecting")
       webSocketClient.foreach(context.stop)
       connectWebSocket()

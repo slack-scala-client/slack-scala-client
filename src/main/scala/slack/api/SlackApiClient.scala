@@ -24,7 +24,7 @@ object SlackApiClient {
   private[this] val config   = ConfigFactory.load()
   private[this] val useProxy: Boolean = Try(config.getString("slack-scala-client.http.useproxy"))
     .map(_.toBoolean)
-    .recover{case _:Exception => false}.get
+    .recover{case _:Exception => false}.getOrElse(false)
 
   private[this] val maybeSettings: Option[ConnectionPoolSettings] = if (useProxy) {
     val proxyHost = config.getString("slack-scala-client.http.proxyHost")
@@ -984,7 +984,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   }
 }
 
-case class InvalidResponseError(status: Int, body: String) extends Exception(s"Bad status code from Slack: ${status}")
+case class InvalidResponseError(status: Int, body: String) extends Exception(s"Bad status code from Slack: $status")
 case class ApiError(code: String) extends Exception(code)
 
 case class HistoryChunk(latest: Option[String], messages: Seq[JsValue], has_more: Boolean)

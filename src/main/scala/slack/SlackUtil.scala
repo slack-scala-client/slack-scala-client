@@ -7,11 +7,11 @@ object SlackUtil {
   private val mentionrx = """<@(\w+)>""".r
 
   def extractMentionedIds(text: String): Seq[String] = {
-    mentionrx.findAllMatchIn(text).toVector.map(_.subgroups.head)
+    mentionrx.findAllMatchIn(text).toVector.flatMap(_.subgroups.headOption)
   }
 
   def mentionsId(text: String, id: String): Boolean = {
-    mentionrx.findAllMatchIn(text).toVector.map(_.subgroups.head).contains(id)
+    extractMentionedIds(text).contains(id)
   }
 
   def isDirectMsg(m: Message): Boolean = {
