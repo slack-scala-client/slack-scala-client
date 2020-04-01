@@ -984,7 +984,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   }
 }
 
-case class InvalidResponseError(status: Int, body: String) extends Exception(s"Bad status code from Slack: ${status}")
+case class InvalidResponseError(status: Int, body: String) extends Exception(s"Bad status code from Slack: $status")
 case class ApiError(code: String) extends Exception(code)
 
 case class HistoryChunk(latest: Option[String], messages: Seq[JsValue], has_more: Boolean)
