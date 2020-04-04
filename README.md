@@ -16,27 +16,9 @@ Add SBT dependency:
 
 ### Maven
 
-Scala 2.13:
-
         <dependency>
             <groupId>com.github.slack-scala-client</groupId>
-            <artifactId>slack-scala-client_2.13</artifactId>
-            <version>0.2.8</version>
-        </dependency>
-
-Scala 2.12:
-
-        <dependency>
-            <groupId>com.github.slack-scala-client</groupId>
-            <artifactId>slack-scala-client_2.12</artifactId>
-            <version>0.2.8</version>
-        </dependency>
-
-Scala 2.11:
-
-        <dependency>
-            <groupId>com.github.slack-scala-client</groupId>
-            <artifactId>slack-scala-client_2.11</artifactId>
+            <artifactId>slack-scala-client_${scala.version}</artifactId>
             <version>0.2.8</version>
         </dependency>
 
