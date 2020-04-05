@@ -1,12 +1,12 @@
 package slack
 
-import play.api.libs.json.Json
-import slack.models.MessageSubtypes.FileShareMessage
-import slack.models._
-
-import scala.io.Source
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import play.api.libs.json.Json
+import slack.models.MessageSubtypes.FileShareMessage
+import slack.models.{AppActionsUpdated, Block, BotMessage, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile}
+
+import scala.io.Source
 
 /**
   * Created by ptx on 9/5/15.
@@ -316,10 +316,16 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
   }
 
   test("message blocks") {
-
     val json = Json.parse(Source.fromFile("src/test/resources/blocks.json").mkString)
     val ev = json.as[Seq[Block]]
     Json.toJson(ev) shouldBe json
   }
 
+  test("app actions updated") {
+    val json = Json.parse(
+      """{"type":"app_actions_updated","app_id":"A0H654321","is_uninstall":false,"event_ts":"1559757796.157400"}""")
+
+    val ev = json.as[AppActionsUpdated]
+    ev should be(AppActionsUpdated(app_id = "A0H654321", is_uninstall = false, event_ts = "1559757796.157400"))
+  }
 }

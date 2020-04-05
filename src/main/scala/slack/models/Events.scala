@@ -237,6 +237,8 @@ case class Reply(ok: Boolean, reply_to: Long, ts: String, text: String) extends 
 
 case class AppsChanged(app: App, event_ts: String) extends SlackEvent
 
+case class AppActionsUpdated(app_id: String, is_uninstall: Boolean, event_ts: String) extends SlackEvent
+
 case class AppsUninstalled(app_id: String, event_ts: String) extends SlackEvent
 
 case class AppsInstalled(app: App, event_ts: String) extends SlackEvent

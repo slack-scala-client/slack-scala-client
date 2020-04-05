@@ -159,6 +159,7 @@ package object models {
   implicit val teamMigrationStartedFmt = Json.format[TeamMigrationStarted]
   implicit val reconnectUrlFmt = Json.format[ReconnectUrl]
   implicit val appsChangedFmt = Json.format[AppsChanged]
+  implicit val appActionsUpdatedFmt = Json.format[AppActionsUpdated]
   implicit val appsUninstalledFmt = Json.format[AppsUninstalled]
   implicit val appsInstalledFmt = Json.format[AppsInstalled]
   implicit val desktopNotificationFmt = Json.format[DesktopNotification]
@@ -264,6 +265,7 @@ package object models {
         case e: AccountsChanged => Json.toJson(e)
         case e: TeamMigrationStarted => Json.toJson(e)
         case e: ReconnectUrl => Json.toJson(e)
+        case e: AppActionsUpdated => Json.toJson(e)
         case e: AppsChanged => Json.toJson(e)
         case e: AppsUninstalled => Json.toJson(e)
         case e: AppsInstalled => Json.toJson(e)
@@ -375,6 +377,7 @@ package object models {
           case "team_migration_started" => JsSuccess(jsValue.as[TeamMigrationStarted])
           case "reconnect_url" => JsSuccess(jsValue.as[ReconnectUrl])
           case "apps_changed" => JsSuccess(jsValue.as[AppsChanged])
+          case "app_actions_updated" => JsSuccess(jsValue.as[AppActionsUpdated])
           case "apps_uninstalled" => JsSuccess(jsValue.as[AppsUninstalled])
           case "apps_installed" => JsSuccess(jsValue.as[AppsInstalled])
           case "desktop_notification" => JsSuccess(jsValue.as[DesktopNotification])
