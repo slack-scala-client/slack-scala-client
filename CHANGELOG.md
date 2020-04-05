@@ -1,3 +1,14 @@
+0.2.9 (2020-04-06)
+------------------
+* proxy support added
+* dependency versions bumped
+* `conversations.lists` support
+* New events mapped - subteams and app actions
+
+Internal efforts:
+* code clean-up, incl. some warnings removed
+* employing scala-steward
+
 0.2.8 (2020-02-17)
 ------------------
 * Content-type fix (#110)
