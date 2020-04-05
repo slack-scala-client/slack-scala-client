@@ -34,6 +34,7 @@ package object models {
   implicit val attachmentFmt = Json.format[Attachment]
   implicit val authIdentityFmt = Json.format[AuthIdentity]
   implicit val teamFmt = Json.format[Team]
+  implicit val subteamFmt = Json.format[Subteam]
   implicit val channelValueFmt = Json.format[ChannelValue]
   implicit val groupValueFmt = Json.format[GroupValue]
   implicit val imFmt = Json.format[Im]
@@ -153,6 +154,8 @@ package object models {
   implicit val teamPrefChangedFmt = Json.format[TeamPrefChanged]
   implicit val teamRenameFmt = Json.format[TeamRename]
   implicit val teamDomainChangeFmt = Json.format[TeamDomainChange]
+  implicit val subteamCreatedFmt = Json.format[SubteamCreated]
+  implicit val subteamUpdatedFmt = Json.format[SubteamUpdated]
   implicit val botAddedFmt = Json.format[BotAdded]
   implicit val botChangedFmt = Json.format[BotChanged]
   implicit val accountsChangedFmt = Json.format[AccountsChanged]
@@ -260,6 +263,8 @@ package object models {
         case e: TeamPrefChanged => Json.toJson(e)
         case e: TeamRename => Json.toJson(e)
         case e: TeamDomainChange => Json.toJson(e)
+        case e: SubteamCreated => Json.toJson(e)
+        case e: SubteamUpdated => Json.toJson(e)
         case e: BotAdded => Json.toJson(e)
         case e: BotChanged => Json.toJson(e)
         case e: AccountsChanged => Json.toJson(e)
@@ -371,6 +376,8 @@ package object models {
           case "team_pref_changed" => JsSuccess(jsValue.as[TeamPrefChanged])
           case "team_rename" => JsSuccess(jsValue.as[TeamRename])
           case "team_domain_change" => JsSuccess(jsValue.as[TeamDomainChange])
+          case "subteam_created" => JsSuccess(jsValue.as[SubteamCreated])
+          case "subteam_updated" => JsSuccess(jsValue.as[SubteamUpdated])
           case "bot_added" => JsSuccess(jsValue.as[BotAdded])
           case "bot_changed" => JsSuccess(jsValue.as[BotChanged])
           case "accounts_changed" => JsSuccess(jsValue.as[AccountsChanged])

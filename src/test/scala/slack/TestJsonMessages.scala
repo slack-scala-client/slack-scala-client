@@ -4,7 +4,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
-import slack.models.{AppActionsUpdated, Block, BotMessage, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile}
+import slack.models.{AppActionsUpdated, Block, BotMessage, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile, SubteamCreated}
 
 import scala.io.Source
 
@@ -327,5 +327,35 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
 
     val ev = json.as[AppActionsUpdated]
     ev should be(AppActionsUpdated(app_id = "A0H654321", is_uninstall = false, event_ts = "1559757796.157400"))
+  }
+
+  test("subteam created") {
+    val json = Json.parse(
+      """{"type":"subteam_created","subteam":{"id":"SQPLPLPL1","team_id":"T0PTEAMEV","is_usergroup":true,
+        |"is_subteam":true,"name":"mimi","description":"Sean Connery is known as Mimi","handle":"mimi",
+        |"is_external":false,"date_create":1574102386,"date_update":1574102386,"date_delete":0,"auto_type":null,
+        |"auto_provision":false,"enterprise_subteam_id":"S00","created_by":"U024BE7LH","updated_by":"U024BE7LH",
+        |"deleted_by":null,"prefs":{"channels":[],"groups":[]},"user_count":0},
+        |"event_ts":"1572102386.961600"}""".stripMargin)
+
+    val ev = json.as[SubteamCreated]
+    ev.subteam.description should be("Sean Connery is known as Mimi")
+    ev.subteam.handle should be("mimi")
+  }
+
+  test("subteam updated") {
+    val json = Json.parse(
+      """{"type":"subteam_updated",
+        |"subteam":{"id":"S91234567","team_id":"T0PTEAMEV","is_usergroup":true,"is_subteam":true,
+        |"name":"IT Team","description":"Information Technology Team","handle":"it-team","is_external":false,
+        |"date_create":1522710156,"date_update":1545064475,"date_delete":0,"auto_type":null,"auto_provision":false,
+        |"enterprise_subteam_id":"S00","created_by":"U01234567","updated_by":"U01234567","deleted_by":null,
+        |"prefs":{"channels":["CYPCYPCYP","CYP123123"],"groups":["GREATGROU","GROUP1234","GROUPGRE"]},
+        |"users":["U01234567","U0G9QF9C6","U12NQNABX"],"user_count":3},
+        |"event_ts":"1572132456.100200"}""".stripMargin)
+
+    val ev = json.as[SubteamCreated]
+    ev.subteam.description should be("Information Technology Team")
+    ev.subteam.handle should be("it-team")
   }
 }
