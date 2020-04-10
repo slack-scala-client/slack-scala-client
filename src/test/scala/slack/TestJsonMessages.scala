@@ -358,4 +358,29 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
     ev.subteam.description should be("Information Technology Team")
     ev.subteam.handle should be("it-team")
   }
+
+  test("bot message reply (#109)") {
+    val json = Json.parse(
+      """
+        |{"type":"message","subtype":"message_replied","hidden":true,"message":{"type":"message","subtype":"bot_message",
+        |"text":":ubuntu: Preparing to restart system","ts":"1576165997.108800","username":"19004-Host",
+        |"icons":{"image_48":"https://host/img.png"},"bot_id":"BERESWKDH","thread_ts":"1576165997.108800","reply_count":21,
+        |"reply_users_count":1,"latest_reply":"1576166566.113400","reply_users":["BERESWKDH"],
+        |"replies":[{"user":"BERESWKDH","ts":"1576166041.108900"},{"user":"BERESWKDH","ts":"1576166042.109100"},
+        |{"user":"BERESWKDH","ts":"1576166129.109300"},{"user":"BERESWKDH","ts":"1576166130.109500"},
+        |{"user":"BERESWKDH","ts":"1576166132.109700"},{"user":"BERESWKDH","ts":"1576166134.109900"},
+        |{"user":"BERESWKDH","ts":"1576166153.110100"},{"user":"BERESWKDH","ts":"1576166155.110300"},
+        |{"user":"BERESWKDH","ts":"1576166331.110500"},{"user":"BERESWKDH","ts":"1576166334.110700"},
+        |{"user":"BERESWKDH","ts":"1576166337.110900"},{"user":"BERESWKDH","ts":"1576166375.111100"},
+        |{"user":"BERESWKDH","ts":"1576166386.111300"},{"user":"BERESWKDH","ts":"1576166394.111500"},
+        |{"user":"BERESWKDH","ts":"1576166531.111800"},{"user":"BERESWKDH","ts":"1576166532.112000"},
+        |{"user":"BERESWKDH","ts":"1576166533.112200"},{"user":"BERESWKDH","ts":"1576166554.112400"},
+        |{"user":"BERESWKDH","ts":"1576166554.112600"},{"user":"BERESWKDH","ts":"1576166566.113200"},
+        |{"user":"BERESWKDH","ts":"1576166566.113400"}]},
+        |"channel":"G8C84QKDI","event_ts":"1576166566.113500","ts":"1576166566.113500"}
+        |""".stripMargin)
+
+    val ev = json.as[MessageReplied]
+    ev.message.text should be("ubuntu: Preparing to restart system")
+  }
 }
