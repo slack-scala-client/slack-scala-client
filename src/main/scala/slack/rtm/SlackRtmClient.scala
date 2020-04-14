@@ -25,14 +25,18 @@ object SlackRtmClient {
   }
 }
 
-class SlackRtmClient private (token: String, slackApiBaseUri: Uri, duration: FiniteDuration)(
+class SlackRtmClient(token: String, slackApiBaseUri: Uri, duration: FiniteDuration)(
   implicit arf: ActorSystem
 ) {
   private implicit val timeout = new Timeout(duration)
 
   val apiClient = BlockingSlackApiClient(token, slackApiBaseUri, duration)
   val state = RtmState(apiClient.startRealTimeMessageSession())
-  private val actor = SlackRtmConnectionActor(apiClient, state)
+  private val actor = createConnectionActor
+
+  def createConnectionActor: ActorRef = {
+    SlackRtmConnectionActor(apiClient, state)
+  }
 
   def onEvent(f: (SlackEvent) => Unit): ActorRef = {
     val handler = EventHandlerActor(f)
@@ -101,7 +105,7 @@ private[rtm] object SlackRtmConnectionActor {
   }
 }
 
-private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState)
+class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState)
     extends Actor
     with ActorLogging {
 
@@ -122,22 +126,7 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
 
   def receive = {
     case message: TextMessage =>
-      try {
-        val payload = message.getStrictText
-        val payloadJson = Json.parse(payload)
-        if ((payloadJson \ "type").asOpt[String].isDefined || (payloadJson \ "reply_to").asOpt[Long].isDefined) {
-          Try(payloadJson.as[SlackEvent]) match {
-            case Success(event) =>
-              state.update(event)
-              listeners.foreach(_ ! event)
-            case Failure(e) => log.error(e, s"[SlackRtmClient] Error reading event: $payload")
-          }
-        } else {
-          log.warning(s"invalid slack event : $payload")
-        }
-      } catch {
-        case e: Exception => log.error(e, "[SlackRtmClient] Error parsing text message")
-      }
+      onTextMessageReceive(message)
     case TypingMessage(channelId) =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
@@ -179,6 +168,25 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
       webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
     case x =>
       log.warning(s"$x doesn't match any case, skip")
+  }
+
+  def onTextMessageReceive(message: TextMessage) = {
+    try {
+      val payload = message.getStrictText
+      val payloadJson = Json.parse(payload)
+      if ((payloadJson \ "type").asOpt[String].isDefined || (payloadJson \ "reply_to").asOpt[Long].isDefined) {
+        Try(payloadJson.as[SlackEvent]) match {
+          case Success(event) =>
+            state.update(event)
+            listeners.foreach(_ ! event)
+          case Failure(e) => log.error(e, s"[SlackRtmClient] Error reading event: $payload")
+        }
+      } else {
+        log.warning(s"invalid slack event : $payload")
+      }
+    } catch {
+      case e: Exception => log.error(e, "[SlackRtmClient] Error parsing text message")
+    }
   }
 
   def connectWebSocket(): Unit = {
