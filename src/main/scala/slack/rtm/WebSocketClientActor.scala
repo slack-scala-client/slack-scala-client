@@ -12,6 +12,7 @@ import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import com.typesafe.config.ConfigFactory
 import slack.rtm.WebSocketClientActor._
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
