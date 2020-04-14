@@ -91,10 +91,10 @@ private[rtm] object SlackRtmConnectionActor {
                             as_user: Boolean = true,
                             `type`: String = "chat.update")
   case class TypingMessage(channelId: String)
-  case class StateRequest()
+  case object StateRequest
   case class StateResponse(state: RtmState)
   case object ReconnectWebSocket
-  case class SendPing()
+  case object SendPing
 
   def apply(apiClient: BlockingSlackApiClient, state: RtmState)(implicit arf: ActorRefFactory): ActorRef = {
     arf.actorOf(Props(new SlackRtmConnectionActor(apiClient, state)))
@@ -150,7 +150,7 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     case bm: BotEditMessage =>
       val payload = Json.stringify(Json.toJson(bm))
       webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
-    case StateRequest() =>
+    case StateRequest =>
       sender ! StateResponse(state)
     case AddEventListener(listener) =>
       listeners += listener
@@ -173,12 +173,12 @@ private[rtm] class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, st
     case Terminated(actor) =>
       listeners -= actor
       handleWebSocketDisconnect(actor)
-    case SendPing() =>
+    case SendPing =>
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(Ping(nextId)))
       webSocketClient.map(_ ! SendWSMessage(TextMessage(payload)))
-    case _ =>
-      log.warning("doesn't match any case, skip")
+    case x =>
+      log.warning(s"$x doesn't match any case, skip")
   }
 
   def connectWebSocket(): Unit = {
