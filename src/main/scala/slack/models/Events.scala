@@ -34,6 +34,8 @@ case class ReplyMarker(user: String, ts: String)
 
 case class ReplyMessage(user: String, text: String, thread_ts: String, reply_count: Int, replies: Seq[ReplyMarker])
 
+case class ReplyBotMessage(username: Option[String], text: String, thread_ts: String, reply_count: Int, replies: Seq[ReplyMarker])
+
 case class MessageChanged(message: EditMessage,
                           previous_message: EditMessage,
                           ts: String,
@@ -44,6 +46,8 @@ case class MessageChanged(message: EditMessage,
 case class MessageDeleted(ts: String, deleted_ts: String, event_ts: String, channel: String) extends SlackEvent
 
 case class MessageReplied(ts: String, event_ts: String, channel: String, message: ReplyMessage) extends SlackEvent
+
+case class BotMessageReplied(ts: String, event_ts: String, channel: String, message: ReplyBotMessage) extends SlackEvent
 
 case class BotMessage(ts: String,
                       channel: String,

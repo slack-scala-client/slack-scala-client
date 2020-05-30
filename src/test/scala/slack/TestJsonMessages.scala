@@ -4,7 +4,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
-import slack.models.{AppActionsUpdated, Block, BotMessage, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile, SubteamCreated}
+import slack.models.{AppActionsUpdated, Block, BotMessage, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile, SubteamCreated}
 
 import scala.io.Source
 
@@ -380,7 +380,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"channel":"G8C84QKDI","event_ts":"1576166566.113500","ts":"1576166566.113500"}
         |""".stripMargin)
 
-    val ev = json.as[MessageReplied]
-    ev.message.text should be("ubuntu: Preparing to restart system")
+    val ev = json.as[BotMessageReplied]
+    ev.message.text should be(":ubuntu: Preparing to restart system")
   }
 }
