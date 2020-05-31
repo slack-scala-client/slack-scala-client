@@ -4,13 +4,13 @@ import sbt._
 object BuildSettings {
   val buildOrganization = "com.github.slack-scala-client"
   val buildVersion      = "0.2.9"
-  val buildScalaVersion = "2.12.10"
+  val buildScalaVersion = "2.12.11"
 
   val settings = Seq (
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
-    crossScalaVersions :=  Seq("2.11.12", scalaVersion.value, "2.13.1"),
+    crossScalaVersions :=  Seq("2.11.12", scalaVersion.value, "2.13.2"),
     publishMavenStyle  := true,
     credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     publishTo          := {
