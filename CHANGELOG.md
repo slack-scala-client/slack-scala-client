@@ -1,3 +1,8 @@
+0.2.10 (2020-05-31)
+-------------------
+* Fixing ping (#136)
+* Fixing mapping for replies to bot messages (#135)
+
 0.2.9 (2020-04-06)
 ------------------
 * proxy support added
