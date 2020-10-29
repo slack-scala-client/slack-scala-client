@@ -25,7 +25,8 @@ case class Message(ts: String,
                    user: String,
                    text: String,
                    is_starred: Option[Boolean],
-                   thread_ts: Option[String])
+                   thread_ts: Option[String],
+                   attachments: Option[Seq[Attachment]])
     extends SlackEvent
 
 case class EditMessage(user: Option[String], text: String, ts: String)

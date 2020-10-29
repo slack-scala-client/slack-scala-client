@@ -4,7 +4,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 import slack.models.MessageSubtypes.FileShareMessage
-import slack.models.{AppActionsUpdated, Block, BotMessage, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile, SubteamCreated}
+import slack.models.{ActionField, AppActionsUpdated, Attachment, AttachmentField, Block, BotMessage, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, Message, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile, SubteamCreated}
 
 import scala.io.Source
 
@@ -382,5 +382,56 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
 
     val ev = json.as[BotMessageReplied]
     ev.message.text should be(":ubuntu: Preparing to restart system")
+  }
+
+  test("normal message from a human user") {
+    val json = Json.parse(
+      """
+        |{"client_msg_id":"f712345f-2486-4abc-9dd8-0fabcdefabc3","suppress_notification":false,"type":"message",
+        |"text":"Normal message by a user","user":"U12NQNABX","team":"T0PTEAMEV",
+        |"blocks":[{"type":"rich_text","block_id":"vyOcd",
+        |"elements":[{"type":"rich_text_section","elements":[{"type":"text","text":"Normal message by a user"}]}]}],
+        |"source_team":"T0PTEAMEV","user_team":"T0PTEAMEV","channel":"CYPCYPCYP","event_ts":"1603969719.023600",
+        |"ts":"1603969719.023600"}
+        |""".stripMargin)
+    val ev = json.as[SlackEvent]
+    ev should be(Message("1603969719.023600", "CYPCYPCYP", "U12NQNABX", "Normal message by a user", None, None, None))
+  }
+
+  test("a message from Pagerduty bot") {
+    val json = Json.parse("""
+      |{"bot_id":"B98080B1A","suppress_notification":false,"type":"message","text":"","user":"U12NQNABX",
+      |"team":"T0PTEAMEV",
+      |"bot_profile":{"id":"B3DAFJXCJ","deleted":false,"name":"PagerDuty","updated":1568927181,
+      |"app_id":"A1FKYAUUX","icons":{"image_36":"https://avatars.slack-edge.com/2019-09-10/742836414770_a5812ce768ce4fa595b6_36.png","image_48":"https://avatars.slack-edge.com/2019-09-10/742836414770_a5812ce768ce4fa595b6_48.png","image_72":"https://avatars.slack-edge.com/2019-09-10/742836414770_a5812ce768ce4fa595b6_72.png"},"team_id":"T024F4SFX"},
+      |"attachments":[{"callback_id":"P5WWTIC","fallback":"Triggered 10227559: test 1151",
+      |"text":"*Triggered <https://alef.pagerduty.com/incidents/P5WWTIC|#10227559>:* test 1151","id":1,"color":"EA0B06",
+      |"fields":[{"title":"","value":" ","short":false},
+      |{"title":"","value":"*Assigned:* <https://alef.pagerduty.com/users/PUWD544|John Smith>\n↓︎ Low Urgency","short":true},
+      |{"title":"","value":"*Service:* <https://alef.pagerduty.com/service-directory/PNYKH5N|jsmith test>","short":true}],
+      |"actions":[{"id":"1","name":"acknowledge","text":"Acknowledge","type":"button","value":"yes","style":"default"},{"id":"2","name":"resolve","text":"Resolve","type":"button","value":"yes","style":"default"},{"id":"3","name":"annotate","text":"Add Note","type":"button","value":"yes","style":"default"}],"mrkdwn_in":["text","fields"]}],
+      |"source_team":"T0PTEAMEV","user_team":"T0PTEAMEV","channel":"CYPCYPCYP","event_ts":"1603968691.023300","ts":"1603968691.023300"}
+      |""".stripMargin)
+    val ev = json.as[SlackEvent]
+    ev should be(Message("1603968691.023300", "CYPCYPCYP", "U12NQNABX", "", None, None,
+      Some(
+        Seq[Attachment](
+          Attachment(fallback = Some("Triggered 10227559: test 1151"),
+            callback_id = Some("P5WWTIC"),
+            text = Some("*Triggered <https://alef.pagerduty.com/incidents/P5WWTIC|#10227559>:* test 1151"),
+            color = Some("EA0B06"),
+            fields = Some(Vector(
+              AttachmentField("", " ", false),
+              AttachmentField("", "*Assigned:* <https://alef.pagerduty.com/users/PUWD544|John Smith>\n↓︎ Low Urgency", true),
+              AttachmentField("", "*Service:* <https://alef.pagerduty.com/service-directory/PNYKH5N|jsmith test>", true))),
+            actions = Some(Vector(
+              ActionField("acknowledge", "Acknowledge", "button", Some("default"), value = Some("yes")),
+              ActionField("resolve", "Resolve", "button", Some("default"), value = Some("yes")),
+              ActionField("annotate", "Add Note", "button", Some("default"), value = Some("yes"))
+            )),
+            mrkdwn_in = Some(Vector("text", "fields"))
+          )
+        )
+      )))
   }
 }
