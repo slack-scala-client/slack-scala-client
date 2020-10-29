@@ -207,7 +207,7 @@ object SlackApiClient {
 
 import slack.api.SlackApiClient._
 
-class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
+class SlackApiClient private (token: String, slackApiBaseUri: Uri) extends SlackApiClientF[Future] {
 
   private val apiBaseRequest = HttpRequest(uri = slackApiBaseUri)
 

@@ -135,12 +135,12 @@ class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text, ts_thread)))
       webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
-      sender ! nextId
+      sender() ! nextId
     case bm: BotEditMessage =>
       val payload = Json.stringify(Json.toJson(bm))
       webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
     case StateRequest =>
-      sender ! StateResponse(state)
+      sender() ! StateResponse(state)
     case AddEventListener(listener) =>
       listeners += listener
       context.watch(listener)
@@ -150,7 +150,7 @@ class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState
       log.info("[SlackRtmConnectionActor] WebSocket Client successfully connected")
       connectFailures = 0
     case WebSocketClientDisconnected =>
-      handleWebSocketDisconnect(sender)
+      handleWebSocketDisconnect(sender())
     case WebSocketClientConnectFailed =>
       val delay = Math.pow(2.0, connectFailures.toDouble).toInt
       log.info("[SlackRtmConnectionActor] WebSocket Client failed to connect, retrying in {} seconds", delay)

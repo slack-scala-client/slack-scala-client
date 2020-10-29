@@ -117,7 +117,7 @@ private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLog
   }
 
   override def postStop(): Unit = {
-    outboundMessageQueue.foreach(_.complete)
+    outboundMessageQueue.foreach(_.complete())
     context.parent ! WebSocketClientDisconnected
   }
 }

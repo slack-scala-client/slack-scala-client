@@ -4,6 +4,7 @@ import java.io.File
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
+import cats.Id
 import play.api.libs.json._
 import slack.api.SlackApiClient.defaultSlackApiBaseUri
 import slack.models._
@@ -34,7 +35,7 @@ object BlockingSlackApiClient {
   }
 }
 
-class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, duration: FiniteDuration) {
+class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, duration: FiniteDuration) extends SlackApiClientF[Id] {
   val client = SlackApiClient(token, slackApiBaseUri)
 
   /**************************/
@@ -119,8 +120,8 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
   /**************************/
   /****  Chat Endpoints  ****/
   /**************************/
-  def deleteChat(channelId: String, ts: String)(implicit system: ActorSystem): Boolean = {
-    resolve(client.deleteChat(channelId, ts))
+  def deleteChat(channelId: String, ts: String, asUser: Option[Boolean] = None)(implicit system: ActorSystem): Boolean = {
+    resolve(client.deleteChat(channelId, ts, asUser))
   }
 
   def postChatMessage(channelId: String,
@@ -201,8 +202,16 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
     resolve(client.listFiles(userId, tsFrom, tsTo, types, count, page))
   }
 
-  def uploadFile(file: File)(implicit system: ActorSystem): SlackFile = {
-    resolve(client.uploadFile(Left(file)))
+  def uploadFile(
+    content: Either[File, Array[Byte]],
+    filetype: Option[String] = None,
+    filename: Option[String] = None,
+    title: Option[String] = None,
+    initialComment: Option[String] = None,
+    channels: Option[Seq[String]] = None,
+    thread_ts: Option[String] = None
+  )(implicit system: ActorSystem): SlackFile = {
+    resolve(client.uploadFile(content, filetype, filename, title, initialComment, channels, thread_ts))
   }
 
   /***************************/
