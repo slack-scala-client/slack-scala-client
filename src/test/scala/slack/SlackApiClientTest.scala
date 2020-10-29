@@ -4,7 +4,6 @@ import slack.api.SlackApiClient
 import slack.models.{ActionField, Attachment, PublicChannel}
 
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import org.scalatest.funsuite.AnyFunSuite
 

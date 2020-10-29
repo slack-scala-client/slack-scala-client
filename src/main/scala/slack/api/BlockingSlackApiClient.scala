@@ -6,14 +6,14 @@ import cats.Id
 import slack.api.SlackApiClient.defaultSlackApiBaseUri
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object BlockingSlackApiClient {
   def apply(
     token: String,
     slackApiBaseUri: Uri = SlackApiClient.defaultSlackApiBaseUri,
     duration: FiniteDuration = 5.seconds
-  ): SlackApiClientF[Id] = {
+  )(implicit actorSystem: ActorSystem, executionContext: ExecutionContext): SlackApiClientF[Id] = {
     import cats.tagless.implicits._ //fake intellij not used
     import cats._
 
@@ -29,7 +29,7 @@ object BlockingSlackApiClient {
     redirectUri: Option[String] = None,
     duration: FiniteDuration = 5.seconds,
     slackApiBaseUri: Uri = defaultSlackApiBaseUri
-  )(implicit system: ActorSystem): AccessToken = {
+  )(implicit system: ActorSystem, executionContext: ExecutionContext): AccessToken = {
     Await.result(
       SlackApiClient.exchangeOauthForToken(clientId, clientSecret, code, redirectUri, slackApiBaseUri),
       duration

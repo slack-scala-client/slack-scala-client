@@ -5,7 +5,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{ContentTypes, HttpMethods, HttpRequest, MessageEntity, Uri}
 import akka.http.scaladsl.settings.ConnectionPoolSettings
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.stream.scaladsl.{RestartSource, Sink, Source}
 import play.api.libs.json.{Format, JsValue, Json}
 import slack.models.{ResponseMetadata, RetryAfter, SlackFile}
@@ -20,6 +19,9 @@ class ApiRequester(
   toStrictTimeout: FiniteDuration,
   retries: Int,
   maxBackoff: FiniteDuration
+)(
+  implicit system: ActorSystem,
+  executionContext: ExecutionContext
 ) {
   import concurrent.duration._
 
@@ -29,9 +31,7 @@ class ApiRequester(
     apiBaseRequest.uri.withQuery(Uri.Query((apiBaseRequest.uri.query() :+ ("token" -> token)): _*))
   )
 
-  def makeApiRequest(request: HttpRequest)(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
-    implicit val mat = ActorMaterializer()
-    implicit val ec  = system.dispatcher
+  def makeApiRequest(request: HttpRequest): Future[Either[RetryAfter, JsValue]] = {
     val connectionPoolSettings: ConnectionPoolSettings = maybeSettings.getOrElse(ConnectionPoolSettings(system))
     Http().singleRequest(request, settings = connectionPoolSettings).flatMap {
       case response if response.status.intValue == 200 =>
@@ -60,7 +60,7 @@ class ApiRequester(
     title: Option[String],
     initialComment: Option[String],
     channels: Option[Seq[String]],
-    thread_ts: Option[String])(implicit system: ActorSystem): Future[SlackFile] = {
+    thread_ts: Option[String]): Future[SlackFile] = {
     val params = Seq(
       "filetype" -> filetype,
       "filename" -> filename,
@@ -80,7 +80,7 @@ class ApiRequester(
   }
 
   def makeApiMethodRequest(apiMethod: String,
-    queryParams: (String, Any)*)(implicit system: ActorSystem): Future[JsValue] = {
+    queryParams: (String, Any)*): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams))).map {
       case Right(jsValue) =>
@@ -91,7 +91,7 @@ class ApiRequester(
   }
 
   def makeApiMethodRequestWithRetryAfter(apiMethod: String,
-    queryParams: (String, Any)*)(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
+    queryParams: (String, Any)*): Future[Either[RetryAfter, JsValue]] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
   }
@@ -99,9 +99,7 @@ class ApiRequester(
   def paginateCollection[T](apiMethod: String,
     queryParams: Seq[(String, Any)],
     field: String,
-    initialResults: Seq[T] = Seq.empty[T])(implicit system: ActorSystem, fmt: Format[Seq[T]]): Future[Seq[T]] = {
-    implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
-    implicit val ec: ExecutionContext = system.dispatcher
+    initialResults: Seq[T] = Seq.empty[T])(implicit fmt: Format[Seq[T]]): Future[Seq[T]] = {
 
     RestartSource.onFailuresWithBackoff(2.seconds, maxBackoff, 0.2, retries)(() => {
       Source.fromFuture(
@@ -131,7 +129,7 @@ class ApiRequester(
       }
     }
   }
-  def makeApiJsonRequest(apiMethod: String, json: JsValue)(implicit system: ActorSystem): Future[JsValue] = {
+  def makeApiJsonRequest(apiMethod: String, json: JsValue): Future[JsValue] = {
     val req = addSegment(apiBaseRequest, apiMethod)
       .withMethod(HttpMethods.POST)
       .withHeaders(Authorization(OAuth2BearerToken(token)))
