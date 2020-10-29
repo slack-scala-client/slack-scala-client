@@ -73,7 +73,7 @@ class ApiRequester(
       addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(entity).withMethod(method = HttpMethods.POST)
     makeApiRequest(addQueryParams(request, cleanParams(params))).flatMap {
       case Right(res) =>
-        extract[SlackFile](Future.successful(res), "file")
+        Future.successful((res \ "file").as[SlackFile])
       case Left(retryAfter) =>
         throw retryAfter.invalidResponseError
     }(system.dispatcher)

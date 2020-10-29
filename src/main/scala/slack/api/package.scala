@@ -9,8 +9,10 @@ import scala.concurrent.Future
 package object api {
   type BlockingSlackApiClient = SlackApiClientF[Id] //only for backward compatibility
 
-  private[api] def extract[T](jsFuture: Future[JsValue], field: String)(implicit system: ActorSystem,
-    fmt: Format[T]): Future[T] = {
-    jsFuture.map(js => (js \ field).as[T])(system.dispatcher)
+  implicit class ExtractHelper(val jsFuture: Future[JsValue]) extends AnyVal {
+    def extract[T](field: String)(implicit system: ActorSystem, fmt: Format[T]): Future[T] = {
+      jsFuture.map(js => (js \ field).as[T])(system.dispatcher)
+    }
   }
+
 }
