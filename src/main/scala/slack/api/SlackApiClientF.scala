@@ -6,6 +6,9 @@ import akka.actor.ActorSystem
 import play.api.libs.json.JsValue
 import slack.models.{Attachment, AuthIdentity, Block, Channel, Group, Im, Reaction, SlackFile, UpdateResponse, User}
 
+import cats.tagless._
+
+@autoFunctorK
 trait SlackApiClientF[F[_]] {
 
   /**************************/

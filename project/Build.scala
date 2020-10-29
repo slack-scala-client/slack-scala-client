@@ -46,6 +46,24 @@ object BuildSettings {
   )
 }
 
+object TaglessSettings {
+  val settings = Seq(
+    libraryDependencies += "org.typelevel" %% "cats-tagless-macros" % "0.12",
+    Compile / scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 13 => "-Ymacro-annotations" :: Nil
+        case _ => Nil
+      }
+    },
+    libraryDependencies ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 13 => Nil
+        case _ => compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full) :: Nil
+      }
+    }
+  )
+}
+
 object Dependencies {
   val akkaVersion = "2.5.32"
 

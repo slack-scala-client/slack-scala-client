@@ -1,6 +1,7 @@
 lazy val slackScalaClient =
   Project ("slack-scala-client", file("."))
     .settings ( BuildSettings.settings : _* )
+    .settings ( TaglessSettings.settings : _* )
     .settings ( libraryDependencies ++= Dependencies.allDependencies )
     .settings ( scalacOptions ++= Seq("-language:higherKinds", "-unchecked", "-deprecation", "-Xfatal-warnings", "-Xlint", "-feature") )
     .settings (
