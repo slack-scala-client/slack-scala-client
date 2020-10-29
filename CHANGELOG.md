@@ -1,3 +1,8 @@
+0.2.11 (2020-10-29)
+-------------------
+* Adding support for attachments in plain Messages (#152)
+* Also a few 3rd-party library upgrades
+
 0.2.10 (2020-05-31)
 -------------------
 * Fixing ping (#136)
