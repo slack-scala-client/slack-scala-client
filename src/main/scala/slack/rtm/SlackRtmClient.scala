@@ -88,7 +88,11 @@ private[rtm] object SlackRtmConnectionActor {
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
-  case class SendMessage(channelId: String, text: String, ts_thread: Option[String] = None)
+  case class SendMessage(channelId: String,
+                         text: String,
+                         ts_thread: Option[String] = None,
+                         unfurl_links: Option[Boolean] = None,
+                         unfurl_media: Option[Boolean] = None)
   case class BotEditMessage(channelId: String,
                             ts: String,
                             text: String,
@@ -131,9 +135,9 @@ class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState
       val nextId = idCounter.getAndIncrement
       val payload = Json.stringify(Json.toJson(MessageTyping(nextId, channelId)))
       webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
-    case SendMessage(channelId, text, ts_thread) =>
+    case SendMessage(channelId, text, ts_thread, unfurl_links, unfurl_media) =>
       val nextId = idCounter.getAndIncrement
-      val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text, ts_thread)))
+      val payload = Json.stringify(Json.toJson(MessageSend(nextId, channelId, text, ts_thread, unfurl_links, unfurl_media)))
       webSocketClient.foreach(_ ! SendWSMessage(TextMessage(payload)))
       sender ! nextId
     case bm: BotEditMessage =>
@@ -224,6 +228,8 @@ private[rtm] case class MessageSend(id: Long,
                                     channel: String,
                                     text: String,
                                     thread_ts: Option[String] = None,
+                                    unfurl_links: Option[Boolean] = None,
+                                    unfurl_media: Option[Boolean] = None,
                                     `type`: String = "message")
 private[rtm] case class MessageTyping(id: Long, channel: String, `type`: String = "typing")
 private[rtm] case class Ping(id: Long, `type`: String = "ping")
