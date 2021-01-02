@@ -1,3 +1,8 @@
+0.2.12 (2021-01-02)
+-------------------
+* Add support for unfurl_links & unfurl_media (#162)
+* Dependency version upgrades
+
 0.2.11 (2020-10-29)
 -------------------
 * Adding support for attachments in plain Messages (#152)
