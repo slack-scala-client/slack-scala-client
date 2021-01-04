@@ -50,8 +50,12 @@ class SlackRtmClient(token: String, slackApiBaseUri: Uri, duration: FiniteDurati
     handler
   }
 
-  def sendMessage(channelId: String, text: String, thread_ts: Option[String] = None): Future[Long] = {
-    (actor ? SendMessage(channelId, text, thread_ts)).mapTo[Long]
+  def sendMessage(channelId: String,
+                  text: String,
+                  thread_ts: Option[String] = None,
+                  unfurl_links: Option[Boolean] = None,
+                  unfurl_media: Option[Boolean] = None): Future[Long] = {
+    (actor ? SendMessage(channelId, text, thread_ts, unfurl_links, unfurl_media)).mapTo[Long]
   }
 
   def editMessage(channelId: String, ts: String, text: String): Unit = {
