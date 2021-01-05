@@ -1,3 +1,8 @@
+0.2.13 (2021-01-05)
+-------------------
+* Fix for unfurl_links and unfurl_media support (#166)
+* Dependency version upgrades
+
 0.2.12 (2021-01-02)
 -------------------
 * Add support for unfurl_links & unfurl_media (#162)
