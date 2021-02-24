@@ -295,6 +295,11 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     extract[Channel](res, "channel")
   }
 
+  def setConversationTopic(channelId: String, topic: String)(implicit system: ActorSystem): Future[String] = {
+    val res = makeApiMethodRequest("conversations.setTopic", "channel" -> channelId, "topic" -> topic)
+    extract[String](res, "topic")
+  }
+
   def leaveChannel(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
     val res = makeApiMethodRequest("channels.leave", "channel" -> channelId)
     extract[Boolean](res, "ok")
