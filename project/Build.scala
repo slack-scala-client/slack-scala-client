@@ -10,7 +10,8 @@ object BuildSettings {
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
-    crossScalaVersions :=  Seq("2.11.12", scalaVersion.value, "2.13.3"),
+    crossScalaVersions :=  Seq(scalaVersion.value, "2.13.3"),
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
     publishMavenStyle  := true,
     credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     publishTo          := {
@@ -45,6 +46,24 @@ object BuildSettings {
   )
 }
 
+object TaglessSettings {
+  val settings = Seq(
+    libraryDependencies += "org.typelevel" %% "cats-tagless-macros" % "0.12",
+    Compile / scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 13 => "-Ymacro-annotations" :: Nil
+        case _ => Nil
+      }
+    },
+    libraryDependencies ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 13 => Nil
+        case _ => compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full) :: Nil
+      }
+    }
+  )
+}
+
 object Dependencies {
   val akkaVersion = "2.5.32"
 
@@ -58,8 +77,10 @@ object Dependencies {
 
   val jodaConvert = "org.joda" % "joda-convert" % "2.2.1" // https://stackoverflow.com/a/13856382/118587
 
+  val cats = "org.typelevel" %% "cats-core" % "2.2.0"
+
   val akkaDependencies = Seq(akkaHttp, akkaActor, akkaStream)
-  val miscDependencies = Seq(playJson, jodaConvert)
+  val miscDependencies = Seq(playJson, jodaConvert, cats)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies

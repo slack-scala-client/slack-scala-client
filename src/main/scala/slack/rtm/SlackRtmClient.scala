@@ -7,7 +7,7 @@ import slack.rtm.WebSocketClientActor._
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.mutable.{Set => MSet}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import akka.actor._
@@ -20,13 +20,13 @@ import akka.http.scaladsl.model.ws.TextMessage
 object SlackRtmClient {
   def apply(token: String,
             slackApiBaseUri: Uri = SlackApiClient.defaultSlackApiBaseUri,
-            duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem): SlackRtmClient = {
+            duration: FiniteDuration = 5.seconds)(implicit arf: ActorSystem, ec: ExecutionContext): SlackRtmClient = {
     new SlackRtmClient(token, slackApiBaseUri, duration)
   }
 }
 
 class SlackRtmClient(token: String, slackApiBaseUri: Uri, duration: FiniteDuration)(
-  implicit arf: ActorSystem
+  implicit arf: ActorSystem, ec: ExecutionContext
 ) {
   private implicit val timeout = new Timeout(duration)
 
