@@ -3,7 +3,7 @@ package slack
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
-import slack.models.{ActionField, AppActionsUpdated, Attachment, AttachmentField, Block, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, Message, MessageChanged, MessageReplied, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SubteamCreated}
+import slack.models.{ActionField, AppActionsUpdated, Attachment, AttachmentField, Block, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, Message, MessageChanged, MessageReplied, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, ReplyMessage, SlackEvent, SubteamCreated}
 
 import scala.io.Source
 
@@ -351,5 +351,51 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
           )
         )
       ), None))
+  }
+
+  test("reply from a bot in a thread") {
+    val json = Json.parse("""{
+                 |  "type": "message",
+                 |  "subtype": "message_replied",
+                 |  "hidden": true,
+                 |  "message": {
+                 |    "bot_id": "BUMARLABEDY",
+                 |    "type": "message",
+                 |    "text": "I have something smart to say",
+                 |    "user": "URLEPURLEP",
+                 |    "ts": "1618415112.049500",
+                 |    "team": "T02402402",
+                 |    "bot_profile": {
+                 |      "id": "BUMARLABEDY",
+                 |      "deleted": false,
+                 |      "name": "bot",
+                 |      "updated": 1575550667,
+                 |      "app_id": "A0APPA0APP",
+                 |      "icons": {
+                 |        "image_36": "https://a.slack-edge.com/80588/img/services/bots_36.png",
+                 |        "image_48": "https://a.slack-edge.com/80588/img/plugins/bot/service_48.png",
+                 |        "image_72": "https://a.slack-edge.com/80588/img/services/bots_72.png"
+                 |      },
+                 |      "team_id": "T02402402"
+                 |    },
+                 |    "thread_ts": "1618415112.049500",
+                 |    "reply_count": 1,
+                 |    "reply_users_count": 1,
+                 |    "latest_reply": "1618415112.049600",
+                 |    "reply_users": [
+                 |      "UANOTHER"
+                 |    ],
+                 |    "is_locked": false
+                 |  },
+                 |  "channel": "C047474747",
+                 |  "event_ts": "1618415112.049700",
+                 |  "ts": "1618415112.049700"
+                 |}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    ev should be(
+      MessageReplied(
+        "1618415112.049700", "1618415112.049700", "C047474747",
+        ReplyMessage("URLEPURLEP", Some("BUMARLABEDY"), "I have something smart to say", "1618415112.049500", 1, None
+    )))
   }
 }

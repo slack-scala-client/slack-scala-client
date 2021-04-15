@@ -34,9 +34,9 @@ case class EditMessage(user: Option[String], text: String, ts: String)
 
 case class ReplyMarker(user: String, ts: String)
 
-case class ReplyMessage(user: String, text: String, thread_ts: String, reply_count: Int, replies: Seq[ReplyMarker])
+case class ReplyMessage(user: String, bot_id: Option[String], text: String, thread_ts: String, reply_count: Int, replies: Option[Seq[ReplyMarker]])
 
-case class ReplyBotMessage(username: Option[String], text: String, thread_ts: String, reply_count: Int, replies: Seq[ReplyMarker])
+case class ReplyBotMessage(username: Option[String], text: String, thread_ts: String, reply_count: Int, replies: Option[Seq[ReplyMarker]])
 
 case class MessageChanged(message: EditMessage,
                           previous_message: EditMessage,
