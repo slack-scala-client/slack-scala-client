@@ -97,7 +97,6 @@ package object models {
   implicit val editMessageFmt = Json.format[EditMessage]
   implicit val replyMessageFmt = Json.format[ReplyMessage]
   implicit val replyBotMessageFmt = Json.format[ReplyBotMessage]
-  implicit val botMessageFmt = Json.format[BotMessage]
   implicit val messageChangedFmt = Json.format[MessageChanged]
   implicit val messageDeletedFmt = Json.format[MessageDeleted]
   implicit val messageRepliedFmt = Json.format[MessageReplied]
@@ -174,27 +173,6 @@ package object models {
   implicit val memberLeft = Json.format[MemberLeft]
   implicit val pong = Json.format[Pong]
 
-  // Message sub-types
-  import MessageSubtypes._
-
-  implicit val messageSubtypeMeMessageFmt = Json.format[MeMessage]
-  implicit val messageSubtypeChannelNameMessageFmt = Json.format[ChannelNameMessage]
-  implicit val messageSubtypeFileShareMessageFmt = Json.format[FileShareMessage]
-  implicit val messageSubtypeHandledSubtypeFmt = Json.format[UnhandledSubtype]
-  implicit val messageWithSubtypeWrites: Writes[MessageWithSubtype] = {
-    import play.api.libs.functional.syntax._
-    (
-      (JsPath \ "ts").write[String] and
-        (JsPath \ "channel").write[String] and
-        (JsPath \ "user").write[String] and
-        (JsPath \ "text").write[String] and
-        (JsPath \ "is_starred").write[Option[Boolean]] and
-        (JsPath \ "subtype").write[String]
-    )(
-      (msg: MessageWithSubtype) => (msg.ts, msg.channel, msg.user, msg.text, msg.is_starred, msg.messageSubType.subtype)
-    )
-  }
-
   // Event Reads/Writes
   implicit val slackEventWrites = new Writes[SlackEvent] {
     def writes(event: SlackEvent) = {
@@ -206,12 +184,6 @@ package object models {
         case e: MessageDeleted => Json.toJson(e)
         case e: MessageReplied => Json.toJson(e)
         case e: BotMessageReplied => Json.toJson(e)
-        case e: BotMessage => Json.toJson(e)
-        case e: MessageWithSubtype => Json.toJson(e)
-        case e: MeMessage => Json.toJson(e)
-        case e: ChannelNameMessage => Json.toJson(e)
-        case e: FileShareMessage => Json.toJson(e)
-        case e: UnhandledSubtype => Json.toJson(e)
         case e: UserTyping => Json.toJson(e)
         case e: ReactionAdded => Json.toJson(e)
         case e: ReactionRemoved => Json.toJson(e)
@@ -286,32 +258,6 @@ package object models {
     }
   }
 
-  implicit val subMessageReads = new Reads[MessageWithSubtype] {
-    def reads(jsValue: JsValue): JsResult[MessageWithSubtype] = {
-      (jsValue \ "subtype").asOpt[String] match {
-        case Some(subtype) =>
-          import MessageSubtypes._
-          val subMessage = subtype match {
-            case "me_message" => jsValue.as[MeMessage]
-            case "channel_name" => jsValue.as[ChannelNameMessage]
-            case "file_share" => jsValue.as[FileShareMessage]
-            case _ => jsValue.as[UnhandledSubtype]
-          }
-          JsSuccess(
-            MessageWithSubtype(
-              (jsValue \ "ts").as[String],
-              (jsValue \ "channel").as[String],
-              (jsValue \ "user").as[String],
-              (jsValue \ "text").as[String],
-              (jsValue \ "is_starred").asOpt[Boolean],
-              subMessage
-            )
-          )
-        case None => JsError("Not a message with a subtype.")
-      }
-    }
-  }
-
   implicit val slackEventReads = new Reads[SlackEvent] {
     def reads(jsValue: JsValue): JsResult[SlackEvent] = {
       val etype = (jsValue \ "type").asOpt[String]
@@ -322,12 +268,9 @@ package object models {
           case "hello" => JsSuccess(jsValue.as[Hello])
           case "message" if subtype.contains("message_changed") => JsSuccess(jsValue.as[MessageChanged])
           case "message" if subtype.contains("message_deleted") => JsSuccess(jsValue.as[MessageDeleted])
-          case "message" if subtype.contains("message_replied") && subMessageSubtype.contains("message")
-              => JsSuccess(jsValue.as[MessageReplied])
           case "message" if subtype.contains("message_replied") && subMessageSubtype.contains("bot_message")
               => JsSuccess(jsValue.as[BotMessageReplied])
-          case "message" if subtype.contains("bot_message") => JsSuccess(jsValue.as[BotMessage])
-          case "message" if subtype.isDefined => JsSuccess(jsValue.as[MessageWithSubtype])
+          case "message" if subtype.contains("message_replied") => JsSuccess(jsValue.as[MessageReplied])
           case "message" => JsSuccess(jsValue.as[Message])
           case "user_typing" => JsSuccess(jsValue.as[UserTyping])
           case "reaction_added" => JsSuccess(jsValue.as[ReactionAdded])

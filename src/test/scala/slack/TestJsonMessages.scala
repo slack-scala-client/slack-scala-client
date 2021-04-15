@@ -3,8 +3,7 @@ package slack
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
-import slack.models.MessageSubtypes.FileShareMessage
-import slack.models.{ActionField, AppActionsUpdated, Attachment, AttachmentField, Block, BotMessage, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, Message, MessageChanged, MessageReplied, MessageSubtypes, MessageWithSubtype, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, SlackEvent, SlackFile, SubteamCreated}
+import slack.models.{ActionField, AppActionsUpdated, Attachment, AttachmentField, Block, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, Message, MessageChanged, MessageReplied, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, ReplyMessage, SlackEvent, SubteamCreated}
 
 import scala.io.Source
 
@@ -91,28 +90,6 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
     json.as[SlackEvent]
   }
 
-  test("me message parsed") {
-    val json = Json.parse("""{
-        |  "type":"message",
-        |  "user":"U0A2DCEBS",
-        |  "channel":"G0AAYN0E7",
-        |  "text": "Cheers!",
-        |  "subtype":"me_message"
-        |}""".stripMargin)
-    json.as[MessageSubtypes.MeMessage]
-  }
-
-  test("unhandled message parsed") {
-    val json = Json.parse("""{
-        |  "type":"message",
-        |  "user":"U0A2DCEBS",
-        |  "channel":"G0AAYN0E7",
-        |  "text": "An ordinary box for pizza.",
-        |  "subtype":"pizza_box"
-        |}""".stripMargin)
-    json.as[MessageSubtypes.UnhandledSubtype]
-  }
-
   test("message_changed event parsed") {
     val json = Json.parse("""{
         |  "type":"message",
@@ -152,65 +129,6 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
     ev.channel.is_mpim should be(Some(false))
     ev.channel.is_group should be(Some(true))
     ev.channel.is_channel.isEmpty should be(true)
-  }
-
-  test("parse bot message") {
-    val json = Json.parse(
-      """{"text":"bot message","username":"mybot","bot_id":"B1E2Y493N","type":"message","subtype":"bot_message","team":"T0P3TAZ7Y",
-        |"user_profile":{"avatar_hash":null,"image_72":"https://secure.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0000-72.png",
-        |"first_name":null,"real_name":"","name":null},"channel":"D1632C4LU","ts":"1464985393.000154"}""".stripMargin
-    )
-    val ev = json.as[BotMessage]
-    ev.bot_id should be("B1E2Y493N")
-  }
-
-  test("parse bot message with attachment") {
-    val json = Json.parse(
-      """{"text":"bot message","username":"mybot","bot_id":"B1E2Y493N","type":"message","subtype":"bot_message","team":"T0P3TAZ7Y",
-        |"user_profile":{"avatar_hash":null,"image_72":"https://secure.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2F66f9%2Fimg%2Favatars%2Fava_0000-72.png",
-        |"first_name":null,"real_name":"","name":null},"channel":"D1632C4LU","ts":"1464985393.000154",
-        |"attachments":[{"text": "Don't get too attached", "fallback": "This is an attachment fallback"}]}""".stripMargin
-    )
-    val ev = json.as[BotMessage]
-    ev.bot_id should be("B1E2Y493N")
-  }
-
-  test("parse file share message") {
-    val json = Json.parse(
-      """{"username": "<@U0X6J06MD|super-roger>", "display_as_bot": false,
-        |  "text": "<@U0X6J06MD|super-roger> uploaded a file: <https://okroger-agents-dev.slack.com/files/super-roger/F1FVBN542/ok.png|ok>",
-        |   "upload": true, "ts": "1465589621.000008", "subtype": "file_share", "user": "U0X6J06MD",
-        |   "file": { "id": "F1FVBN542", "created":1465567656, "timestamp": 1465569974, "name":"test-file", "title":"test-title",
-        |   "mimetype":"image/png","filetype":"image/png","pretty_type":"test", "user":"U1234", "mode":"test-mode",
-        |   "editable":false,"is_external":false, "external_type":"etype", "size":2000}, "team": "T0W6887JS",
-        |         "type": "message", "channel": "G172PTNSH"}""".stripMargin
-    )
-    val ev = json.as[SlackEvent]
-    ev.asInstanceOf[MessageWithSubtype].messageSubType should be(
-      FileShareMessage(
-        SlackFile(
-          "F1FVBN542",
-          1465567656,
-          1465569974,
-          Some("test-file"),
-          "test-title",
-          "image/png",
-          "image/png",
-          "test",
-          "U1234",
-          "test-mode",
-          editable = false,
-          is_external = false,
-          "etype",
-          2000,
-          None,
-          None,
-          None,
-          None,
-          None
-        )
-      )
-    )
   }
 
   test("parse reaction added to message") {
@@ -395,7 +313,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"ts":"1603969719.023600"}
         |""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(Message("1603969719.023600", "CYPCYPCYP", "U12NQNABX", "Normal message by a user", None, None, None))
+    ev should be(Message("1603969719.023600", "CYPCYPCYP", "U12NQNABX", "Normal message by a user", None, None, None, None, None))
   }
 
   test("a message from Pagerduty bot") {
@@ -413,7 +331,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
       |"source_team":"T0PTEAMEV","user_team":"T0PTEAMEV","channel":"CYPCYPCYP","event_ts":"1603968691.023300","ts":"1603968691.023300"}
       |""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(Message("1603968691.023300", "CYPCYPCYP", "U12NQNABX", "", None, None,
+    ev should be(Message("1603968691.023300", "CYPCYPCYP", "U12NQNABX", "", Some("B98080B1A"), None, None,
       Some(
         Seq[Attachment](
           Attachment(fallback = Some("Triggered 10227559: test 1151"),
@@ -432,6 +350,52 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
             mrkdwn_in = Some(Vector("text", "fields"))
           )
         )
-      )))
+      ), None))
+  }
+
+  test("reply from a bot in a thread") {
+    val json = Json.parse("""{
+                 |  "type": "message",
+                 |  "subtype": "message_replied",
+                 |  "hidden": true,
+                 |  "message": {
+                 |    "bot_id": "BUMARLABEDY",
+                 |    "type": "message",
+                 |    "text": "I have something smart to say",
+                 |    "user": "URLEPURLEP",
+                 |    "ts": "1618415112.049500",
+                 |    "team": "T02402402",
+                 |    "bot_profile": {
+                 |      "id": "BUMARLABEDY",
+                 |      "deleted": false,
+                 |      "name": "bot",
+                 |      "updated": 1575550667,
+                 |      "app_id": "A0APPA0APP",
+                 |      "icons": {
+                 |        "image_36": "https://a.slack-edge.com/80588/img/services/bots_36.png",
+                 |        "image_48": "https://a.slack-edge.com/80588/img/plugins/bot/service_48.png",
+                 |        "image_72": "https://a.slack-edge.com/80588/img/services/bots_72.png"
+                 |      },
+                 |      "team_id": "T02402402"
+                 |    },
+                 |    "thread_ts": "1618415112.049500",
+                 |    "reply_count": 1,
+                 |    "reply_users_count": 1,
+                 |    "latest_reply": "1618415112.049600",
+                 |    "reply_users": [
+                 |      "UANOTHER"
+                 |    ],
+                 |    "is_locked": false
+                 |  },
+                 |  "channel": "C047474747",
+                 |  "event_ts": "1618415112.049700",
+                 |  "ts": "1618415112.049700"
+                 |}""".stripMargin)
+    val ev = json.as[SlackEvent]
+    ev should be(
+      MessageReplied(
+        "1618415112.049700", "1618415112.049700", "C047474747",
+        ReplyMessage("URLEPURLEP", Some("BUMARLABEDY"), "I have something smart to say", "1618415112.049500", 1, None
+    )))
   }
 }

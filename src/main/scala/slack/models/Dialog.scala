@@ -2,7 +2,7 @@ package slack.models
 
 case class Dialog(callback_id: String, title: String, submit_label: String, elements: Seq[DialogElement])
 
-trait DialogElement {
+sealed trait DialogElement {
   val `type`: String
   val label: String
   val name: String

@@ -19,3 +19,4 @@ src/test/resources/application.conf
 # IntelliJ
 .idea
 .idea_modules
+.bsp
