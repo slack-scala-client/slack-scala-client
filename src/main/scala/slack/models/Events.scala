@@ -19,14 +19,15 @@ case class EventServerChallenge(token: String, challenge: String, `type`: String
 
 case class Hello(`type`: String) extends SlackEvent
 
-// TODO: Message Sub-types
 case class Message(ts: String,
                    channel: String,
                    user: String,
                    text: String,
+                   bot_id: Option[String],
                    is_starred: Option[Boolean],
                    thread_ts: Option[String],
-                   attachments: Option[Seq[Attachment]])
+                   attachments: Option[Seq[Attachment]],
+                   subtype: Option[String])
     extends SlackEvent
 
 case class EditMessage(user: Option[String], text: String, ts: String)
@@ -49,46 +50,6 @@ case class MessageDeleted(ts: String, deleted_ts: String, event_ts: String, chan
 case class MessageReplied(ts: String, event_ts: String, channel: String, message: ReplyMessage) extends SlackEvent
 
 case class BotMessageReplied(ts: String, event_ts: String, channel: String, message: ReplyBotMessage) extends SlackEvent
-
-case class BotMessage(ts: String,
-                      channel: String,
-                      text: String,
-                      bot_id: String,
-                      username: Option[String],
-                      attachments: Option[Seq[Attachment]])
-    extends SlackEvent
-
-// TODO: Message Sub-types
-case class MessageWithSubtype(ts: String,
-                              channel: String,
-                              user: String,
-                              text: String,
-                              is_starred: Option[Boolean],
-                              messageSubType: MessageSubtype)
-    extends SlackEvent
-
-sealed trait MessageSubtype {
-  def subtype: String
-}
-
-object MessageSubtypes {
-
-  // Fallback for unhandled message sub-types
-  case class UnhandledSubtype(subtype: String) extends MessageSubtype
-
-  case class MeMessage(subtype: String) extends MessageSubtype {
-    //val subtype = "me_message"
-  }
-
-  case class ChannelNameMessage(oldname: String, name: String) extends MessageSubtype {
-    val subtype = "channel_name"
-  }
-
-  case class FileShareMessage(file: SlackFile) extends MessageSubtype {
-    val subtype = "file_share"
-  }
-
-}
 
 case class ReactionAdded(reaction: String,
                          item: ReactionItem,

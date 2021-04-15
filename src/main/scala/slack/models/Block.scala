@@ -31,7 +31,7 @@ case class ContextBlock(elements: Seq[Either[ImageElement, TextObject]], block_i
   override val `type`: String = "context"
 }
 
-trait TextObject {
+sealed trait TextObject {
   val `type`: String
   val text: String
 }
@@ -73,7 +73,7 @@ case class OptionGroupObject(label: PlainTextObject, options: Seq[OptionObject])
 
 case class ConfirmationObject(title: PlainTextObject, text: TextObject, confirm: PlainTextObject, deny: PlainTextObject)
 
-trait BlockElement {
+sealed trait BlockElement {
   val `type`: String
 }
 
