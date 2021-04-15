@@ -1,3 +1,8 @@
+0.2.15 (2021-04-15)
+-------------------
+* Simplifying the model for Message, subtypes and replies (#182)
+* Dependency version upgrades
+
 0.2.14 (2021-02-25)
 -------------------
 * Add support for conversations.setTopic (#174)
