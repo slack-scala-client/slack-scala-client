@@ -211,9 +211,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
 
   private val apiBaseRequest = HttpRequest(uri = slackApiBaseUri)
 
-  private val apiBaseWithTokenRequest = apiBaseRequest.withUri(
-    apiBaseRequest.uri.withQuery(Uri.Query((apiBaseRequest.uri.query() :+ ("token" -> token)): _*))
-  )
+  private val apiBaseWithTokenRequest = apiBaseRequest.withHeaders(Authorization(OAuth2BearerToken(token)))
 
   /**************************/
   /***   Test Endpoints   ***/
