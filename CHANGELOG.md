@@ -1,3 +1,8 @@
+0.2.16 (2021-04-27)
+-------------------
+* Fix for tokens not supported in querystring (#184)
+
+
 0.2.15 (2021-04-15)
 -------------------
 * Simplifying the model for Message, subtypes and replies (#182)
