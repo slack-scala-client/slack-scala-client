@@ -1,0 +1,16 @@
+{
+  "type": "desktop_notification",
+  "title": "Workspace name",
+  "subtitle": "Person I am talking to",
+  "msg": "1623181585.000200",
+  "ts": "1623181585.000200",
+  "content": "hello",
+  "channel": "D51F4BF60",
+  "launchUri": "slack://channel?id=D51F4BF60&message=1623181585000200&team=TAB59CBC6",
+  "avatarImage": "https://example.com",
+  "ssbFilename": "Some Name",
+  "imageUri": null,
+  "is_shared": false,
+  "is_channel_invite": false,
+  "event_ts": "1623181586.000100"
+}
