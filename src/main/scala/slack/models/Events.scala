@@ -21,7 +21,7 @@ case class Hello(`type`: String) extends SlackEvent
 
 case class Message(ts: String,
                    channel: String,
-                   user: String,
+                   user: Option[String],
                    text: String,
                    bot_id: Option[String],
                    is_starred: Option[Boolean],
