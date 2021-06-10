@@ -185,6 +185,8 @@ case class TeamDomainChange(url: String, domain: String) extends SlackEvent
 
 case class SubteamCreated(subteam: Subteam, event_ts: String) extends SlackEvent
 case class SubteamUpdated(subteam: Subteam, event_ts: String) extends SlackEvent
+case class SubteamMembersChanged(subteam_id: String, team_id: String, added_users: Seq[String],
+                                 removed_users: Seq[String]) extends SlackEvent
 
 case class BotAdded(
   bot: JsValue // TODO: structure -- https://api.slack.com/events/bot_added

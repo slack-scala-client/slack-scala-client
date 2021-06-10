@@ -157,6 +157,7 @@ package object models {
   implicit val teamDomainChangeFmt = Json.format[TeamDomainChange]
   implicit val subteamCreatedFmt = Json.format[SubteamCreated]
   implicit val subteamUpdatedFmt = Json.format[SubteamUpdated]
+  implicit val subteamMembersChangedFmt = Json.format[SubteamMembersChanged]
   implicit val botAddedFmt = Json.format[BotAdded]
   implicit val botChangedFmt = Json.format[BotChanged]
   implicit val accountsChangedFmt = Json.format[AccountsChanged]
@@ -240,6 +241,7 @@ package object models {
         case e: TeamDomainChange => Json.toJson(e)
         case e: SubteamCreated => Json.toJson(e)
         case e: SubteamUpdated => Json.toJson(e)
+        case e: SubteamMembersChanged => Json.toJson(e)
         case e: BotAdded => Json.toJson(e)
         case e: BotChanged => Json.toJson(e)
         case e: AccountsChanged => Json.toJson(e)
@@ -328,6 +330,7 @@ package object models {
           case "team_domain_change" => JsSuccess(jsValue.as[TeamDomainChange])
           case "subteam_created" => JsSuccess(jsValue.as[SubteamCreated])
           case "subteam_updated" => JsSuccess(jsValue.as[SubteamUpdated])
+          case "subteam_members_changed" => JsSuccess(jsValue.as[SubteamMembersChanged])
           case "bot_added" => JsSuccess(jsValue.as[BotAdded])
           case "bot_changed" => JsSuccess(jsValue.as[BotChanged])
           case "accounts_changed" => JsSuccess(jsValue.as[AccountsChanged])
