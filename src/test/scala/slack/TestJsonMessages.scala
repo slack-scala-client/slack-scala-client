@@ -313,7 +313,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"ts":"1603969719.023600"}
         |""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(Message("1603969719.023600", "CYPCYPCYP", "U12NQNABX", "Normal message by a user", None, None, None, None, None))
+    ev should be(Message("1603969719.023600", "CYPCYPCYP", Some("U12NQNABX"), "Normal message by a user", None, None, None, None, None))
   }
 
   test("a message from Pagerduty bot") {
@@ -331,7 +331,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
       |"source_team":"T0PTEAMEV","user_team":"T0PTEAMEV","channel":"CYPCYPCYP","event_ts":"1603968691.023300","ts":"1603968691.023300"}
       |""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(Message("1603968691.023300", "CYPCYPCYP", "U12NQNABX", "", Some("B98080B1A"), None, None,
+    ev should be(Message("1603968691.023300", "CYPCYPCYP", Some("U12NQNABX"), "", Some("B98080B1A"), None, None,
       Some(
         Seq[Attachment](
           Attachment(fallback = Some("Triggered 10227559: test 1151"),

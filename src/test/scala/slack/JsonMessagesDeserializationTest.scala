@@ -8,10 +8,12 @@ import slack.models.SlackEvent
 
 class JsonMessagesDeserializationTest extends AnyWordSpec {
 
-  new File("./src/test/resources/json-messages").listFiles().toList.foreach { file =>
-    file.getName should {
-      "be parsed without an error" in {
-        Json.parse(new FileInputStream(file)).as[SlackEvent]
+  "JSON message deserialization" can {
+    new File("./src/test/resources/json-messages").listFiles().toList.foreach { file =>
+      file.getName should {
+        "be parsed without an error" in {
+          Json.parse(new FileInputStream(file)).as[SlackEvent]
+        }
       }
     }
   }
