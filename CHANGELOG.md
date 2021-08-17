@@ -1,7 +1,10 @@
+0.2.17 (2021-08-17)
+-------------------
+* Fix for no group members in the rtm.start API response (#193)
+
 0.2.16 (2021-04-27)
 -------------------
 * Fix for tokens not supported in querystring (#184)
-
 
 0.2.15 (2021-04-15)
 -------------------
