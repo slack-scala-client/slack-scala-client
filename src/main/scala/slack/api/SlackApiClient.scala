@@ -755,7 +755,15 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   /*************************/
   def startRealTimeMessageSession()(implicit system: ActorSystem): Future[RtmStartState] = {
     val res = makeApiMethodRequest("rtm.start")
-    res.map(_.as[RtmStartState])(system.dispatcher)
+    implicit val ec: ExecutionContext = system.dispatcher
+    res.map { value: JsValue =>
+      try {
+        value.as[RtmStartState]
+      } catch {
+        case e: Exception =>
+          throw new IllegalStateException("Failed to parse the response for rtm.start: " + value.toString, e)
+      }
+    }
   }
 
   /****************************/
