@@ -83,8 +83,13 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
     resolve(client.kickFromChannel(channelId, userId))
   }
 
+  @deprecated("use listConversations", "0.2.18")
   def listChannels(excludeArchived: Boolean = false)(implicit system: ActorSystem): Seq[Channel] = {
-    resolve(client.listChannels(excludeArchived))
+    listConversations(Seq(PublicChannel, PrivateChannel), excludeArchived)
+  }
+
+  def listConversations(channelTypes: Seq[ConversationType] = Seq(PublicChannel), excludeArchived: Boolean = false)(implicit system: ActorSystem): Seq[Channel] = {
+    resolve(client.listConversations(channelTypes, if (excludeArchived) 1 else 0))
   }
 
   def leaveChannel(channelId: String)(implicit system: ActorSystem): Boolean = {
