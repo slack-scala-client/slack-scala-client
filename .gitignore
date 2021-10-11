@@ -20,3 +20,6 @@ src/test/resources/application.conf
 .idea
 .idea_modules
 .bsp
+
+.metals/
+.vscode/
