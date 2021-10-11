@@ -18,4 +18,4 @@ jobs:
       with:
         java-version: 8
     - name: Run tests
-      run: sbt -Dsbt.gigahorse=false test
+      run: sbt test
