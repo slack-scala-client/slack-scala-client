@@ -21,5 +21,10 @@ src/test/resources/application.conf
 .idea_modules
 .bsp
 
+# Visual Studio Code and Scala Metals
 .metals/
 .vscode/
+.bloop/
+project/.bloop/
+project/metals.sbt
+project/project/
