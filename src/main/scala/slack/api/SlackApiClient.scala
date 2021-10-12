@@ -22,9 +22,7 @@ import scala.util.Try
 object SlackApiClient {
 
   private[this] val config   = ConfigFactory.load()
-  private[this] val useProxy: Boolean = Try(config.getString("slack-scala-client.http.useproxy"))
-    .map(_.toBoolean)
-    .recover{case _:Exception => false}.getOrElse(false)
+  private[this] val useProxy: Boolean = config.getBoolean("slack-scala-client.http.useproxy")
 
   private[this] val maybeSettings: Option[ConnectionPoolSettings] = if (useProxy) {
     val proxyHost = config.getString("slack-scala-client.http.proxyHost")
