@@ -16,7 +16,6 @@ import slack.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import scala.util.Try
 
 
 object SlackApiClient {
