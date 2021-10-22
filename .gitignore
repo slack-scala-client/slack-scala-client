@@ -28,3 +28,5 @@ src/test/resources/application.conf
 project/.bloop/
 project/metals.sbt
 project/project/
+
+**/.DS_Store
