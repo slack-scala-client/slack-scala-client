@@ -58,6 +58,8 @@ object Dependencies {
 
   val jodaConvert = "org.joda" % "joda-convert" % "2.2.1" // https://stackoverflow.com/a/13856382/118587
 
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
+
   val akkaDependencies = Seq(akkaHttp, akkaActor, akkaStream)
   val miscDependencies = Seq(playJson, jodaConvert)
   val testDependencies = Seq(scalatest)
