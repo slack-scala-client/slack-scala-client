@@ -1,14 +1,10 @@
-package slack.models
+package slack.api
 
 import akka.http.scaladsl.model.HttpResponse
-import slack.api.InvalidResponseError
 
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.duration._
 import scala.util.Try
-
-
-case class ResponseMetadata(next_cursor: Option[String])
 
 // Retry after time in seconds returned in a rate limited response
 // https://api.slack.com/docs/rate-limits
