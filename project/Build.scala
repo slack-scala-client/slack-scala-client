@@ -56,7 +56,7 @@ object Dependencies {
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.2.10" % Test
 
-  val jodaConvert = "org.joda" % "joda-convert" % "2.2.1" // https://stackoverflow.com/a/13856382/118587
+  val jodaConvert = "org.joda" % "joda-convert" % "2.2.2" // https://stackoverflow.com/a/13856382/118587
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
 
