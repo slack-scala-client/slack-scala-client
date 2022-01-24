@@ -54,7 +54,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % "2.7.4"
 
-  val scalatest = "org.scalatest" %% "scalatest" % "3.2.10" % Test
+  val scalatest = "org.scalatest" %% "scalatest" % "3.2.11" % Test
 
   val jodaConvert = "org.joda" % "joda-convert" % "2.2.2" // https://stackoverflow.com/a/13856382/118587
 
