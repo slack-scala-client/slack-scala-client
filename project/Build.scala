@@ -50,7 +50,7 @@ object Dependencies {
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.1.15"
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.2.8"
 
   val playJson = "com.typesafe.play" %% "play-json" % "2.7.4"
 
