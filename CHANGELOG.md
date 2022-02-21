@@ -2,7 +2,7 @@
 -------------------
 * Deprecating `listChannels` (#197)
 * Code re-arrangement (#204)
-* Dependency version upgrades
+* Dependency version upgrades - resulting in a separate artifact: slack-scala-client-models
 * Drop support for Scala 2.11 (#201)
 
 0.2.17 (2021-08-17)
