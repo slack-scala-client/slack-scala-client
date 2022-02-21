@@ -3,7 +3,7 @@ import sbt._
 
 object BuildSettings {
   val buildOrganization = "com.github.slack-scala-client"
-  val buildVersion      = "0.2.17"
+  val buildVersion      = "0.3.0"
   val buildScalaVersion = "2.12.15"
 
   val settings = Seq (

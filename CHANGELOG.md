@@ -1,3 +1,9 @@
+0.3.0 (2022-02-21)
+-------------------
+* Deprecating `listChannels` (#197)
+* Code re-arrangement (#204)
+* Dependency version upgrades
+
 0.2.17 (2021-08-17)
 -------------------
 * Fix for no group members in the rtm.start API response (#193)
