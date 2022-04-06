@@ -885,7 +885,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   def closeIm(
       channelId: String
   )(implicit system: ActorSystem): Future[Boolean] = {
-    val res = makeApiMethodRequest("im.close", "channel" -> channelId)
+    val res = makeApiMethodRequest("conversations.close", "channel" -> channelId)
     extract[Boolean](res, "ok")
   }
 
@@ -921,7 +921,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   }
 
   def openIm(userId: String)(implicit system: ActorSystem): Future[String] = {
-    val res = makeApiMethodRequest("im.open", "user" -> userId)
+    val res = makeApiMethodRequest("conversations.open", "users" -> userId)
     res.map(r => (r \ "channel" \ "id").as[String])(system.dispatcher)
   }
 
