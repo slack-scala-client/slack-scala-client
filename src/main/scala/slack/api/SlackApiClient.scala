@@ -11,7 +11,6 @@ import akka.http.scaladsl.settings.{
   ConnectionPoolSettings
 }
 import akka.http.scaladsl.{ClientTransport, Http}
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import akka.stream.scaladsl.{RestartSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
@@ -102,7 +101,6 @@ object SlackApiClient {
   private def makeApiRequest(
       request: HttpRequest
   )(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
-    implicit val mat = ActorMaterializer()
     implicit val ec = system.dispatcher
     val connectionPoolSettings: ConnectionPoolSettings =
       maybeSettings.getOrElse(ConnectionPoolSettings(system))
@@ -1342,9 +1340,6 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
       field: String,
       initialResults: Seq[T] = Seq.empty[T]
   )(implicit system: ActorSystem, fmt: Format[Seq[T]]): Future[Seq[T]] = {
-    implicit val materializer: ActorMaterializer = ActorMaterializer(
-      ActorMaterializerSettings(system)
-    )
     implicit val ec: ExecutionContext = system.dispatcher
 
     RestartSource

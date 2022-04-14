@@ -1,18 +1,17 @@
 package slack.rtm
 
-import java.net.{InetSocketAddress, URI}
-
 import akka.Done
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, Props}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
 import akka.http.scaladsl.settings.ClientConnectionSettings
 import akka.http.scaladsl.{ClientTransport, Http}
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, OverflowStrategy}
 import com.typesafe.config.ConfigFactory
 import slack.rtm.WebSocketClientActor._
 
+import java.net.{InetSocketAddress, URI}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -52,7 +51,6 @@ private[rtm] object WebSocketClientActor {
 private[rtm] class WebSocketClientActor(url: String) extends Actor with ActorLogging {
   implicit val ec = context.dispatcher
   implicit val system = context.system
-  implicit val materalizer = ActorMaterializer()
 
   val uri = new URI(url)
   var outboundMessageQueue: Option[SourceQueueWithComplete[Message]] = None
