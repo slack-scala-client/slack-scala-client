@@ -46,7 +46,7 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val akkaVersion = "2.6.19"
+  val akkaVersion = "2.5.32"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
