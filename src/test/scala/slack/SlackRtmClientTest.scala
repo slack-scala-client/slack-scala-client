@@ -52,7 +52,7 @@ class SlackRtmClientTest extends AnyFunSuite with Matchers with Credentials {
         val rtmApi = SlackApiClient(slackToken)
         val future = rtmApi.updateChatMessage(channel, "1465891701.000006", "edit-x", asUser = Some(true))
         val result = Await.result(future, 5.seconds)
-        assert(result.ok.equals(true))
+        assert(result.ok)
       }
 
     case _ =>

@@ -2,15 +2,12 @@ package slack.api
 
 import java.io.File
 import java.net.InetSocketAddress
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.http.scaladsl.settings.{
-  ClientConnectionSettings,
-  ConnectionPoolSettings
-}
+import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.http.scaladsl.{ClientTransport, Http}
+import akka.stream.RestartSettings
 import akka.stream.scaladsl.{RestartSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
@@ -1343,8 +1340,8 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     implicit val ec: ExecutionContext = system.dispatcher
 
     RestartSource
-      .onFailuresWithBackoff(2.seconds, maxBackoff, 0.2, retries)(() => {
-        Source.fromFuture(
+      .onFailuresWithBackoff(RestartSettings(2.seconds, maxBackoff, 0.2).withMaxRestarts(retries, 2.seconds))(() => {
+        Source.future(
           makeApiMethodRequestWithRetryAfter(apiMethod, queryParams: _*)
             .flatMap {
               case Right(jsValue) =>

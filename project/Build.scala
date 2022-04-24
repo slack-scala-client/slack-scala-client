@@ -46,7 +46,7 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val akkaVersion = "2.5.32"
+  val akkaVersion = "2.6.19"
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
@@ -58,7 +58,7 @@ object Dependencies {
 
   val jodaConvert = "org.joda" % "joda-convert" % "2.2.2" // https://stackoverflow.com/a/13856382/118587
 
-  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
   val akkaDependencies = Seq(akkaHttp, akkaActor, akkaStream)
   val miscDependencies = Seq(playJson, jodaConvert)

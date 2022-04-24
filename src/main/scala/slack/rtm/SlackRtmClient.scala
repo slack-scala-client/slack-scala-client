@@ -130,7 +130,7 @@ class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState
   var connectFailures = 0
   var webSocketClient: Option[ActorRef] = None
 
-  context.system.scheduler.schedule(1.minute, 1.minute, self, SendPing)
+  context.system.scheduler.scheduleWithFixedDelay(1.minute, 1.minute, self, SendPing)
 
   def receive = {
     case message: TextMessage =>
