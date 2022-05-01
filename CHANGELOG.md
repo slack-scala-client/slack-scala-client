@@ -1,3 +1,8 @@
+0.3.1 (2022-05-01)
+------------------
+* Dependency version ugprades - incl. Akka 2.6
+* Update deprecated `im.open` and `im.close` API endpoints (#227) 
+
 0.3.0 (2022-02-21)
 -------------------
 * Deprecating `listChannels` (#197)
