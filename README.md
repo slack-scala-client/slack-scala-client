@@ -1,6 +1,7 @@
 # slack-scala-client
 
 ![Build status](https://github.com/slack-scala-client/slack-scala-client/actions/workflows/scala.yml/badge.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/slack-scala-client/slack-scala-client)
 
 A Scala library for interacting with the Slack API and real time messaging interface
 
