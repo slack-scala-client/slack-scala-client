@@ -5,5 +5,5 @@
 - `git tag` and `git push --tags`
 - make sure `~/.gnupg/gpg.conf` lists the proper key as the default one (check with `gpg --list-key`)
 - `export GPG_TTY=$(tty)` (Mac only)
-- `sbt +publishSigned`
+- `sbt +publishSigned` and `sbt +slack-scala-client-models/publishSigned`
 - In Sonatype Close the staging repository, and Release it.
