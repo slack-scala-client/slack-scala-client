@@ -113,6 +113,7 @@ package object models {
   implicit val channelArchiveFmt = Json.format[ChannelArchive]
   implicit val channelUnarchiveFmt = Json.format[ChannelUnarchive]
   implicit val channelHistoryChangedFmt = Json.format[ChannelHistoryChanged]
+  implicit val channelTopicChangedFmt = Json.format[ChannelTopicChanged]
   implicit val imCreatedFmt = Json.format[ImCreated]
   implicit val imOpenedFmt = Json.format[ImOpened]
   implicit val imCloseFmt = Json.format[ImClose]
@@ -197,6 +198,7 @@ package object models {
         case e: ChannelArchive => Json.toJson(e)
         case e: ChannelUnarchive => Json.toJson(e)
         case e: ChannelHistoryChanged => Json.toJson(e)
+        case e: ChannelTopicChanged => Json.toJson(e)
         case e: ImCreated => Json.toJson(e)
         case e: ImOpened => Json.toJson(e)
         case e: ImClose => Json.toJson(e)
@@ -273,6 +275,7 @@ package object models {
           case "message" if subtype.contains("message_replied") && subMessageSubtype.contains("bot_message")
               => JsSuccess(jsValue.as[BotMessageReplied])
           case "message" if subtype.contains("message_replied") => JsSuccess(jsValue.as[MessageReplied])
+          case "message" if subtype.contains("channel_topic") => JsSuccess(jsValue.as[ChannelTopicChanged])
           case "message" => JsSuccess(jsValue.as[Message])
           case "user_typing" => JsSuccess(jsValue.as[UserTyping])
           case "reaction_added" => JsSuccess(jsValue.as[ReactionAdded])
