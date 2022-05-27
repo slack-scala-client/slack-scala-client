@@ -85,6 +85,9 @@ case class ChannelUnarchive(channel: String, user: String) extends SlackEvent
 
 case class ChannelHistoryChanged(latest: Long, ts: String, event_ts: String) extends SlackEvent
 
+case class ChannelTopicChanged(channel: String, text: String, ts: String, event_ts: String, topic: String,
+                               user: String) extends SlackEvent
+
 case class ImCreated(user: String, channel: Im) extends SlackEvent
 
 case class ImOpened(user: String, channel: String) extends SlackEvent
