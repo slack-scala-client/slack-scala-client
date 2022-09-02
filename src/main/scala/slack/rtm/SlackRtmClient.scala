@@ -1,21 +1,21 @@
 package slack.rtm
 
+import akka.actor._
+import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model.ws.TextMessage
+import akka.pattern.ask
+import akka.util.Timeout
+import play.api.libs.json._
 import slack.api._
 import slack.models._
 import slack.rtm.SlackRtmConnectionActor._
 import slack.rtm.WebSocketClientActor._
-import java.util.concurrent.atomic.AtomicLong
 
+import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{Set => MSet}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import akka.actor._
-import akka.http.scaladsl.model.Uri
-import akka.util.Timeout
-import akka.pattern.ask
-import play.api.libs.json._
-import akka.http.scaladsl.model.ws.TextMessage
 
 object SlackRtmClient {
   def apply(token: String,
@@ -185,7 +185,6 @@ class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState
       if ((payloadJson \ "type").asOpt[String].isDefined || (payloadJson \ "reply_to").asOpt[Long].isDefined) {
         Try(payloadJson.as[SlackEvent]) match {
           case Success(event) =>
-            state.update(event)
             listeners.foreach(_ ! event)
           case Failure(e) => log.error(e, s"[SlackRtmClient] Error reading event: $payload")
         }
