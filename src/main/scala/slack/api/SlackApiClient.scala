@@ -49,7 +49,7 @@ object SlackApiClient {
   private[api] val retries = config.getInt("api.retries")
   private[api] val maxBackoff = config.getInt("api.maxBackoff").seconds
 
-  private[api] implicit val rtmStartStateFmt = Json.format[RtmStartState]
+  private[api] implicit val rtmStartStateFmt = Json.format[RtmConnectState]
   private[api] implicit val accessTokenFmt = Json.format[AccessToken]
   private[api] implicit val historyChunkFmt = Json.format[HistoryChunk]
   private[api] implicit val repliesChunkFmt = Json.format[RepliesChunk]
@@ -1102,16 +1102,16 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     */
   def startRealTimeMessageSession()(implicit
       system: ActorSystem
-  ): Future[RtmStartState] = {
-    val res = makeApiMethodRequest("rtm.start")
+  ): Future[RtmConnectState] = {
+    val res = makeApiMethodRequest("rtm.connect")
     implicit val ec: ExecutionContext = system.dispatcher
     res.map { value: JsValue =>
       try {
-        value.as[RtmStartState]
+        value.as[RtmConnectState]
       } catch {
         case e: Exception =>
           throw new IllegalStateException(
-            "Failed to parse the response for rtm.start: " + value.toString,
+            "Failed to parse the response for rtm.connect: " + value.toString,
             e
           )
       }
@@ -1447,13 +1447,9 @@ case class ReactionsResponse(
 
 case class PagingObject(count: Int, total: Int, page: Int, pages: Int)
 
-case class RtmStartState(
+case class RtmConnectState(
+    ok: Boolean,
     url: String,
     self: User,
-    team: Team,
-    users: Seq[User],
-    channels: Seq[Channel],
-    groups: Seq[Group],
-    ims: Seq[Im],
-    bots: Seq[JsValue]
+    team: Team
 )

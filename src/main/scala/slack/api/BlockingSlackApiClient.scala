@@ -364,7 +364,7 @@ class BlockingSlackApiClient private (token: String, slackApiBaseUri: Uri, durat
   /*************************/
   /****  RTM Endpoints  ****/
   /*************************/
-  def startRealTimeMessageSession()(implicit system: ActorSystem): RtmStartState = {
+  def startRealTimeMessageSession()(implicit system: ActorSystem): RtmConnectState = {
     resolve(client.startRealTimeMessageSession())
   }
 
