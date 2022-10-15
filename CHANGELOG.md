@@ -1,3 +1,8 @@
+0.4.0 (2022-09-28)
+------------------
+* `rtm.connect` instead of `rtm.start` (#210)
+* Dependency version upgrades
+
 0.3.1 (2022-05-01)
 ------------------
 * Dependency version ugprades - incl. Akka 2.6
