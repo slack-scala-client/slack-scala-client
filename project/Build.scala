@@ -10,7 +10,7 @@ object BuildSettings {
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
-    crossScalaVersions :=  Seq(scalaVersion.value, "2.13.8"),
+    crossScalaVersions :=  Seq(scalaVersion.value, "2.13.10"),
     publishMavenStyle  := true,
     credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     publishTo          := {
