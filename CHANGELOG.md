@@ -1,3 +1,8 @@
+0.4.1 (2022-12-16)
+------------------
+* Support for user_profile_changed and user_huddle_changed events
+* Dependency version upgrades
+
 0.4.0 (2022-09-28)
 ------------------
 * `rtm.connect` instead of `rtm.start` (#210)
