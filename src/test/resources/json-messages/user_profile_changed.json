@@ -1,0 +1,34 @@
+{
+  "type": "user_profile_changed",
+  "user": {
+    "id": "U61223C36",
+    "team_id": "T74EA48EB",
+    "name": "Some Name",
+    "color": "d1707d",
+    "is_bot": false,
+    "is_app_user": false,
+    "profile": {
+      "avatar_hash": "05656babab01",
+      "image_original": "https://example.com",
+      "image_24": "https://example.com",
+      "image_32": "https://example.com",
+      "image_48": "https://example.com",
+      "image_72": "https://example.com",
+      "image_192": "https://example.com",
+      "image_512": "https://example.com",
+      "image_1024": "https://example.com",
+      "first_name": "Some Name",
+      "last_name": "Some Name",
+      "real_name": "Some Name",
+      "display_name": "Some Name",
+      "real_name_normalized": "Some Name",
+      "display_name_normalized": "Some Name",
+      "email": "just.phil@example.com",
+      "team": "T74EA48EB"
+    },
+    "updated": 1671223135,
+    "who_can_share_contact_card": "E418B758"
+  },
+  "cache_ts": 1671223135,
+  "event_ts": "1671223135.322200"
+}

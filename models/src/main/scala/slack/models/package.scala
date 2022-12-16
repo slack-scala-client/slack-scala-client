@@ -147,6 +147,8 @@ package object models {
   implicit val manualPresenceChangeFmt = Json.format[ManualPresenceChange]
   implicit val prefChangeFmt = Json.format[PrefChange]
   implicit val userChangeFmt = Json.format[UserChange]
+  implicit val userProfileChangeFmt = Json.format[UserProfileChanged]
+  implicit val userHuddleChangeFmt = Json.format[UserHuddleChanged]
   implicit val teamJoinFmt = Json.format[TeamJoin]
   implicit val starAddedFmt = Json.format[StarAdded]
   implicit val starRemovedFmt = Json.format[StarRemoved]
@@ -232,6 +234,8 @@ package object models {
         case e: ManualPresenceChange => Json.toJson(e)
         case e: PrefChange => Json.toJson(e)
         case e: UserChange => Json.toJson(e)
+        case e: UserProfileChanged => Json.toJson(e)
+        case e: UserHuddleChanged => Json.toJson(e)
         case e: TeamJoin => Json.toJson(e)
         case e: StarAdded => Json.toJson(e)
         case e: StarRemoved => Json.toJson(e)
@@ -322,6 +326,8 @@ package object models {
           case "manual_presence_change" => JsSuccess(jsValue.as[ManualPresenceChange])
           case "pref_change" => JsSuccess(jsValue.as[PrefChange])
           case "user_change" => JsSuccess(jsValue.as[UserChange])
+          case "user_profile_changed" => JsSuccess(jsValue.as[UserProfileChanged])
+          case "user_huddle_changed" => JsSuccess(jsValue.as[UserHuddleChanged])
           case "team_join" => JsSuccess(jsValue.as[TeamJoin])
           case "star_added" => JsSuccess(jsValue.as[StarAdded])
           case "star_removed" => JsSuccess(jsValue.as[StarRemoved])
