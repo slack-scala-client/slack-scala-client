@@ -1,0 +1,32 @@
+{
+  "type": "user_huddle_changed",
+  "user": {
+    "id": "U2BAA14A1B5",
+    "team_id": "T3C500576",
+    "name": "Some Name",
+    "color": "e85d72",
+    "is_bot": false,
+    "is_app_user": false,
+    "profile": {
+      "avatar_hash": "g12340a11a11",
+      "image_24": "https://example.com",
+      "image_32": "https://example.com",
+      "image_48": "https://example.com",
+      "image_72": "https://example.com",
+      "image_192": "https://example.com",
+      "image_512": "https://example.com",
+      "first_name": "Some Name",
+      "last_name": "Some Name",
+      "real_name": "Some Name",
+      "display_name": "Some Name",
+      "real_name_normalized": "Some Name",
+      "display_name_normalized": "Some Name",
+      "email": "noone@example.com",
+      "team": "T3C500576"
+    },
+    "updated": 1671223161,
+    "who_can_share_contact_card": "E418B758"
+  },
+  "cache_ts": 1671223161,
+  "event_ts": "1671223161.266400"
+}

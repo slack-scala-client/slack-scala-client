@@ -160,6 +160,10 @@ case class PrefChange(name: String, value: JsValue) extends SlackEvent
 
 case class UserChange(user: User) extends SlackEvent
 
+case class UserHuddleChanged(user: User) extends SlackEvent
+
+case class UserProfileChanged(user: User) extends SlackEvent
+
 case class TeamJoin(user: User) extends SlackEvent
 
 case class StarAdded(user: String,
