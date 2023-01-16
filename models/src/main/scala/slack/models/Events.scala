@@ -164,6 +164,8 @@ case class UserHuddleChanged(user: User) extends SlackEvent
 
 case class UserProfileChanged(user: User) extends SlackEvent
 
+case class UserStatusChanged(user: User) extends SlackEvent
+
 case class TeamJoin(user: User) extends SlackEvent
 
 case class StarAdded(user: String,

@@ -149,6 +149,7 @@ package object models {
   implicit val userChangeFmt = Json.format[UserChange]
   implicit val userProfileChangeFmt = Json.format[UserProfileChanged]
   implicit val userHuddleChangeFmt = Json.format[UserHuddleChanged]
+  implicit val userStatusChangeFmt = Json.format[UserStatusChanged]
   implicit val teamJoinFmt = Json.format[TeamJoin]
   implicit val starAddedFmt = Json.format[StarAdded]
   implicit val starRemovedFmt = Json.format[StarRemoved]
@@ -236,6 +237,7 @@ package object models {
         case e: UserChange => Json.toJson(e)
         case e: UserProfileChanged => Json.toJson(e)
         case e: UserHuddleChanged => Json.toJson(e)
+        case e: UserStatusChanged => Json.toJson(e)
         case e: TeamJoin => Json.toJson(e)
         case e: StarAdded => Json.toJson(e)
         case e: StarRemoved => Json.toJson(e)
@@ -328,6 +330,7 @@ package object models {
           case "user_change" => JsSuccess(jsValue.as[UserChange])
           case "user_profile_changed" => JsSuccess(jsValue.as[UserProfileChanged])
           case "user_huddle_changed" => JsSuccess(jsValue.as[UserHuddleChanged])
+          case "user_status_changed" => JsSuccess(jsValue.as[UserStatusChanged])
           case "team_join" => JsSuccess(jsValue.as[TeamJoin])
           case "star_added" => JsSuccess(jsValue.as[StarAdded])
           case "star_removed" => JsSuccess(jsValue.as[StarRemoved])
