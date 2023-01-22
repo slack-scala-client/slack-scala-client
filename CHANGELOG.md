@@ -1,3 +1,8 @@
+0.4.2 (2023-01-22)
+------------------
+* Support for user_status_change (#258)
+* Dependency version upgrades
+
 0.4.1 (2022-12-16)
 ------------------
 * Support for user_profile_changed and user_huddle_changed events
