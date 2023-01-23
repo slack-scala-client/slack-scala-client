@@ -1,34 +1,82 @@
 {
   "type": "user_profile_changed",
   "user": {
-    "id": "U61223C36",
-    "team_id": "T74EA48EB",
+    "id": "U7E6EF11023",
     "name": "Some Name",
-    "color": "d1707d",
-    "is_bot": false,
-    "is_app_user": false,
+    "deleted": false,
+    "color": "d55aef",
+    "real_name": "Some Name",
+    "tz": "Europe/Amsterdam",
+    "tz_label": "Central European Time",
+    "tz_offset": 3600,
     "profile": {
-      "avatar_hash": "05656babab01",
+      "title": "Super Old Software Engineer - I",
+      "phone": "123-4567-890",
+      "skype": "",
+      "real_name": "Some Name",
+      "real_name_normalized": "Some Name",
+      "display_name": "Some Name",
+      "display_name_normalized": "Some Name",
+      "fields": {
+        "Xf0212345678": {
+          "value": "100 - Engineering",
+          "alt": ""
+        },
+        "Xf0212345676": {
+          "value": "San Sebastian",
+          "alt": ""
+        },
+        "Xf0212345673": {
+          "value": "1000",
+          "alt": ""
+        },
+        "Xf0212345672": {
+          "value": "INT",
+          "alt": ""
+        },
+        "Xf02NHR75TFF": {
+          "value": "U3E7324FF5B",
+          "alt": ""
+        }
+      },
+      "status_text": "",
+      "status_emoji": "",
+      "status_emoji_display_info": [],
+      "status_expiration": 0,
+      "avatar_hash": "12345674d3e8",
       "image_original": "https://example.com",
-      "image_24": "https://example.com",
-      "image_32": "https://example.com",
-      "image_48": "https://example.com",
-      "image_72": "https://example.com",
-      "image_192": "https://example.com",
-      "image_512": "https://example.com",
-      "image_1024": "https://example.com",
+      "is_custom_image": true,
+      "email": "who@calls.me",
+      "huddle_state": "default_unset",
+      "huddle_state_expiration_ts": 1674481646,
       "first_name": "Some Name",
       "last_name": "Some Name",
-      "real_name": "Some Name",
-      "display_name": "Some Name",
-      "real_name_normalized": "Some Name",
-      "display_name_normalized": "Some Name",
-      "email": "just.phil@example.com",
-      "team": "T74EA48EB"
+      "status_text_canonical": "",
+      "team": "EE3D4A307D7"
     },
-    "updated": 1671223135,
-    "who_can_share_contact_card": "E418B758"
+    "is_admin": false,
+    "is_owner": false,
+    "is_primary_owner": false,
+    "is_restricted": false,
+    "is_ultra_restricted": false,
+    "is_bot": false,
+    "is_app_user": false,
+    "updated": 1674481346,
+    "is_email_confirmed": true,
+    "who_can_share_contact_card": "EAF984A1",
+    "enterprise_user": {
+      "id": "U7E6EF11023",
+      "enterprise_id": "EE3D4A307D7",
+      "enterprise_name": "Some Name",
+      "is_admin": false,
+      "is_owner": false,
+      "is_primary_owner": false,
+      "teams": [
+        "T123456CD"
+      ]
+    },
+    "enterprise_id": "EE3D4A307D7"
   },
-  "cache_ts": 1671223135,
-  "event_ts": "1671223135.322200"
+  "cache_ts": 1674481346,
+  "event_ts": "1674481346.370200"
 }
