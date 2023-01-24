@@ -1,0 +1,32 @@
+{
+  "type": "subteam_updated",
+  "subteam": {
+    "id": "S85FBD1C82F",
+    "team_id": "T9ADA110B",
+    "is_usergroup": true,
+    "is_subteam": true,
+    "name": "Some Name",
+    "description": "Really Nice",
+    "handle": "input-triage",
+    "is_external": false,
+    "date_create": 1666126701,
+    "date_update": 1674482481,
+    "date_delete": 0,
+    "auto_type": null,
+    "auto_provision": false,
+    "enterprise_subteam_id": "",
+    "created_by": "U0F3FE8B8D4",
+    "updated_by": "UF0FA9D80E9",
+    "deleted_by": null,
+    "prefs": {
+      "channels": [],
+      "groups": []
+    },
+    "users": [
+      "U6546456455"
+    ],
+    "user_count": 1,
+    "channel_count": 0
+  },
+  "event_ts": "1674482481.370500"
+}
