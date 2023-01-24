@@ -1,3 +1,8 @@
+0.4.3 (2023-01-24)
+------------------
+* Fixing mapping for UserProfile (#260) 
+
+
 0.4.2 (2023-01-22)
 ------------------
 * Support for user_status_change (#258)
