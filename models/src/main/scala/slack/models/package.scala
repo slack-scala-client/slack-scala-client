@@ -28,30 +28,30 @@ package object models {
         }
     })
 
-  implicit val confirmFieldFmt = Json.format[ConfirmField]
-  implicit val actionFieldFmt = Json.format[ActionField]
-  implicit val attachmentFieldFmt = Json.format[AttachmentField]
-  implicit val attachmentFmt = Json.format[Attachment]
-  implicit val authIdentityFmt = Json.format[AuthIdentity]
-  implicit val teamFmt = Json.format[Team]
-  implicit val subteamFmt = Json.format[Subteam]
-  implicit val channelValueFmt = Json.format[ChannelValue]
-  implicit val groupValueFmt = Json.format[GroupValue]
-  implicit val imFmt = Json.format[Im]
-  implicit val channelFmt = Json.format[Channel]
-  implicit val groupFmt = Json.format[Group]
-  implicit val userProfileFmt = Json.format[UserProfile]
-  implicit val userFmt = Json.format[User]
-  implicit val reactionFmt = Json.format[Reaction]
-  implicit val slackCommentFmt = Json.format[SlackComment]
-  implicit val slackFileFmt = Json.format[SlackFile]
-  implicit val slackFileIdFmt = Json.format[SlackFileId]
-  implicit val updateResponseFmt = Json.format[UpdateResponse]
-  implicit val appFmt = Json.format[App]
-  implicit val reactionMsgFmt = Json.format[ReactionItemMessage]
-  implicit val reactionFileFmt = Json.format[ReactionItemFile]
-  implicit val reactionFileCommentFmt = Json.format[ReactionItemFileComment]
-  implicit val reactionItemReads = new Reads[ReactionItem] {
+  implicit val confirmFieldFmt: Format[ConfirmField] = Json.format[ConfirmField]
+  implicit val actionFieldFmt: Format[ActionField] = Json.format[ActionField]
+  implicit val attachmentFieldFmt: Format[AttachmentField] = Json.format[AttachmentField]
+  implicit val attachmentFmt: Format[Attachment] = Json.format[Attachment]
+  implicit val authIdentityFmt: Format[AuthIdentity] = Json.format[AuthIdentity]
+  implicit val teamFmt: Format[Team] = Json.format[Team]
+  implicit val subteamFmt: Format[Subteam] = Json.format[Subteam]
+  implicit val channelValueFmt: Format[ChannelValue] = Json.format[ChannelValue]
+  implicit val groupValueFmt: Format[GroupValue] = Json.format[GroupValue]
+  implicit val imFmt: Format[Im] = Json.format[Im]
+  implicit val channelFmt: Format[Channel] = Json.format[Channel]
+  implicit val groupFmt: Format[Group] = Json.format[Group]
+  implicit val userProfileFmt: Format[UserProfile] = Json.format[UserProfile]
+  implicit val userFmt: Format[User] = Json.format[User]
+  implicit val reactionFmt: Format[Reaction] = Json.format[Reaction]
+  implicit val slackCommentFmt: Format[SlackComment] = Json.format[SlackComment]
+  implicit val slackFileFmt: Format[SlackFile] = Json.format[SlackFile]
+  implicit val slackFileIdFmt: Format[SlackFileId] = Json.format[SlackFileId]
+  implicit val updateResponseFmt: Format[UpdateResponse] = Json.format[UpdateResponse]
+  implicit val appFmt: Format[App] = Json.format[App]
+  implicit val reactionMsgFmt: Format[ReactionItemMessage] = Json.format[ReactionItemMessage]
+  implicit val reactionFileFmt: Format[ReactionItemFile] = Json.format[ReactionItemFile]
+  implicit val reactionFileCommentFmt: Format[ReactionItemFileComment] = Json.format[ReactionItemFileComment]
+  implicit val reactionItemReads: Reads[ReactionItem] = new Reads[ReactionItem] {
     def reads(json: JsValue): JsResult[ReactionItem] = {
      (json \ "type").asOpt[String] match {
         case Some("message") => JsSuccess(json.as[ReactionItemMessage])
@@ -62,17 +62,17 @@ package object models {
       }
     }
   }
-  implicit val reactionItemWrites = new Writes[ReactionItem] {
+  implicit val reactionItemWrites: Writes[ReactionItem] = new Writes[ReactionItem] {
     override def writes(item: ReactionItem): JsValue = item match {
       case i: ReactionItemMessage => Json.toJson(i)
       case i: ReactionItemFile => Json.toJson(i)
       case i: ReactionItemFileComment => Json.toJson(i)
     }
   }
-  implicit val optionElementFmt = Json.format[OptionElement]
-  implicit val selectElementFmt = Json.format[SelectElement]
-  implicit val textElementFmt = Json.format[TextElement]
-  implicit val dialogElementReads = new Reads[DialogElement] {
+  implicit val optionElementFmt: Format[OptionElement] = Json.format[OptionElement]
+  implicit val selectElementFmt: Format[SelectElement] = Json.format[SelectElement]
+  implicit val textElementFmt: Format[TextElement] = Json.format[TextElement]
+  implicit val dialogElementReads: Reads[DialogElement] = new Reads[DialogElement] {
     def reads(json: JsValue): JsResult[DialogElement] = {
       (json \ "type").asOpt[String] match {
         case Some("select") => JsSuccess(json.as[SelectElement])
@@ -81,105 +81,105 @@ package object models {
       }
     }
   }
-  implicit val dialogElementWrites = new Writes[DialogElement] {
+  implicit val dialogElementWrites: Writes[DialogElement] = new Writes[DialogElement] {
     override def writes(element: DialogElement): JsValue = element match {
       case e: TextElement => Json.toJson(e)
       case e: SelectElement => Json.toJson(e)
     }
   }
-  implicit val dialogFmt = Json.format[Dialog]
+  implicit val dialogFmt: Format[Dialog] = Json.format[Dialog]
 
   // Event Formats
-  implicit val helloFmt = Json.format[Hello]
-  implicit val messageFmt = Json.format[Message]
-  implicit val messageReply = Json.format[Reply]
-  implicit val replyMarkerFmt = Json.format[ReplyMarker]
-  implicit val editMessageFmt = Json.format[EditMessage]
-  implicit val replyMessageFmt = Json.format[ReplyMessage]
-  implicit val replyBotMessageFmt = Json.format[ReplyBotMessage]
-  implicit val messageChangedFmt = Json.format[MessageChanged]
-  implicit val messageDeletedFmt = Json.format[MessageDeleted]
-  implicit val messageRepliedFmt = Json.format[MessageReplied]
-  implicit val botMessageRepliedFmt = Json.format[BotMessageReplied]
-  implicit val reactionAddedFmt = Json.format[ReactionAdded]
-  implicit val reactionRemovedFmt = Json.format[ReactionRemoved]
-  implicit val userTypingFmt = Json.format[UserTyping]
-  implicit val channelMarkedFmt = Json.format[ChannelMarked]
-  implicit val channelCreatedFmt = Json.format[ChannelCreated]
-  implicit val channelJoinedFmt = Json.format[ChannelJoined]
-  implicit val channelLeftFmt = Json.format[ChannelLeft]
-  implicit val channelDeletedFmt = Json.format[ChannelDeleted]
-  implicit val channelRenameFmt = Json.format[ChannelRename]
-  implicit val channelArchiveFmt = Json.format[ChannelArchive]
-  implicit val channelUnarchiveFmt = Json.format[ChannelUnarchive]
-  implicit val channelHistoryChangedFmt = Json.format[ChannelHistoryChanged]
-  implicit val channelTopicChangedFmt = Json.format[ChannelTopicChanged]
-  implicit val imCreatedFmt = Json.format[ImCreated]
-  implicit val imOpenedFmt = Json.format[ImOpened]
-  implicit val imCloseFmt = Json.format[ImClose]
-  implicit val imMarkedFmt = Json.format[ImMarked]
-  implicit val imHistoryChangedFmt = Json.format[ImHistoryChanged]
-  implicit val mpImOpenFmt = Json.format[MpImOpen]
-  implicit val mpImCloseFmt = Json.format[MpImClose]
-  implicit val mpImJoinFmt = Json.format[MpImJoined]
-  implicit val groupJoinFmt = Json.format[GroupJoined]
-  implicit val groupLeftFmt = Json.format[GroupLeft]
-  implicit val groupOpenFmt = Json.format[GroupOpen]
-  implicit val groupCloseFmt = Json.format[GroupClose]
-  implicit val groupArchiveFmt = Json.format[GroupArchive]
-  implicit val groupUnarchiveFmt = Json.format[GroupUnarchive]
-  implicit val groupRenameFmt = Json.format[GroupRename]
-  implicit val groupMarkedFmt = Json.format[GroupMarked]
-  implicit val groupHistoryChangedFmt = Json.format[GroupHistoryChanged]
-  implicit val fileCreatedFmt = Json.format[FileCreated]
-  implicit val fileSharedFmt = Json.format[FileShared]
-  implicit val fileUnsharedFmt = Json.format[FileUnshared]
-  implicit val filePublicFmt = Json.format[FilePublic]
-  implicit val filePrivateFmt = Json.format[FilePrivate]
-  implicit val fileChangeFmt = Json.format[FileChange]
-  implicit val fileDeletedFmt = Json.format[FileDeleted]
-  implicit val fileCommentAddedFmt = Json.format[FileCommentAdded]
-  implicit val fileCommentEditedFmt = Json.format[FileCommentEdited]
-  implicit val fileCommentDeletedFmt = Json.format[FileCommentDeleted]
-  implicit val pinAddedFmt = Json.format[PinAdded]
-  implicit val pinRemovedFmt = Json.format[PinRemoved]
-  implicit val presenceChangeFmt = Json.format[PresenceChange]
-  implicit val manualPresenceChangeFmt = Json.format[ManualPresenceChange]
-  implicit val prefChangeFmt = Json.format[PrefChange]
-  implicit val userChangeFmt = Json.format[UserChange]
-  implicit val userProfileChangeFmt = Json.format[UserProfileChanged]
-  implicit val userHuddleChangeFmt = Json.format[UserHuddleChanged]
-  implicit val userStatusChangeFmt = Json.format[UserStatusChanged]
-  implicit val teamJoinFmt = Json.format[TeamJoin]
-  implicit val starAddedFmt = Json.format[StarAdded]
-  implicit val starRemovedFmt = Json.format[StarRemoved]
-  implicit val emojiChangedFmt = Json.format[EmojiChanged]
-  implicit val commandsChangedFmt = Json.format[CommandsChanged]
-  implicit val teamPlanChangedFmt = Json.format[TeamPlanChanged]
-  implicit val teamPrefChangedFmt = Json.format[TeamPrefChanged]
-  implicit val teamRenameFmt = Json.format[TeamRename]
-  implicit val teamDomainChangeFmt = Json.format[TeamDomainChange]
-  implicit val subteamCreatedFmt = Json.format[SubteamCreated]
-  implicit val subteamUpdatedFmt = Json.format[SubteamUpdated]
-  implicit val subteamMembersChangedFmt = Json.format[SubteamMembersChanged]
-  implicit val botAddedFmt = Json.format[BotAdded]
-  implicit val botChangedFmt = Json.format[BotChanged]
-  implicit val accountsChangedFmt = Json.format[AccountsChanged]
-  implicit val teamMigrationStartedFmt = Json.format[TeamMigrationStarted]
-  implicit val reconnectUrlFmt = Json.format[ReconnectUrl]
-  implicit val appsChangedFmt = Json.format[AppsChanged]
-  implicit val appActionsUpdatedFmt = Json.format[AppActionsUpdated]
-  implicit val appsUninstalledFmt = Json.format[AppsUninstalled]
-  implicit val appsInstalledFmt = Json.format[AppsInstalled]
-  implicit val desktopNotificationFmt = Json.format[DesktopNotification]
-  implicit val dndStatusFmt = Json.format[DndStatus]
-  implicit val dndUpdateUserFmt = Json.format[DndUpdatedUser]
-  implicit val memberJoined = Json.format[MemberJoined]
-  implicit val memberLeft = Json.format[MemberLeft]
-  implicit val pong = Json.format[Pong]
+  implicit val helloFmt: Format[Hello] = Json.format[Hello]
+  implicit val messageFmt: Format[Message] = Json.format[Message]
+  implicit val messageReply: Format[Reply] = Json.format[Reply]
+  implicit val replyMarkerFmt: Format[ReplyMarker] = Json.format[ReplyMarker]
+  implicit val editMessageFmt: Format[EditMessage] = Json.format[EditMessage]
+  implicit val replyMessageFmt: Format[ReplyMessage] = Json.format[ReplyMessage]
+  implicit val replyBotMessageFmt: Format[ReplyBotMessage] = Json.format[ReplyBotMessage]
+  implicit val messageChangedFmt: Format[MessageChanged] = Json.format[MessageChanged]
+  implicit val messageDeletedFmt: Format[MessageDeleted] = Json.format[MessageDeleted]
+  implicit val messageRepliedFmt: Format[MessageReplied] = Json.format[MessageReplied]
+  implicit val botMessageRepliedFmt: Format[BotMessageReplied] = Json.format[BotMessageReplied]
+  implicit val reactionAddedFmt: Format[ReactionAdded] = Json.format[ReactionAdded]
+  implicit val reactionRemovedFmt: Format[ReactionRemoved] = Json.format[ReactionRemoved]
+  implicit val userTypingFmt: Format[UserTyping] = Json.format[UserTyping]
+  implicit val channelMarkedFmt: Format[ChannelMarked] = Json.format[ChannelMarked]
+  implicit val channelCreatedFmt: Format[ChannelCreated] = Json.format[ChannelCreated]
+  implicit val channelJoinedFmt: Format[ChannelJoined] = Json.format[ChannelJoined]
+  implicit val channelLeftFmt: Format[ChannelLeft] = Json.format[ChannelLeft]
+  implicit val channelDeletedFmt: Format[ChannelDeleted] = Json.format[ChannelDeleted]
+  implicit val channelRenameFmt: Format[ChannelRename] = Json.format[ChannelRename]
+  implicit val channelArchiveFmt: Format[ChannelArchive] = Json.format[ChannelArchive]
+  implicit val channelUnarchiveFmt: Format[ChannelUnarchive] = Json.format[ChannelUnarchive]
+  implicit val channelHistoryChangedFmt: Format[ChannelHistoryChanged] = Json.format[ChannelHistoryChanged]
+  implicit val channelTopicChangedFmt: Format[ChannelTopicChanged] = Json.format[ChannelTopicChanged]
+  implicit val imCreatedFmt: Format[ImCreated] = Json.format[ImCreated]
+  implicit val imOpenedFmt: Format[ImOpened] = Json.format[ImOpened]
+  implicit val imCloseFmt: Format[ImClose] = Json.format[ImClose]
+  implicit val imMarkedFmt: Format[ImMarked] = Json.format[ImMarked]
+  implicit val imHistoryChangedFmt: Format[ImHistoryChanged] = Json.format[ImHistoryChanged]
+  implicit val mpImOpenFmt: Format[MpImOpen] = Json.format[MpImOpen]
+  implicit val mpImCloseFmt: Format[MpImClose] = Json.format[MpImClose]
+  implicit val mpImJoinFmt: Format[MpImJoined] = Json.format[MpImJoined]
+  implicit val groupJoinFmt: Format[GroupJoined] = Json.format[GroupJoined]
+  implicit val groupLeftFmt: Format[GroupLeft] = Json.format[GroupLeft]
+  implicit val groupOpenFmt: Format[GroupOpen] = Json.format[GroupOpen]
+  implicit val groupCloseFmt: Format[GroupClose] = Json.format[GroupClose]
+  implicit val groupArchiveFmt: Format[GroupArchive] = Json.format[GroupArchive]
+  implicit val groupUnarchiveFmt: Format[GroupUnarchive] = Json.format[GroupUnarchive]
+  implicit val groupRenameFmt: Format[GroupRename] = Json.format[GroupRename]
+  implicit val groupMarkedFmt: Format[GroupMarked] = Json.format[GroupMarked]
+  implicit val groupHistoryChangedFmt: Format[GroupHistoryChanged] = Json.format[GroupHistoryChanged]
+  implicit val fileCreatedFmt: Format[FileCreated] = Json.format[FileCreated]
+  implicit val fileSharedFmt: Format[FileShared] = Json.format[FileShared]
+  implicit val fileUnsharedFmt: Format[FileUnshared] = Json.format[FileUnshared]
+  implicit val filePublicFmt: Format[FilePublic] = Json.format[FilePublic]
+  implicit val filePrivateFmt: Format[FilePrivate] = Json.format[FilePrivate]
+  implicit val fileChangeFmt: Format[FileChange] = Json.format[FileChange]
+  implicit val fileDeletedFmt: Format[FileDeleted] = Json.format[FileDeleted]
+  implicit val fileCommentAddedFmt: Format[FileCommentAdded] = Json.format[FileCommentAdded]
+  implicit val fileCommentEditedFmt: Format[FileCommentEdited] = Json.format[FileCommentEdited]
+  implicit val fileCommentDeletedFmt: Format[FileCommentDeleted] = Json.format[FileCommentDeleted]
+  implicit val pinAddedFmt: Format[PinAdded] = Json.format[PinAdded]
+  implicit val pinRemovedFmt: Format[PinRemoved] = Json.format[PinRemoved]
+  implicit val presenceChangeFmt: Format[PresenceChange] = Json.format[PresenceChange]
+  implicit val manualPresenceChangeFmt: Format[ManualPresenceChange] = Json.format[ManualPresenceChange]
+  implicit val prefChangeFmt: Format[PrefChange] = Json.format[PrefChange]
+  implicit val userChangeFmt: Format[UserChange] = Json.format[UserChange]
+  implicit val userProfileChangeFmt: Format[UserProfileChanged] = Json.format[UserProfileChanged]
+  implicit val userHuddleChangeFmt: Format[UserHuddleChanged] = Json.format[UserHuddleChanged]
+  implicit val userStatusChangeFmt: Format[UserStatusChanged] = Json.format[UserStatusChanged]
+  implicit val teamJoinFmt: Format[TeamJoin] = Json.format[TeamJoin]
+  implicit val starAddedFmt: Format[StarAdded] = Json.format[StarAdded]
+  implicit val starRemovedFmt: Format[StarRemoved] = Json.format[StarRemoved]
+  implicit val emojiChangedFmt: Format[EmojiChanged] = Json.format[EmojiChanged]
+  implicit val commandsChangedFmt: Format[CommandsChanged] = Json.format[CommandsChanged]
+  implicit val teamPlanChangedFmt: Format[TeamPlanChanged] = Json.format[TeamPlanChanged]
+  implicit val teamPrefChangedFmt: Format[TeamPrefChanged] = Json.format[TeamPrefChanged]
+  implicit val teamRenameFmt: Format[TeamRename] = Json.format[TeamRename]
+  implicit val teamDomainChangeFmt: Format[TeamDomainChange] = Json.format[TeamDomainChange]
+  implicit val subteamCreatedFmt: Format[SubteamCreated] = Json.format[SubteamCreated]
+  implicit val subteamUpdatedFmt: Format[SubteamUpdated] = Json.format[SubteamUpdated]
+  implicit val subteamMembersChangedFmt: Format[SubteamMembersChanged] = Json.format[SubteamMembersChanged]
+  implicit val botAddedFmt: Format[BotAdded] = Json.format[BotAdded]
+  implicit val botChangedFmt: Format[BotChanged] = Json.format[BotChanged]
+  implicit val accountsChangedFmt: Format[AccountsChanged] = Json.format[AccountsChanged]
+  implicit val teamMigrationStartedFmt: Format[TeamMigrationStarted] = Json.format[TeamMigrationStarted]
+  implicit val reconnectUrlFmt: Format[ReconnectUrl] = Json.format[ReconnectUrl]
+  implicit val appsChangedFmt: Format[AppsChanged] = Json.format[AppsChanged]
+  implicit val appActionsUpdatedFmt: Format[AppActionsUpdated] = Json.format[AppActionsUpdated]
+  implicit val appsUninstalledFmt: Format[AppsUninstalled] = Json.format[AppsUninstalled]
+  implicit val appsInstalledFmt: Format[AppsInstalled] = Json.format[AppsInstalled]
+  implicit val desktopNotificationFmt: Format[DesktopNotification] = Json.format[DesktopNotification]
+  implicit val dndStatusFmt: Format[DndStatus] = Json.format[DndStatus]
+  implicit val dndUpdateUserFmt: Format[DndUpdatedUser] = Json.format[DndUpdatedUser]
+  implicit val memberJoined: Format[MemberJoined] = Json.format[MemberJoined]
+  implicit val memberLeft: Format[MemberLeft] = Json.format[MemberLeft]
+  implicit val pong: Format[Pong] = Json.format[Pong]
 
   // Event Reads/Writes
-  implicit val slackEventWrites = new Writes[SlackEvent] {
+  implicit val slackEventWrites: Writes[SlackEvent] = new Writes[SlackEvent] {
     def writes(event: SlackEvent) = {
       event match {
         case e: Hello => Json.toJson(e)
@@ -268,7 +268,7 @@ package object models {
     }
   }
 
-  implicit val slackEventReads = new Reads[SlackEvent] {
+  implicit val slackEventReads: Reads[SlackEvent] = new Reads[SlackEvent] {
     def reads(jsValue: JsValue): JsResult[SlackEvent] = {
       val etype = (jsValue \ "type").asOpt[String]
       val subtype = (jsValue \ "subtype").asOpt[String]
@@ -366,8 +366,8 @@ package object models {
       }
     }
   }
-  implicit val slackEventStructureFmt = Json.format[SlackEventStructure]
-  implicit val eventServerChallengeFmt = Json.format[EventServerChallenge]
+  implicit val slackEventStructureFmt: Format[SlackEventStructure] = Json.format[SlackEventStructure]
+  implicit val eventServerChallengeFmt: Format[EventServerChallenge] = Json.format[EventServerChallenge]
 
-  implicit val responseMetadataFormat = Json.format[ResponseMetadata]
+  implicit val responseMetadataFormat: Format[ResponseMetadata] = Json.format[ResponseMetadata]
 }

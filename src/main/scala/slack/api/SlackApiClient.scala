@@ -13,7 +13,7 @@ import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import slack.models._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 
 object SlackApiClient {
@@ -49,15 +49,14 @@ object SlackApiClient {
   private[api] val retries = config.getInt("api.retries")
   private[api] val maxBackoff = config.getInt("api.maxBackoff").seconds
 
-  private[api] implicit val rtmStartStateFmt = Json.format[RtmConnectState]
-  private[api] implicit val accessTokenFmt = Json.format[AccessToken]
-  private[api] implicit val historyChunkFmt = Json.format[HistoryChunk]
-  private[api] implicit val repliesChunkFmt = Json.format[RepliesChunk]
-  private[api] implicit val pagingObjectFmt = Json.format[PagingObject]
-  private[api] implicit val filesResponseFmt = Json.format[FilesResponse]
-  private[api] implicit val fileInfoFmt = Json.format[FileInfo]
-  private[api] implicit val reactionsResponseFmt =
-    Json.format[ReactionsResponse]
+  private[api] implicit val rtmStartStateFmt: Format[RtmConnectState] = Json.format[RtmConnectState]
+  private[api] implicit val accessTokenFmt: Format[AccessToken] = Json.format[AccessToken]
+  private[api] implicit val historyChunkFmt: Format[HistoryChunk] = Json.format[HistoryChunk]
+  private[api] implicit val repliesChunkFmt: Format[RepliesChunk] = Json.format[RepliesChunk]
+  private[api] implicit val pagingObjectFmt: Format[PagingObject] = Json.format[PagingObject]
+  private[api] implicit val filesResponseFmt: Format[FilesResponse] = Json.format[FilesResponse]
+  private[api] implicit val fileInfoFmt: Format[FileInfo] = Json.format[FileInfo]
+  private[api] implicit val reactionsResponseFmt: Format[ReactionsResponse] = Json.format[ReactionsResponse]
 
   val defaultSlackApiBaseUri = Uri("https://slack.com/api/")
 
@@ -98,7 +97,7 @@ object SlackApiClient {
   private def makeApiRequest(
       request: HttpRequest
   )(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
-    implicit val ec = system.dispatcher
+    implicit val ec: ExecutionContextExecutor = system.dispatcher
     val connectionPoolSettings: ConnectionPoolSettings =
       maybeSettings.getOrElse(ConnectionPoolSettings(system))
     Http().singleRequest(request, settings = connectionPoolSettings).flatMap {
@@ -1105,7 +1104,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   ): Future[RtmConnectState] = {
     val res = makeApiMethodRequest("rtm.connect")
     implicit val ec: ExecutionContext = system.dispatcher
-    res.map { value: JsValue =>
+    res.map { case value: JsValue =>
       try {
         value.as[RtmConnectState]
       } catch {

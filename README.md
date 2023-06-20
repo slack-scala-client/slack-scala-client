@@ -42,7 +42,7 @@ val client = SlackApiClient(token)
 Calling any api functions requires an implicit `ActorSystem`... one can be created simply:
 
 ```scala
-implicit val system = ActorSystem("slack")
+implicit val system: ActorSystem = ActorSystem("slack")
 ```
 
 The async client returns futures as the result of each of its API functions:
@@ -75,7 +75,7 @@ The real time messaging client is implemented using akka and requires having an 
 import slack.rtm.SlackRtmClient
 import akka.actor.ActorSystem
 
-implicit val system = ActorSystem("slack")
+implicit val system: ActorSystem = ActorSystem("slack")
 ```
 
 Creating an instance of the RTM client requires an API token, just like the API clients:
@@ -142,8 +142,8 @@ This is a full implementation of a Slack bot that will listen for anyone mention
 
 ```scala
 val token = "..."
-implicit val system = ActorSystem("slack")
-implicit val ec = system.dispatcher
+implicit val system: ActorSystem = ActorSystem("slack")
+implicit val ec: ExecutionContextExecutor = system.dispatcher
 
 val client = SlackRtmClient(token)
 val selfId = client.state.self.id
