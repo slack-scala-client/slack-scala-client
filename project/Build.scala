@@ -10,7 +10,7 @@ object BuildSettings {
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
-    crossScalaVersions :=  Seq(scalaVersion.value, "2.13.11"),
+    crossScalaVersions := Seq(scalaVersion.value, "2.13.11", "3.3.0"),
     publishMavenStyle  := true,
     credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     publishTo          := {
@@ -50,9 +50,9 @@ object Dependencies {
 
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.2.10"
+  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.5.2"
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.9.4"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC9"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.2.16" % Test
 
