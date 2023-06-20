@@ -41,8 +41,8 @@ case class PlainTextObject(text: String, emoji: Option[Boolean] = None, `type`: 
 case class MarkdownTextObject(text: String, verbatim: Option[Boolean] = None, `type`: String = "mrkdwn") extends TextObject
 
 object TextObject {
-  private implicit val plainTextFmt = Json.format[PlainTextObject]
-  private implicit val mrkdwnTextFmt = Json.format[MarkdownTextObject]
+  private implicit val plainTextFmt: Format[PlainTextObject] = Json.format[PlainTextObject]
+  private implicit val mrkdwnTextFmt: Format[MarkdownTextObject] = Json.format[MarkdownTextObject]
 
   private val textWrites = new Writes[TextObject] {
     def writes(text: TextObject): JsValue = {
@@ -64,7 +64,7 @@ object TextObject {
     }
   }
 
-  implicit val format = Format(textReads, textWrites)
+  implicit val format: Format[TextObject] = Format(textReads, textWrites)
 }
 
 case class OptionObject(text: PlainTextObject, value: String)
@@ -124,24 +124,25 @@ case class DatePickerElement(action_id: String, placeholder: PlainTextObject,
 }
 
 object BlockElement {
-  implicit val plainTextFmt = Json.format[PlainTextObject]
+  implicit val plainTextFmt: Format[PlainTextObject] = Json.format[PlainTextObject]
 
-  implicit val optionObjFmt = Json.format[OptionObject]
-  implicit val optionGrpObjFmt = Json.format[OptionGroupObject]
-  implicit val confirmObjFmt = Json.format[ConfirmationObject]
+  implicit val optionObjFmt: Format[OptionObject] = Json.format[OptionObject]
+  implicit val optionGrpObjFmt: Format[OptionGroupObject] = Json.format[OptionGroupObject]
+  implicit val confirmObjFmt: Format[ConfirmationObject] = Json.format[ConfirmationObject]
 
-  implicit val eitherOptFmt = eitherObjectFormat[OptionObject, OptionGroupObject]("text", "label")
-  implicit val buttonElementFmt = Json.format[ButtonElement]
-  implicit val imageElementFmt = Json.format[ImageElement]
-  implicit val staticMenuElementFmt = Json.format[StaticSelectElement]
-  implicit val extMenuElementFmt = Json.format[ExternalSelectElement]
-  implicit val userMenuElementFmt = Json.format[UserSelectElement]
-  implicit val channelMenuElementFmt = Json.format[ChannelSelectElement]
-  implicit val conversationMenuElementFmt = Json.format[ConversationSelectElement]
-  implicit val overflowElementFmt = Json.format[OverflowElement]
-  implicit val datePickerElementFmt = Json.format[DatePickerElement]
+  implicit val eitherOptFmt: Format[Either[OptionObject, OptionGroupObject]] =
+    eitherObjectFormat[OptionObject, OptionGroupObject]("text", "label")
+  implicit val buttonElementFmt: Format[ButtonElement] = Json.format[ButtonElement]
+  implicit val imageElementFmt: Format[ImageElement] = Json.format[ImageElement]
+  implicit val staticMenuElementFmt: Format[StaticSelectElement] = Json.format[StaticSelectElement]
+  implicit val extMenuElementFmt: Format[ExternalSelectElement] = Json.format[ExternalSelectElement]
+  implicit val userMenuElementFmt: Format[UserSelectElement] = Json.format[UserSelectElement]
+  implicit val channelMenuElementFmt: Format[ChannelSelectElement] = Json.format[ChannelSelectElement]
+  implicit val conversationMenuElementFmt: Format[ConversationSelectElement] = Json.format[ConversationSelectElement]
+  implicit val overflowElementFmt: Format[OverflowElement] = Json.format[OverflowElement]
+  implicit val datePickerElementFmt: Format[DatePickerElement] = Json.format[DatePickerElement]
 
-  private val elemWrites = new Writes[BlockElement] {
+  private val elemWrites: Writes[BlockElement] = new Writes[BlockElement] {
     def writes(element: BlockElement): JsValue = {
       val json = element match {
         case elem: ButtonElement => Json.toJson(elem)
@@ -157,7 +158,7 @@ object BlockElement {
       Json.obj("type" -> element.`type`) ++ json.as[JsObject]
     }
   }
-  private val elemReads = new Reads[BlockElement] {
+  private val elemReads: Reads[BlockElement] = new Reads[BlockElement] {
     def reads(jsValue: JsValue): JsResult[BlockElement] = {
       val value = (jsValue \ "type").as[String]
       value match {
@@ -175,22 +176,23 @@ object BlockElement {
     }
   }
 
-  implicit val format = Format(elemReads, elemWrites)
+  implicit val format: Format[BlockElement] = Format(elemReads, elemWrites)
 }
 
 object Block {
-  implicit val plainTextFmt = Json.format[PlainTextObject]
-  implicit val imageElementFmt = Json.format[ImageElement]
+  implicit val plainTextFmt: Format[PlainTextObject] = Json.format[PlainTextObject]
+  implicit val imageElementFmt: Format[ImageElement] = Json.format[ImageElement]
 
-  implicit val eitherContextFmt = eitherObjectFormat[ImageElement, TextObject]("image_url", "text")
-  implicit val dividerFmt = Json.format[Divider]
-  implicit val imageBlockFmt = Json.format[ImageBlock]
-  implicit val actionBlockFmt = Json.format[ActionsBlock]
-  implicit val contextBlockFmt = Json.format[ContextBlock]
-  implicit val sectionFmt = Json.format[Section]
+  implicit val eitherContextFmt: Format[Either[ImageElement, TextObject]] =
+    eitherObjectFormat[ImageElement, TextObject]("image_url", "text")
+  implicit val dividerFmt: Format[Divider] = Json.format[Divider]
+  implicit val imageBlockFmt: Format[ImageBlock] = Json.format[ImageBlock]
+  implicit val actionBlockFmt: Format[ActionsBlock] = Json.format[ActionsBlock]
+  implicit val contextBlockFmt: Format[ContextBlock] = Json.format[ContextBlock]
+  implicit val sectionFmt: Format[Section] = Json.format[Section]
 
 
-  private val blockWrites = new Writes[Block] {
+  private val blockWrites: Writes[Block] = new Writes[Block] {
     def writes(block: Block): JsValue = {
       val json = block match {
         case b: Divider => Json.toJson(b)
@@ -202,7 +204,7 @@ object Block {
       Json.obj("type" -> block.`type`) ++ json.as[JsObject]
     }
   }
-  private val blockReads = new Reads[Block] {
+  private val blockReads: Reads[Block] = new Reads[Block] {
     def reads(jsValue: JsValue): JsResult[Block] = {
       val value = (jsValue \ "type").as[String]
       value match {
@@ -216,5 +218,5 @@ object Block {
     }
   }
 
-  implicit val format = Format(blockReads, blockWrites)
+  implicit val format: Format[Block] = Format(blockReads, blockWrites)
 }

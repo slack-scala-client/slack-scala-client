@@ -3,10 +3,12 @@ package slack
 import akka.actor._
 import slack.rtm.SlackRtmClient
 
+import scala.concurrent.ExecutionContextExecutor
+
 object Main extends App {
   val token = "..."
-  implicit val system = ActorSystem("slack")
-  implicit val ec = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem("slack")
+  implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   val client = SlackRtmClient(token)
   val selfId = client.state.self.id

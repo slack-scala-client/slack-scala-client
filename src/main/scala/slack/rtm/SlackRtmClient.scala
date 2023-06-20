@@ -13,7 +13,7 @@ import slack.rtm.WebSocketClientActor._
 
 import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{Set => MSet}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -28,7 +28,7 @@ object SlackRtmClient {
 class SlackRtmClient(token: String, slackApiBaseUri: Uri, duration: FiniteDuration)(
   implicit arf: ActorSystem
 ) {
-  private implicit val timeout = new Timeout(duration)
+  private implicit val timeout: Timeout = new Timeout(duration)
 
   val apiClient = BlockingSlackApiClient(token, slackApiBaseUri, duration)
   val state = RtmState(apiClient.startRealTimeMessageSession())
@@ -85,10 +85,10 @@ class SlackRtmClient(token: String, slackApiBaseUri: Uri, duration: FiniteDurati
 
 private[rtm] object SlackRtmConnectionActor {
 
-  implicit val sendMessageFmt = Json.format[MessageSend]
-  implicit val botEditMessageFmt = Json.format[BotEditMessage]
-  implicit val typingMessageFmt = Json.format[MessageTyping]
-  implicit val pingMessageFmt = Json.format[Ping]
+  implicit val sendMessageFmt: Format[MessageSend] = Json.format[MessageSend]
+  implicit val botEditMessageFmt: Format[BotEditMessage] = Json.format[BotEditMessage]
+  implicit val typingMessageFmt: Format[MessageTyping] = Json.format[MessageTyping]
+  implicit val pingMessageFmt: Format[Ping] = Json.format[Ping]
 
   case class AddEventListener(listener: ActorRef)
   case class RemoveEventListener(listener: ActorRef)
@@ -117,8 +117,8 @@ class SlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: RtmState
     extends Actor
     with ActorLogging {
 
-  implicit val ec = context.dispatcher
-  implicit val system = context.system
+  implicit val ec: ExecutionContextExecutor = context.dispatcher
+  implicit val system: ActorSystem = context.system
   val listeners = MSet[ActorRef]()
   val idCounter = new AtomicLong(1L)
 
