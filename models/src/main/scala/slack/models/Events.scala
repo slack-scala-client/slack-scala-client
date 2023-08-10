@@ -30,7 +30,7 @@ case class Message(ts: String,
                    subtype: Option[String])
     extends SlackEvent
 
-case class EditMessage(user: Option[String], text: String, ts: String)
+case class EditMessage(user: Option[String], text: String, ts: String, attachments: Option[Seq[Attachment]])
 
 case class ReplyMarker(user: String, ts: String)
 

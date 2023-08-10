@@ -1,0 +1,204 @@
+{
+  "type": "message",
+  "subtype": "message_changed",
+  "message": {
+    "client_msg_id": "2e3eac9f-0b68-427b-9f18-b53ce32d9393",
+    "type": "message",
+    "text": "<https://acmecorp.atlassian.net/browse/ACME-99999>",
+    "user": "UBD6D7AC1",
+    "blocks": [
+      {
+        "type": "rich_text",
+        "block_id": "CLR0",
+        "elements": [
+          {
+            "type": "rich_text_section",
+            "elements": [
+              {
+                "type": "link",
+                "url": "https://acmecorp.atlassian.net/browse/ACME-99999"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "team": "T6ADF096F",
+    "attachments": [
+      {
+        "id": 1,
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "uf:ih:192932::e96f9d0036c411fafa0436a9434653d9",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*<https://acmecorp.atlassian.net/browse/ACME-99999?atlOrigin=REDACTED|ACME-99999 Clean up Jira>*",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "context",
+            "block_id": "uf:cx:192932::e96fc41036c411fafa0436a9434653d9",
+            "elements": [
+              {
+                "type": "mrkdwn",
+                "text": "Status: *Closed*",
+                "verbatim": false
+              },
+              {
+                "type": "image",
+                "image_url": "https://product-integrations-cdn.atl-paas.net/jira-issuetype/task.png",
+                "alt_text": "Task"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "Type: *Task*",
+                "verbatim": false
+              },
+              {
+                "type": "image",
+                "image_url": "https://some.url.example.com/avatar.png",
+                "alt_text": "Luis Fonsi"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "Assignee: *Luis Fonsi*",
+                "verbatim": false
+              },
+              {
+                "type": "image",
+                "image_url": "https://product-integrations-cdn.atl-paas.net/jira-priority/medium.png",
+                "alt_text": "Medium"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "Priority: *Medium*",
+                "verbatim": false
+              }
+            ]
+          },
+          {
+            "type": "actions",
+            "block_id": "uf:issueFooterActions:192932::e96f9d0136c411fafa0436a9434653d9",
+            "elements": [
+              {
+                "type": "button",
+                "action_id": "{\"issueId\":\"192932\",\"instanceId\":\"f12345ea-3205-34ef-9213-4acace4e3436\",\"projectId\":\"18654\",\"action\":\"watch\",\"nType\":\"ISSUE_UNFURL\",\"nPlace\":\"main\"}",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Watch",
+                  "emoji": true
+                },
+                "value": "watch"
+              },
+              {
+                "type": "static_select",
+                "action_id": "{\"issueId\":\"192932\",\"instanceId\":\"f12345ea-3205-34ef-9213-4acace4e3436\",\"projectId\":\"18654\",\"nType\":\"ISSUE_UNFURL\",\"nPlace\":\"menu\"}",
+                "placeholder": {
+                  "type": "plain_text",
+                  "text": "More actions...",
+                  "emoji": true
+                },
+                "options": [
+                  {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Comment",
+                      "emoji": true
+                    },
+                    "value": "comment"
+                  },
+                  {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Assign",
+                      "emoji": true
+                    },
+                    "value": "assign"
+                  },
+                  {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Transition",
+                      "emoji": true
+                    },
+                    "value": "transition"
+                  },
+                  {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Why am I seeing this?",
+                      "emoji": true
+                    },
+                    "value": "why"
+                  },
+                  {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Receive updates in channel",
+                      "emoji": true
+                    },
+                    "value": "connect"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "color": "#2684FF",
+        "fallback": "[no preview available]",
+        "bot_id": "BQ9HEL2HW",
+        "app_unfurl_url": "https://acmecorp.atlassian.net/browse/ACME-99999",
+        "is_app_unfurl": true
+      }
+    ],
+    "thread_ts": "1691592983.527809",
+    "reply_count": 1,
+    "reply_users_count": 1,
+    "latest_reply": "1691592984.506879",
+    "reply_users": [
+      "UBD6D7AC1"
+    ],
+    "is_locked": false,
+    "ts": "1691592983.527809"
+  },
+  "previous_message": {
+    "client_msg_id": "2e3eac9f-0b68-427b-9f18-b53ce32d9393",
+    "type": "message",
+    "text": "<https://acmecorp.atlassian.net/browse/ACME-99999>",
+    "user": "UBD6D7AC1",
+    "ts": "1691592983.527809",
+    "blocks": [
+      {
+        "type": "rich_text",
+        "block_id": "CLR0",
+        "elements": [
+          {
+            "type": "rich_text_section",
+            "elements": [
+              {
+                "type": "link",
+                "url": "https://acmecorp.atlassian.net/browse/ACME-99999"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "team": "T6ADF096F",
+    "thread_ts": "1691592983.527809",
+    "reply_count": 1,
+    "reply_users_count": 1,
+    "latest_reply": "1691592984.506879",
+    "reply_users": [
+      "UBD6D7AC1"
+    ],
+    "is_locked": false,
+    "subscribed": false
+  },
+  "channel": "CC0CB7F45",
+  "hidden": true,
+  "ts": "1691592983.527809",
+  "event_ts": "1691592986.000300"
+}
