@@ -1,7 +1,11 @@
+0.4.4 (2023-08-10)
+------------------
+* Adding support for attachments in message_changed (EditMessage) (#274)
+* Dependency version upgrades
+
 0.4.3 (2023-01-24)
 ------------------
 * Fixing mapping for UserProfile (#260) 
-
 
 0.4.2 (2023-01-22)
 ------------------
