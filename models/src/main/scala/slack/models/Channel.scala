@@ -3,7 +3,7 @@ package slack.models
 import play.api.libs.json._
 
 case class Channel(id: String,
-                   name: String,
+                   name: Option[String],
                    created: Long,
                    creator: Option[String],
                    is_archived: Option[Boolean],
