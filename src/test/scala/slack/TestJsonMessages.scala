@@ -216,7 +216,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"event_ts":"1542211100.033200"}
       """.stripMargin)
     val ev = json.as[ChannelRename]
-    ev.channel.name should be("newname")
+    ev.channel.name should be(Some("newname"))
   }
 
   test("message replied") {
