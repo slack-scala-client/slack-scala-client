@@ -1,3 +1,8 @@
+0.4.5 (2023-09-09)
+------------------
+* listConversations supports empty channel name (#276)
+* sbt upgrade
+
 0.4.4 (2023-08-10)
 ------------------
 * Adding support for attachments in message_changed (EditMessage) (#274)
