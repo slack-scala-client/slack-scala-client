@@ -52,7 +52,7 @@ object Dependencies {
   val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.2.10"
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.10.2"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.10.3"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.2.17" % Test
 
