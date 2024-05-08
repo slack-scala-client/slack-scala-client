@@ -1,3 +1,14 @@
+1.0.0 (2024-05-08)
+------------------
+* Providing support for Scala 3 (beta)
+* Migrating to Pekko instead of Akka
+* Some library upgrades
+
+Starting this release I think:
+- Java 8 is still OK when Scala 2.12 is used
+- Java 11 is required for Scala 2.13+
+(this is I how read the symptoms observed, mostly limited by the Play library)  
+
 0.4.5 (2023-09-09)
 ------------------
 * listConversations supports empty channel name (#276)
