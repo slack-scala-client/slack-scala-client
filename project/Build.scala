@@ -46,13 +46,13 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val akkaVersion = "2.6.20"
+  val pekkaVersion = "1.0.2"
 
-  val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-  val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
-  val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.2.10"
+  val pekkoActor = "org.apache.pekko" %% "pekko-actor" % pekkaVersion
+  val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkaVersion
+  val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % "1.0.1"
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.10.2"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.10.5"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.2.17" % Test
 
@@ -60,9 +60,9 @@ object Dependencies {
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
-  val akkaDependencies = Seq(akkaHttp, akkaActor, akkaStream)
+  val pekkoDependencies = Seq(pekkoHttp, pekkoActor, pekkoStream)
   val miscDependencies = Seq(playJson, jodaConvert)
   val testDependencies = Seq(scalatest)
 
-  val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
+  val allDependencies = pekkoDependencies ++ miscDependencies ++ testDependencies
 }

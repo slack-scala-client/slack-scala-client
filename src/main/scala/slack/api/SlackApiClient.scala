@@ -2,13 +2,13 @@ package slack.api
 
 import java.io.File
 import java.net.InetSocketAddress
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
-import akka.http.scaladsl.{ClientTransport, Http}
-import akka.stream.RestartSettings
-import akka.stream.scaladsl.{RestartSource, Sink, Source}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import org.apache.pekko.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
+import org.apache.pekko.http.scaladsl.{ClientTransport, Http}
+import org.apache.pekko.stream.RestartSettings
+import org.apache.pekko.stream.scaladsl.{RestartSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import slack.models._
@@ -1346,7 +1346,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
               case Right(jsValue) =>
                 Future.successful(jsValue)
               case Left(retryAfter) =>
-                akka.pattern
+                org.apache.pekko.pattern
                   .after(retryAfter.finiteDuration, system.scheduler) {
                     Future.failed(retryAfter.invalidResponseError)
                   }
