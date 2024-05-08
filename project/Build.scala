@@ -1,5 +1,5 @@
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 
 object BuildSettings {
   val buildOrganization = "com.github.slack-scala-client"
@@ -46,10 +46,10 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val pekkaVersion = "1.0.2"
+  val pekkoVersion = "1.0.2"
 
-  val pekkoActor = "org.apache.pekko" %% "pekko-actor" % pekkaVersion
-  val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkaVersion
+  val pekkoActor = "org.apache.pekko" %% "pekko-actor" % pekkoVersion
+  val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkoVersion
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % "1.0.1"
 
   val playJson = "com.typesafe.play" %% "play-json" % "2.10.5"
