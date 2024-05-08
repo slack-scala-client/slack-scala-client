@@ -1,5 +1,7 @@
 package slack
 
+import org.apache.pekko.actor.ActorSystem
+
 import scala.util.Try
 
 trait Credentials {
