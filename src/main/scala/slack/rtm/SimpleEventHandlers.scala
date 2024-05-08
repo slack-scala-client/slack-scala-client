@@ -1,7 +1,6 @@
 package slack.rtm
 
 import slack.models._
-import org.apache.pekko.actor._
 
 private[rtm] object EventHandlerActor {
   def apply(f: (SlackEvent) => Unit)(implicit arf: ActorRefFactory): ActorRef = {

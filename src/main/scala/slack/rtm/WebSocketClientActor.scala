@@ -1,13 +1,5 @@
 package slack.rtm
 
-import org.apache.pekko.Done
-import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, ActorSystem, Props}
-import org.apache.pekko.http.scaladsl.model._
-import org.apache.pekko.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
-import org.apache.pekko.http.scaladsl.settings.ClientConnectionSettings
-import org.apache.pekko.http.scaladsl.{ClientTransport, Http}
-import org.apache.pekko.stream.OverflowStrategy
-import org.apache.pekko.stream.scaladsl._
 import com.typesafe.config.ConfigFactory
 import slack.rtm.WebSocketClientActor._
 

@@ -1,10 +1,5 @@
 package slack.rtm
 
-import org.apache.pekko.actor._
-import org.apache.pekko.http.scaladsl.model.Uri
-import org.apache.pekko.http.scaladsl.model.ws.TextMessage
-import org.apache.pekko.pattern.ask
-import org.apache.pekko.util.Timeout
 import play.api.libs.json._
 import slack.api._
 import slack.models._
@@ -13,8 +8,8 @@ import slack.rtm.WebSocketClientActor._
 
 import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{Set => MSet}
-import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
 object SlackRtmClient {

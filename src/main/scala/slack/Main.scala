@@ -1,6 +1,5 @@
 package slack
 
-import org.apache.pekko.actor._
 import slack.rtm.SlackRtmClient
 
 import scala.concurrent.ExecutionContextExecutor
