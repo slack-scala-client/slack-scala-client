@@ -4,6 +4,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 import slack.models.{ActionField, AppActionsUpdated, Attachment, AttachmentField, Block, BotMessageReplied, ChannelRename, DndStatus, DndUpdatedUser, GroupJoined, MemberJoined, MemberLeft, Message, MessageChanged, MessageReplied, ReactionAdded, ReactionItemFile, ReactionItemFileComment, ReactionItemMessage, ReactionRemoved, ReplyMessage, SlackEvent, SubteamCreated}
+import slack.models.{slackEventReads, messageChangedFmt, groupJoinFmt, memberLeft, memberJoined, subteamCreatedFmt, appActionsUpdatedFmt, channelRenameFmt, messageRepliedFmt, botMessageRepliedFmt}
 
 import scala.io.Source
 
@@ -126,9 +127,9 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"purpose": {"last_set": 0, "value": "", "creator": ""}, "unread_count_display": 0, "id": "G145D40VC"}}""".stripMargin
     )
     val ev = json.as[GroupJoined]
-    ev.channel.is_mpim should be(Some(false))
-    ev.channel.is_group should be(Some(true))
-    ev.channel.is_channel.isEmpty should be(true)
+    ev.channel.is_mpim shouldBe(Some(false))
+    ev.channel.is_group shouldBe(Some(true))
+    ev.channel.is_channel.isEmpty shouldBe(true)
   }
 
   test("parse reaction added to message") {
@@ -136,7 +137,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"item":{"type":"message","channel":"C0G9QF9GZ","ts":"1360782400.498405"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(
+    ev shouldBe(
       ReactionAdded(
         "thumbsup",
         ReactionItemMessage("C0G9QF9GZ", "1360782400.498405"),
@@ -152,7 +153,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"item":{"type":"file","file":"F0HS27V1Z"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(
+    ev shouldBe(
       ReactionAdded("thumbsup", ReactionItemFile("F0HS27V1Z"), "1360782804.083113", "U024BE7LH", Some("U0G9QF9C6"))
     )
   }
@@ -163,7 +164,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"item":{"type":"file_comment","file":"F0HS27V1Z","file_comment": "FC0HS2KBEZ"},
         |"event_ts":"1360782804.083113"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(
+    ev shouldBe(
       ReactionRemoved(
         "thumbsup",
         ReactionItemFileComment("F0HS27V1Z", "FC0HS2KBEZ"),
@@ -180,7 +181,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"dnd_status":{"dnd_enabled":true,"next_dnd_start_ts":1515016800,"next_dnd_end_ts":1515052800},
         |"event_ts":"1514991882.000376"}""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(
+    ev shouldBe(
       DndUpdatedUser(
         "dnd_updated_user",
         "U024BE7LH",
@@ -196,7 +197,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"team":"T0P3TAZ7Y","inviter":"U024BE7LH","event_ts":"1521143660.000263",
         |"ts":"1521143660.000263"}""".stripMargin)
     val ev = json.as[MemberJoined]
-    ev.inviter.get should be("U024BE7LH")
+    ev.inviter.get shouldBe("U024BE7LH")
   }
 
   test("member left channel") {
@@ -206,7 +207,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
       """.stripMargin)
 
     val ev = json.as[MemberLeft]
-    ev.user should be("U0G9QF9C6")
+    ev.user shouldBe("U0G9QF9C6")
   }
 
   test("channel renamed") {
@@ -216,7 +217,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"event_ts":"1542211100.033200"}
       """.stripMargin)
     val ev = json.as[ChannelRename]
-    ev.channel.name should be(Some("newname"))
+    ev.channel.name shouldBe(Some("newname"))
   }
 
   test("message replied") {
@@ -230,7 +231,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"hidden":true,"channel":"CYPCYPCYP","event_ts":"1543240646.312700","ts":"1543240646.312700"}
       """.stripMargin)
     val ev = json.as[MessageReplied]
-    ev.message.text should be("<@U8P8P8PAG> Let me know when you are ready")
+    ev.message.text shouldBe("<@U8P8P8PAG> Let me know when you are ready")
   }
 
   test("message blocks") {
@@ -244,7 +245,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
       """{"type":"app_actions_updated","app_id":"A0H654321","is_uninstall":false,"event_ts":"1559757796.157400"}""")
 
     val ev = json.as[AppActionsUpdated]
-    ev should be(AppActionsUpdated(app_id = "A0H654321", is_uninstall = false, event_ts = "1559757796.157400"))
+    ev shouldBe(AppActionsUpdated(app_id = "A0H654321", is_uninstall = false, event_ts = "1559757796.157400"))
   }
 
   test("subteam created") {
@@ -257,8 +258,8 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"event_ts":"1572102386.961600"}""".stripMargin)
 
     val ev = json.as[SubteamCreated]
-    ev.subteam.description should be("Sean Connery is known as Mimi")
-    ev.subteam.handle should be("mimi")
+    ev.subteam.description shouldBe("Sean Connery is known as Mimi")
+    ev.subteam.handle shouldBe("mimi")
   }
 
   test("subteam updated") {
@@ -273,8 +274,8 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"event_ts":"1572132456.100200"}""".stripMargin)
 
     val ev = json.as[SubteamCreated]
-    ev.subteam.description should be("Information Technology Team")
-    ev.subteam.handle should be("it-team")
+    ev.subteam.description shouldBe("Information Technology Team")
+    ev.subteam.handle shouldBe("it-team")
   }
 
   test("bot message reply (#109)") {
@@ -299,7 +300,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |""".stripMargin)
 
     val ev = json.as[BotMessageReplied]
-    ev.message.text should be(":ubuntu: Preparing to restart system")
+    ev.message.text shouldBe(":ubuntu: Preparing to restart system")
   }
 
   test("normal message from a human user") {
@@ -313,7 +314,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
         |"ts":"1603969719.023600"}
         |""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(Message("1603969719.023600", "CYPCYPCYP", Some("U12NQNABX"), "Normal message by a user", None, None, None, None, None))
+    ev shouldBe(Message("1603969719.023600", "CYPCYPCYP", Some("U12NQNABX"), "Normal message by a user", None, None, None, None, None))
   }
 
   test("a message from Pagerduty bot") {
@@ -331,7 +332,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
       |"source_team":"T0PTEAMEV","user_team":"T0PTEAMEV","channel":"CYPCYPCYP","event_ts":"1603968691.023300","ts":"1603968691.023300"}
       |""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(Message("1603968691.023300", "CYPCYPCYP", Some("U12NQNABX"), "", Some("B98080B1A"), None, None,
+    ev shouldBe(Message("1603968691.023300", "CYPCYPCYP", Some("U12NQNABX"), "", Some("B98080B1A"), None, None,
       Some(
         Seq[Attachment](
           Attachment(fallback = Some("Triggered 10227559: test 1151"),
@@ -392,7 +393,7 @@ class TestJsonMessages extends AnyFunSuite with Matchers {
                  |  "ts": "1618415112.049700"
                  |}""".stripMargin)
     val ev = json.as[SlackEvent]
-    ev should be(
+    ev shouldBe(
       MessageReplied(
         "1618415112.049700", "1618415112.049700", "C047474747",
         ReplyMessage("URLEPURLEP", Some("BUMARLABEDY"), "I have something smart to say", "1618415112.049500", 1, None

@@ -1,10 +1,10 @@
 package slack.rtm
 
-import akka.actor._
-import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.model.ws.TextMessage
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.actor._
+import org.apache.pekko.http.scaladsl.model.Uri
+import org.apache.pekko.http.scaladsl.model.ws.TextMessage
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import play.api.libs.json._
 import slack.api._
 import slack.models._

@@ -5,6 +5,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import java.io.{File, FileInputStream}
 import play.api.libs.json.Json
 import slack.models.SlackEvent
+import slack.models.slackEventReads
 
 class JsonMessagesDeserializationTest extends AnyWordSpec {
 

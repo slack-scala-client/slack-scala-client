@@ -1,13 +1,13 @@
 package slack.rtm
 
-import akka.Done
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, ActorSystem, Props}
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
-import akka.http.scaladsl.settings.ClientConnectionSettings
-import akka.http.scaladsl.{ClientTransport, Http}
-import akka.stream.OverflowStrategy
-import akka.stream.scaladsl._
+import org.apache.pekko.Done
+import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef, ActorRefFactory, ActorSystem, Props}
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
+import org.apache.pekko.http.scaladsl.settings.ClientConnectionSettings
+import org.apache.pekko.http.scaladsl.{ClientTransport, Http}
+import org.apache.pekko.stream.OverflowStrategy
+import org.apache.pekko.stream.scaladsl._
 import com.typesafe.config.ConfigFactory
 import slack.rtm.WebSocketClientActor._
 
@@ -28,8 +28,8 @@ private[rtm] object WebSocketClientActor {
   case object WebSocketConnectFailure
   case object WebSocketDisconnected
 
-  private[this] val config   = ConfigFactory.load()
-  private[this] val useProxy: Boolean = config.getBoolean("slack-scala-client.http.useproxy")
+  private[WebSocketClientActor] val config   = ConfigFactory.load()
+  private[WebSocketClientActor] val useProxy: Boolean = config.getBoolean("slack-scala-client.http.useproxy")
 
   private[WebSocketClientActor] val maybeSettings: Option[ClientConnectionSettings] = if (useProxy) {
     val proxyHost = config.getString("slack-scala-client.http.proxyHost")

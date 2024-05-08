@@ -2,13 +2,13 @@ package slack.api
 
 import java.io.File
 import java.net.InetSocketAddress
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
-import akka.http.scaladsl.{ClientTransport, Http}
-import akka.stream.RestartSettings
-import akka.stream.scaladsl.{RestartSource, Sink, Source}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import org.apache.pekko.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
+import org.apache.pekko.http.scaladsl.{ClientTransport, Http}
+import org.apache.pekko.stream.RestartSettings
+import org.apache.pekko.stream.scaladsl.{RestartSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import slack.models._
@@ -18,11 +18,11 @@ import scala.concurrent.duration._
 
 object SlackApiClient {
 
-  private[this] val config = ConfigFactory.load()
-  private[this] val useProxy: Boolean =
+  private[SlackApiClient] val config = ConfigFactory.load()
+  private[SlackApiClient] val useProxy: Boolean =
     config.getBoolean("slack-scala-client.http.useproxy")
 
-  private[this] val maybeSettings: Option[ConnectionPoolSettings] =
+  private[SlackApiClient] val maybeSettings: Option[ConnectionPoolSettings] =
     if (useProxy) {
       val proxyHost = config.getString("slack-scala-client.http.proxyHost")
       val proxyPort =
@@ -43,7 +43,7 @@ object SlackApiClient {
       None
     }
 
-  private[this] val toStrictTimeout =
+  private[SlackApiClient] val toStrictTimeout =
     config.getInt("api.tostrict.timeout").seconds
 
   private[api] val retries = config.getInt("api.retries")
@@ -136,7 +136,7 @@ object SlackApiClient {
       queryParams: Seq[(String, String)]
   ): HttpRequest = {
     request.withUri(
-      request.uri.withQuery(Uri.Query((request.uri.query() ++ queryParams): _*))
+      request.uri.withQuery(Uri.Query((request.uri.query() ++ queryParams).toMap))
     )
   }
 
@@ -498,11 +498,18 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
   def deleteChat(channelId: String, ts: String, asUser: Option[Boolean] = None)(
       implicit system: ActorSystem
   ): Future[Boolean] = {
-    val params = Seq("channel" -> channelId, "ts" -> ts)
-    val res = makeApiMethodRequest(
-      "chat.delete",
-      asUser.map(b => params :+ ("as_user" -> b)).getOrElse(params): _*
-    )
+    val res: Future[JsValue] = asUser match {
+      case Some(user) =>
+        makeApiMethodRequest(
+          "chat.delete",
+          "channel" -> channelId, "ts" -> ts, "as_user" -> user,
+        )
+      case None =>
+        makeApiMethodRequest(
+          "chat.delete",
+          "channel" -> channelId, "ts" -> ts,
+        )
+    }
     extract[Boolean](res, "ok")
   }
 
@@ -1324,7 +1331,7 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
 
   private def makeApiMethodRequestWithRetryAfter(
       apiMethod: String,
-      queryParams: (String, Any)*
+      queryParams: Seq[(String, Any)]
   )(implicit system: ActorSystem): Future[Either[RetryAfter, JsValue]] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
     makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
@@ -1341,12 +1348,12 @@ class SlackApiClient private (token: String, slackApiBaseUri: Uri) {
     RestartSource
       .onFailuresWithBackoff(RestartSettings(2.seconds, maxBackoff, 0.2).withMaxRestarts(retries, 2.seconds))(() => {
         Source.future(
-          makeApiMethodRequestWithRetryAfter(apiMethod, queryParams: _*)
+          makeApiMethodRequestWithRetryAfter(apiMethod, queryParams)
             .flatMap {
               case Right(jsValue) =>
                 Future.successful(jsValue)
               case Left(retryAfter) =>
-                akka.pattern
+                org.apache.pekko.pattern
                   .after(retryAfter.finiteDuration, system.scheduler) {
                     Future.failed(retryAfter.invalidResponseError)
                   }

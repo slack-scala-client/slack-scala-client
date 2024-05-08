@@ -69,11 +69,11 @@ The API clients implement the full Slack API. A full list of the available endpo
 
 ## RTM Client Usage
 
-The real time messaging client is implemented using akka and requires having an implicit `ActorSystem` in scope. Either an `ActorSystem` or `ActorContext` will work:
+The real time messaging client is implemented using Pekko and requires having an implicit `ActorSystem` in scope. Either an `ActorSystem` or `ActorContext` will work:
 
 ```scala
 import slack.rtm.SlackRtmClient
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 implicit val system: ActorSystem = ActorSystem("slack")
 ```
@@ -120,7 +120,7 @@ client.onEvent {
 
 A full list of events can be found in [Events.scala](models/src/main/scala/slack/models/Events.scala). One thing to note is the two above functions return an `ActorRef` which is a handle to the underlying actor running the above handler function. This can be used to terminate the handler by terminating the actor: ```system.stop(handler)```, or unregistering it as a listener: ```client.removeEventListener(handler)```
 
-An Akka actor can be manually registered as an event listener and all events will be sent to that actor:
+A Pekko actor can be manually registered as an event listener and all events will be sent to that actor:
 
 ```scala
 val actor = system.actorOf(Props[SlackEventHandler])
