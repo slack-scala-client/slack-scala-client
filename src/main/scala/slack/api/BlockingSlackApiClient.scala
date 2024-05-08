@@ -2,8 +2,8 @@ package slack.api
 
 import java.io.File
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.Uri
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model.Uri
 import play.api.libs.json._
 import slack.api.SlackApiClient.defaultSlackApiBaseUri
 import slack.models._
