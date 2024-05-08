@@ -1,5 +1,8 @@
 package slack.api
 
+import org.apache.pekko.http.scaladsl.model.HttpResponse
+
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.duration._
 import scala.util.Try
 

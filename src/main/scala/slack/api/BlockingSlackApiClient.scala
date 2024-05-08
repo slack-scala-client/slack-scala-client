@@ -1,10 +1,13 @@
 package slack.api
 
+import java.io.File
+
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model.Uri
 import play.api.libs.json._
 import slack.api.SlackApiClient.defaultSlackApiBaseUri
 import slack.models._
 
-import java.io.File
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 

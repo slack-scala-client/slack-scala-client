@@ -1,13 +1,20 @@
 package slack.api
 
+import java.io.File
+import java.net.InetSocketAddress
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import org.apache.pekko.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
+import org.apache.pekko.http.scaladsl.{ClientTransport, Http}
+import org.apache.pekko.stream.RestartSettings
+import org.apache.pekko.stream.scaladsl.{RestartSource, Sink, Source}
 import com.typesafe.config.ConfigFactory
 import play.api.libs.json._
 import slack.models._
 
-import java.io.File
-import java.net.InetSocketAddress
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.concurrent.duration._
 
 object SlackApiClient {
 
