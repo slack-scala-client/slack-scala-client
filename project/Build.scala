@@ -52,7 +52,7 @@ object Dependencies {
   val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkoVersion
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % "1.0.1"
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.10.5"
+  val playJson = "org.playframework" %% "play-json" % "3.0.3"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.2.18" % Test
 
