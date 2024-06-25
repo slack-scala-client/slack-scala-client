@@ -46,7 +46,7 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val pekkoVersion = "1.0.2"
+  val pekkoVersion = "1.0.3"
 
   val pekkoActor = "org.apache.pekko" %% "pekko-actor" % pekkoVersion
   val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkoVersion
