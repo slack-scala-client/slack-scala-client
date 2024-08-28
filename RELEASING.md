@@ -12,9 +12,9 @@ sbt publishSigned
 sbt slack-scala-client-models/publishSigned
 
 sdk use java 11.0.23-amzn
-sbt ++2.13.12 publishSigned
-sbt ++2.13.12 slack-scala-client-models/publishSigned
-sbt ++3.4.1 publishSigned
-sbt ++3.4.1 slack-scala-client-models/publishSigned
+sbt ++2.13.14 publishSigned
+sbt ++2.13.14 slack-scala-client-models/publishSigned
+sbt ++3.5.0 publishSigned
+sbt ++3.5.0 slack-scala-client-models/publishSigned
 ```
 - In Sonatype Close the staging repository, and Release it.
