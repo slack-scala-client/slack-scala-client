@@ -1,3 +1,7 @@
+1.0.1 (2024-08-28)
+
+- Dependency version upgrades
+
 1.0.0 (2024-05-08)
 ------------------
 * Providing support for Scala 3 (beta)
