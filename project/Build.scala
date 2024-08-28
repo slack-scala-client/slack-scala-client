@@ -3,14 +3,14 @@ import sbt.Keys.*
 
 object BuildSettings {
   val buildOrganization = "com.github.slack-scala-client"
-  val buildVersion      = "0.4.5"
-  val buildScalaVersion = "2.12.18"
+  val buildVersion      = "1.0.0"
+  val buildScalaVersion = "2.12.19"
 
   val settings = Seq (
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
-    crossScalaVersions :=  Seq(scalaVersion.value, "2.13.14", "3.4.1"),
+    crossScalaVersions :=  Seq(scalaVersion.value, "2.13.14", "3.4.3"),
     publishMavenStyle  := true,
     credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
     publishTo          := {
@@ -46,15 +46,15 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val pekkoVersion = "1.0.2"
+  val pekkoVersion = "1.0.3"
 
   val pekkoActor = "org.apache.pekko" %% "pekko-actor" % pekkoVersion
   val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkoVersion
   val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % "1.0.1"
 
-  val playJson = "com.typesafe.play" %% "play-json" % "2.10.5"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.10.6"
 
-  val scalatest = "org.scalatest" %% "scalatest" % "3.2.18" % Test
+  val scalatest = "org.scalatest" %% "scalatest" % "3.2.19" % Test
 
   val jodaConvert = "org.joda" % "joda-convert" % "2.2.3" // https://stackoverflow.com/a/13856382/118587
 
