@@ -50,7 +50,7 @@ object Dependencies {
 
   val pekkoActor = "org.apache.pekko" %% "pekko-actor" % pekkoVersion
   val pekkoStream = "org.apache.pekko" %% "pekko-stream" % pekkoVersion
-  val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % "1.0.1"
+  val pekkoHttp = "org.apache.pekko" %% "pekko-http-core" % "1.1.0"
 
   val playJson = "com.typesafe.play" %% "play-json" % "2.10.6"
 
